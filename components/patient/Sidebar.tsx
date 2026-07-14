@@ -8,7 +8,7 @@ import { useSession } from "next-auth/react"
 
 // --- Custom Icons matching the Mockup ---
 type IconProps = { className?: string }
-const iconBase = "h-5 w-5 shrink-0"
+const iconBase = "h-7 w-7 shrink-0"
 
 const GridIcon = ({ className }: IconProps) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${iconBase} ${className ?? ""}`}>
@@ -69,10 +69,20 @@ const UsersIcon = ({ className }: IconProps) => (
     </svg>
 )
 
-const CreditCardIcon = ({ className }: IconProps) => (
+const LibraryIcon = ({ className }: IconProps) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${iconBase} ${className ?? ""}`}>
-        <rect x="2" y="5" width="20" height="14" rx="2" ry="2" />
-        <line x1="2" y1="10" x2="22" y2="10" />
+        <path d="m16 6 4 14" />
+        <path d="M12 6v14" />
+        <path d="M8 8v12" />
+        <path d="M4 4v16" />
+    </svg>
+)
+
+const WalletIcon = ({ className }: IconProps) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${iconBase} ${className ?? ""}`}>
+        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+        <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
     </svg>
 )
 
@@ -109,14 +119,21 @@ const toolItems: SidebarItem[] = [
         label: "Pragya AI",
         href: "/patient/ai-bot",
         icon: (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-orange-500">
-                <path d="M12 2L15 8L21 11L15 14L12 20L9 14L3 11L9 8L12 2Z" fill="currentColor" fillOpacity="0.2" />
-                <path d="m5 3 3 2L5 7 2 5z" fill="currentColor" />
-                <path d="m19 17 3 2-3 2-2-2z" fill="currentColor" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7">
+                <path d="M8 8a3 3 0 1 1-5 2 8 8 0 0 0 18 0 3 3 0 1 1-5-2 8 8 0 0 0-8 0Z" />
+                <path d="M9 12v.01" />
+                <path d="M15 12v.01" />
+                <path d="M12 15h.01" />
+                <path d="M10 17a2 2 0 0 0 4 0" />
             </svg>
         )
     },
-    { label: "Billing & Plans", href: "/patient/billing", icon: <CreditCardIcon className="text-[#3b82f6]" /> },
+    {
+        label: "Library",
+        href: "/patient/library",
+        icon: <LibraryIcon />
+    },
+    { label: "Billing & Plans", href: "/patient/billing", icon: <WalletIcon /> },
 ]
 
 
@@ -126,7 +143,10 @@ export default function Sidebar() {
     const { data: session } = useSession()
 
     return (
-        <div className={`relative h-full transition-all duration-300 ${isCollapsed ? "w-[90px]" : "w-[260px]"} shrink-0 bg-[#131316] border-r border-[#27272a] z-40`}>
+        <div 
+            className={`relative h-full transition-all duration-300 ${isCollapsed ? "w-[90px]" : "w-[260px]"} shrink-0 z-40`}
+            style={{ backgroundImage: 'linear-gradient(to bottom, #4A3020, #26150C)' }}
+        >
 
             {/* Toggle Button centered on the vertical border */}
             {/* <button
@@ -141,10 +161,10 @@ export default function Sidebar() {
             <aside className={`flex flex-col h-full py-6 overflow-y-auto overflow-x-hidden shadow-inner ${isCollapsed ? "px-3 md:px-0" : "pl-3 pr-5"}`}>
 
                 {/* Header / Logo */}
-                <Link href="/patient/ai-bot" className={`flex items-center transition-all ${isCollapsed ? "justify-center mt-6 mb-10" : "pl-0 mb-6 gap-3"}`}>
+                <Link href="/patient/dashboard" className={`flex items-center transition-all ${isCollapsed ? "justify-center mt-6 mb-10" : "pl-0 mb-6 gap-3"}`}>
                     <div className="shrink-0">
                         <Image
-                            src="/images/logo.png"
+                            src="/images/logo_light.png"
                             alt="Logo"
                             width={isCollapsed ? 36 : 40}
                             height={isCollapsed ? 36 : 40}
@@ -162,7 +182,7 @@ export default function Sidebar() {
                 {/* General Section */}
                 {generalItems.length > 0 && (
                     <div className={`mb-8 ${isCollapsed ? "px-2" : "pl-2"}`}>
-                        {!isCollapsed && <h3 className="text-[11px] font-bold text-zinc-500 mb-3 px-2 uppercase tracking-wide">General</h3>}
+                        {!isCollapsed && <h3 className="text-[11px] font-bold text-orange-200/50 mb-3 px-2 uppercase tracking-wide">General</h3>}
                         <nav className="flex flex-col gap-1.5">
                             {generalItems.map((item) => {
                                 const isActive = pathname === item.href || (item.href !== '/patient/dashboard' && pathname.startsWith(item.href.split('?')[0]) && item.label !== "Calendar")
@@ -172,16 +192,16 @@ export default function Sidebar() {
                                         key={item.label}
                                         href={item.href}
                                         title={isCollapsed ? item.label : undefined}
-                                        className={`flex items-center justify-between rounded-2xl transition-all duration-300 font-bold
-                                            ${isCollapsed ? "p-3 justify-center" : "px-4 py-3"}
+                                        className={`flex items-center rounded-2xl transition-all duration-300 font-bold
+                                            ${isCollapsed ? "w-12 h-12 mx-auto justify-center" : "px-4 py-3 justify-between"}
                                             ${isActive
-                                                ? "bg-[#27272a] text-white shadow-sm ring-1 ring-white/5"
-                                                : "text-zinc-400 hover:text-zinc-100 hover:bg-white/5"
+                                                ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20"
+                                                : "text-orange-100/60 hover:text-white hover:bg-white/10"
                                             }
                                         `}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className={`${isActive ? "text-white" : "text-zinc-400"}`}>
+                                            <div className="flex items-center justify-center">
                                                 {item.icon}
                                             </div>
                                             {!isCollapsed && <span className="text-sm whitespace-nowrap">{item.label}</span>}
@@ -194,9 +214,9 @@ export default function Sidebar() {
                 )}
 
                 {/* Tools Section */}
-                <div className={`mb-8 w-full flex-1 ${isCollapsed ? "px-2" : "pl-2"}`}>
-                    {!isCollapsed && <h3 className="text-[11px] font-bold text-zinc-500 mb-3 px-2 uppercase tracking-wide">Tools</h3>}
-                    <nav className="flex flex-col gap-1.5">
+                <div className={`mb-8 w-full flex-1 flex flex-col justify-center ${isCollapsed ? "px-2" : "pl-2"}`}>
+                    {!isCollapsed && <h3 className="text-[11px] font-bold text-orange-200/50 mb-3 px-2 uppercase tracking-wide">Tools</h3>}
+                    <nav className={`flex flex-col ${isCollapsed ? "gap-6" : "gap-1.5"}`}>
                         {toolItems.map((item) => {
                             const isActive = pathname === item.href
 
@@ -205,22 +225,22 @@ export default function Sidebar() {
                                     key={item.label}
                                     href={item.href}
                                     title={isCollapsed ? item.label : undefined}
-                                    className={`flex items-center justify-between rounded-2xl transition-all duration-300 font-bold relative
-                                        ${isCollapsed ? "p-3 justify-center" : "px-4 py-3"}
+                                    className={`flex items-center rounded-2xl transition-all duration-300 font-bold relative
+                                        ${isCollapsed ? "w-12 h-12 mx-auto justify-center" : "px-4 py-3 justify-between"}
                                         ${isActive
-                                            ? "bg-[#27272a] text-white shadow-sm ring-1 ring-white/5"
-                                            : "text-zinc-400 hover:text-zinc-100 hover:bg-white/5"
+                                            ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20"
+                                            : "text-orange-100/60 hover:text-white hover:bg-white/10"
                                         }
                                     `}
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <div className={`${isActive ? "text-white" : "text-zinc-400"}`}>
+                                    <div className={`flex items-center ${isCollapsed ? "justify-center w-full" : "gap-3"}`}>
+                                        <div className="flex items-center justify-center">
                                             {item.icon}
                                         </div>
                                         {!isCollapsed && <span className="text-sm whitespace-nowrap">{item.label}</span>}
                                     </div>
                                     {item.badge && (
-                                        <div className={`bg-[#0066ff] text-white text-[10px] flex items-center justify-center rounded-full shadow-sm ${isCollapsed ? "absolute top-1 right-2 w-4 h-4" : "w-5 h-5 ml-auto"}`}>
+                                        <div className={`bg-[#0066ff] text-white text-[10px] flex items-center justify-center rounded-full shadow-sm ${isCollapsed ? "absolute top-1 right-1 w-4 h-4" : "w-5 h-5 ml-auto"}`}>
                                             {item.badge}
                                         </div>
                                     )}
@@ -235,9 +255,9 @@ export default function Sidebar() {
                     <div className="mt-auto mb-6 mx-4">
                         <Link
                             href="/patient/profile"
-                            className="flex items-center gap-3 p-3 bg-[#1e1e24] hover:bg-[#27272a] rounded-2xl border border-white/5 transition-all duration-300 group ring-1 ring-white/5 shadow-md select-none cursor-pointer"
+                            className="flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all duration-300 group shadow-sm select-none cursor-pointer"
                         >
-                            <div className="w-10 h-10 rounded-xl overflow-hidden relative bg-zinc-800 shrink-0 border border-white/10 shadow-sm flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-xl overflow-hidden relative bg-black/20 shrink-0 border border-white/10 shadow-sm flex items-center justify-center">
                                 {session?.user?.image ? (
                                     <Image
                                         src={session.user.image}
@@ -246,7 +266,7 @@ export default function Sidebar() {
                                         className="object-cover"
                                     />
                                 ) : (
-                                    <span className="text-sm font-bold text-zinc-400">
+                                    <span className="text-sm font-bold text-orange-100/60">
                                         {session?.user?.name ? session.user.name[0].toUpperCase() : "U"}
                                     </span>
                                 )}
@@ -255,7 +275,7 @@ export default function Sidebar() {
                                 <span className="text-sm font-black text-white leading-none tracking-wide truncate">
                                     {session?.user?.name || "Patient"}
                                 </span>
-                                <span className="text-[11px] font-bold text-zinc-400 mt-1 uppercase tracking-wider leading-none">
+                                <span className="text-[11px] font-bold text-orange-300 mt-1 uppercase tracking-wider leading-none">
                                     View Profile
                                 </span>
                             </div>
@@ -265,7 +285,7 @@ export default function Sidebar() {
                     <div className="mt-auto mb-6 mx-auto w-full flex justify-center px-2">
                         <Link
                             href="/patient/profile"
-                            className="w-12 h-12 rounded-2xl overflow-hidden relative bg-[#1e1e24] hover:bg-[#27272a] border border-white/5 transition-all duration-300 group flex items-center justify-center ring-1 ring-white/5 shadow-md cursor-pointer shrink-0"
+                            className="w-12 h-12 rounded-2xl overflow-hidden relative bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-300 group flex items-center justify-center shadow-sm cursor-pointer shrink-0"
                             title={session?.user?.name || "Profile"}
                         >
                             {session?.user?.image ? (
@@ -276,7 +296,7 @@ export default function Sidebar() {
                                     className="object-cover"
                                 />
                             ) : (
-                                <span className="text-base font-black text-zinc-400">
+                                <span className="text-base font-black text-orange-100/60">
                                     {session?.user?.name ? session.user.name[0].toUpperCase() : "U"}
                                 </span>
                             )}

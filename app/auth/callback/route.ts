@@ -97,7 +97,7 @@ export async function GET(req: NextRequest) {
       // Redirect based on role (or default dashboard if no role)
       switch (user.role) {
         case "PATIENT":
-          return NextResponse.redirect(new URL("/patient/ai-bot", req.url))
+          return NextResponse.redirect(new URL("/patient/dashboard", req.url))
         case "DOCTOR":
           return NextResponse.redirect(new URL("/doctor/dashboard", req.url))
         case "ADMIN":
@@ -149,7 +149,7 @@ export async function GET(req: NextRequest) {
     console.log("Signup onboarding complete - redirecting to dashboard:", user.role)
     switch (user.role) {
       case "PATIENT":
-        return NextResponse.redirect(new URL("/patient/ai-bot", req.url))
+        return NextResponse.redirect(new URL("/patient/dashboard", req.url))
       case "DOCTOR":
         return NextResponse.redirect(new URL("/doctor/dashboard", req.url))
       case "ADMIN":

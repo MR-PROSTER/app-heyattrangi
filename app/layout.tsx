@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   title: "Dashboard",
   description: "Comprehensive mental health support platform connecting patients, caregivers, and therapists",
   icons: {
-    icon: "/images/logo.png",
+    icon: "/images/logo_light.png",
   },
 };
 

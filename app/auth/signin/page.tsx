@@ -50,7 +50,7 @@ export default function SignInPage() {
         switch (role) {
           case "PATIENT":
           case "CAREGIVER":
-            router.push("/patient/ai-bot")
+            router.push("/patient/dashboard")
             break
           case "DOCTOR":
             router.push("/doctor/dashboard")

@@ -36,6 +36,7 @@ model User {
   organization  Organization? @relation(fields: [orgId], references: [id])
   transactions  Transaction[]
   pragyaMessages PragyaChatMessage[]
+  journalEntries JournalEntry[]
   
   @@map("users")
 }
@@ -126,6 +127,7 @@ model Patient {
   // Gamification
   currentStreak   Int               @default(0)
   lastLoginDate   DateTime?
+  totalCredits    Int               @default(0)
   
   @@map("patients")
 }
@@ -389,4 +391,20 @@ model PragyaChatMessage {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@map("pragya_chat_messages")
+}
+
+// Journal Entry
+model JournalEntry {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  title     String?  // Optional title for the journal entry
+  content   String   @db.String
+  moodScore Int?     // e.g., 1-5 or 1-10 scale
+  tags      String[] @default([]) // Keywords or themes
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("journal_entries")
 }

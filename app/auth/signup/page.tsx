@@ -69,7 +69,7 @@ export default function SignUpPage() {
         const role = data.role
         switch (role) {
           case "PATIENT":
-          case "CAREGIVER": router.push("/patient/ai-bot"); break
+          case "CAREGIVER": router.push("/patient/dashboard"); break
           case "DOCTOR": router.push("/doctor/dashboard"); break
           case "ADMIN": router.push("/admin/dashboard"); break
         }

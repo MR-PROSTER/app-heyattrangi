@@ -9,7 +9,7 @@ export default async function Home() {
     const role = session.user.role
     switch (role) {
       case "PATIENT":
-        redirect("/patient/ai-bot")
+        redirect("/patient/dashboard")
       case "DOCTOR":
         redirect("/doctor/dashboard")
       case "ADMIN":

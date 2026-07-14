@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useState } from "react"
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, addMonths, subMonths, isSameDay, getDay, startOfWeek, endOfWeek, addWeeks, subWeeks, addDays } from "date-fns"
 
-import PragyaSidebarCard from "./PragyaSidebarCard"
+import DailyCheckinCards from "./DailyCheckinCards"
 
 const SearchIcon = ({ className }: { className?: string }) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -144,7 +144,7 @@ export default function RightColumn({ upcomingAppointments }: { upcomingAppointm
                 </div>
             </div>
             <div className="mt-auto">
-                <PragyaSidebarCard />
+                <DailyCheckinCards />
             </div>
         </div>
     )

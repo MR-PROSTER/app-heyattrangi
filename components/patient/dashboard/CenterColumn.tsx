@@ -36,10 +36,26 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
     return (
         <div className="flex-1 h-full overflow-y-auto w-full px-6 md:px-8 xl:px-10 py-8 md:py-10 bg-[#fafdfc] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
             {/* Header */}
-            <header className="flex items-start justify-between w-full mb-6">
-                <div>
-                    <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Hi, {displayName}.</h1>
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
+            <header className="flex flex-col md:flex-row items-center md:items-start justify-center md:justify-start w-full gap-8 mb-10 mt-4 relative">
+                {/* Avatar Area */}
+                <div className="relative shrink-0 group mb-2 md:mb-0">
+                    <div className="w-28 h-28 md:w-36 md:h-36 relative z-10 flex items-center justify-center">
+                        <img 
+                            src="/new_bot/Ai%20icon.png" 
+                            alt="Avatar" 
+                            className="w-full h-full object-contain"
+                        />
+                    </div>
+                </div>
+
+                <div className="flex flex-col items-center md:items-start text-center md:text-left flex-1 max-w-3xl pt-2">
+                    <h2 className="text-[14px] md:text-[16px] uppercase tracking-[0.2em] font-black text-gray-700 mb-3">
+                        HELLO {displayName ? displayName.toUpperCase() : "THERE"} !
+                    </h2>
+                    <h1 className="text-[28px] md:text-[36px] font-bold text-gray-900 leading-tight mb-4">
+                        I'm here to listen and support you between sessions.
+                    </h1>
+                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
                         <span className="text-gray-500 font-medium tracking-wide">Let's track your health daily!</span>
                         <span className="inline-flex items-center rounded-full bg-orange-100 text-orange-800 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
                             {planLabelMap[normalizedPlan] ?? normalizedPlan.replace(/_/g, " ")}
@@ -206,69 +222,114 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
                 <div className="bg-white rounded-[32px] p-6 shadow-[0_2px_24px_rgba(0,0,0,0.03)] border border-gray-100 flex flex-col relative min-h-[400px]">
                     <h3 className="font-extrabold text-[22px] text-gray-900 mb-8">Daily Progress</h3>
 
-                    <div className="flex-1 flex flex-col items-center justify-center relative">
-                        {/* Circular Progress SVG */}
-                        <div className="relative w-[200px] h-[200px]">
-                            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                                {/* Background Ring */}
-                                <circle
-                                    cx="50" cy="50" r="40"
-                                    fill="transparent"
-                                    stroke="#ecfdf5"
-                                    strokeWidth="12"
-                                />
-                                {/* Progress Ring */}
-                                <circle
-                                    cx="50" cy="50" r="40"
-                                    fill="transparent"
-                                    stroke="#a7cc9a"
-                                    strokeWidth="12"
-                                    strokeDasharray="251.2"
-                                    strokeDashoffset={251.2 * (1 - 0.65)}
-                                    strokeLinecap="round"
-                                />
-                            </svg>
-                            {/* Inner Circle with Gradient */}
-                            <div className="absolute inset-[15%] rounded-full bg-gradient-to-br from-[#f8faf9] to-[#e8f5e9] flex flex-col items-center justify-center shadow-inner">
-                                <span className="text-[54px] font-black text-[#425a4d] leading-none">65%</span>
+                    <div className="flex flex-col gap-6 w-full">
+                        {/* Daily Progress Bar */}
+                        <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-[24px] p-6 border border-orange-100 shadow-sm relative overflow-hidden">
+                            <div className="absolute right-0 top-0 w-32 h-32 bg-orange-200/40 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                            
+                            <div className="flex items-end justify-between mb-4 relative z-10">
+                                <div>
+                                    <h4 className="text-[15px] font-black text-orange-900 tracking-tight mb-1">Today's Journey</h4>
+                                    <p className="text-[12px] font-semibold text-orange-700/70">You're making great progress!</p>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-[24px] font-black text-orange-600 leading-none">2</span>
+                                    <span className="text-[14px] font-bold text-orange-400"> / 4</span>
+                                </div>
+                            </div>
+                            
+                            <div className="w-full h-3 bg-white/60 rounded-full overflow-hidden border border-orange-100 relative z-10">
+                                <div className="h-full bg-gradient-to-r from-orange-400 to-amber-500 rounded-full w-[50%] relative">
+                                    <div className="absolute inset-0 bg-white/20 w-full h-full rounded-full" style={{ backgroundImage: 'linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)', backgroundSize: '1rem 1rem' }}></div>
+                                </div>
                             </div>
                         </div>
 
-                        <p className="text-gray-500 font-bold text-[15px] mt-8 text-center max-w-[200px]">
-                            Your health journey is progressing
-                        </p>
+                        {/* Task List */}
+                        <div className="flex flex-col gap-3">
+                            {[
+                                { title: "Morning Check-in", time: "5 mins", completed: true, color: "blue" },
+                                { title: "Mindful Breathing", time: "3 mins", completed: true, color: "teal" },
+                                { title: "The Thoughts-Feelings Loop", time: "10 mins", completed: false, color: "amber" },
+                                { title: "Evening Reflection", time: "5 mins", completed: false, color: "purple" },
+                            ].map((task, i) => (
+                                <div key={i} className={`flex items-center justify-between p-4 rounded-[20px] border transition-all ${task.completed ? 'bg-gray-50 border-gray-100 opacity-70' : 'bg-white border-gray-200 shadow-sm hover:border-orange-200 hover:shadow-md'}`}>
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${task.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+                                            {task.completed ? (
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-4 h-4"><polyline points="20 6 9 17 4 12" /></svg>
+                                            ) : (
+                                                <div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h5 className={`font-black text-[14px] ${task.completed ? 'text-gray-500 line-through decoration-gray-300' : 'text-gray-800'}`}>{task.title}</h5>
+                                            <span className="text-[11px] font-bold text-gray-400">{task.time}</span>
+                                        </div>
+                                    </div>
+                                    {!task.completed && (
+                                        <button className={`px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider text-${task.color}-600 bg-${task.color}-50 hover:bg-${task.color}-100 transition-colors`}>
+                                            Start
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
                 {/* Right Column: Quote & Mood Tracker */}
                 <div className="flex flex-col gap-8">
-                    {/* Motivational Quote Card */}
-                    <div className="bg-white rounded-[28px] p-8 shadow-[0_2px_16px_rgba(0,0,0,0.02)] border border-gray-100 min-h-[140px] flex items-center justify-center px-10">
-                        <p className="text-gray-600 font-bold text-[16px] text-center leading-relaxed">
-                            Your feelings are valid, and brighter days can begin with one small step.
-                        </p>
-                    </div>
-
-                    {/* Mood Tracker Card */}
-                    <div className="bg-white rounded-[32px] p-8 shadow-[0_2px_24px_rgba(0,0,0,0.03)] border border-gray-100 flex-col flex flex-1 min-h-[292px]">
-                        <div className="flex justify-between items-start mb-4">
-                            <h3 className="font-extrabold text-[20px] text-gray-900">Mood Tracker</h3>
+                    {/* Journaling Card */}
+                    <div className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-[32px] p-8 shadow-[0_4px_30px_rgba(0,0,0,0.04)] border border-indigo-100/60 flex-col flex flex-1 min-h-[292px] relative overflow-hidden group">
+                        <div className="absolute right-0 top-0 w-48 h-48 bg-indigo-200/30 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none group-hover:bg-indigo-300/30 transition-colors duration-500"></div>
+                        <div className="absolute left-0 bottom-0 w-48 h-48 bg-purple-200/30 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none group-hover:bg-purple-300/30 transition-colors duration-500"></div>
+                        
+                        <div className="flex justify-between items-start mb-6 relative z-10">
+                            <div className="w-12 h-12 bg-white rounded-2xl shadow-sm border border-indigo-50 flex items-center justify-center">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-indigo-500">
+                                    <path d="M12 20h9" />
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                                </svg>
+                            </div>
+                            <span className="bg-white/60 backdrop-blur-sm border border-indigo-100 text-indigo-600 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm">
+                                Daily Reflection
+                            </span>
                         </div>
 
-                        <div className="flex-1 flex flex-col pt-2">
-                            <h4 className="text-[17px] font-extrabold text-gray-800 mb-2">
+                        <div className="flex-1 flex flex-col pt-2 relative z-10">
+                            <h3 className="font-black text-[22px] text-gray-900 mb-2">
+                                Start today's journal
+                            </h3>
+                            <h4 className="text-[13px] font-bold text-indigo-600/80 mb-3 uppercase tracking-wide">
                                 {format(new Date(), "EEEE, do MMMM, yyyy")}
                             </h4>
-                            <p className="text-gray-400 font-bold text-[14px] leading-relaxed max-w-[90%]">
-                                Monitor your mood, journal, answer some prompts, feel free to use the space.
+                            <p className="text-gray-500 font-medium text-[14px] leading-relaxed max-w-[90%]">
+                                Write down your thoughts, clear your mind. <span className="font-bold text-gray-700">Ask for help with AI</span> if you need inspiration or guidance.
                             </p>
                         </div>
 
-                        <div className="mt-auto flex justify-end">
-                            <button className="px-6 py-2.5 bg-[#e9f2ee] text-[#425a4d] font-black text-[13px] rounded-full hover:bg-[#dce9e3] transition-colors border border-[#d5e5db]">
-                                Use prompts
+                        <div className="mt-auto flex justify-between items-center relative z-10">
+                            <button className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 transition-colors text-[13px] font-black group/btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                Ask AI
                             </button>
+                            <Link href="/patient/journal">
+                                <button className="px-7 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-[13px] rounded-full hover:shadow-lg hover:shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5">
+                                    Start Journal
+                                </button>
+                            </Link>
                         </div>
+                    </div>
+
+                    {/* Motivational Quote Card */}
+                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-[28px] p-8 shadow-[0_2px_16px_rgba(0,0,0,0.02)] border border-orange-100/50 flex flex-col items-center justify-center relative overflow-hidden">
+                        <svg className="absolute top-2 left-4 w-16 h-16 text-orange-200 opacity-40" fill="currentColor" viewBox="0 0 32 32" aria-hidden="true">
+                            <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
+                        </svg>
+                        <p className="text-orange-900/80 font-bold text-[16px] text-center leading-relaxed italic relative z-10 px-8 py-2">
+                            "Your feelings are valid, and brighter days can begin with one small step."
+                        </p>
                     </div>
                 </div>
             </div>

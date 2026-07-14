@@ -15,6 +15,55 @@ interface ChatMode {
   description: string
 }
 
+const SUGGESTION_POOL = [
+  "I'd like to explore this a bit more.",
+  "Can you help me understand why I feel this way?",
+  "Actually, I just need to vent for a moment.",
+  "Let's focus on finding some coping strategies.",
+  "I'm feeling a bit overwhelmed right now.",
+  "What can I do to feel more grounded?",
+  "Can we talk about how to manage this?"
+]
+
+const TypewriterText = ({
+  text,
+  speed = 30,
+  onComplete,
+  onCharacterTyped
+}: {
+  text: string;
+  speed?: number;
+  onComplete?: () => void;
+  onCharacterTyped?: () => void;
+}) => {
+  const [displayedText, setDisplayedText] = useState("")
+
+  useEffect(() => {
+    let index = 0
+    setDisplayedText("")
+    
+    // Dynamically calculate chunk size to ensure typing finishes within ~750ms
+    const totalTicks = 50
+    const increment = Math.max(1, Math.ceil(text.length / totalTicks))
+
+    const interval = setInterval(() => {
+      index += increment
+      if (index >= text.length) {
+        setDisplayedText(text)
+        clearInterval(interval)
+        onComplete?.()
+      } else {
+        setDisplayedText(text.slice(0, index))
+        onCharacterTyped?.()
+      }
+    }, speed)
+
+    return () => clearInterval(interval)
+  }, [text, speed])
+
+  return <>{displayedText}</>
+}
+
 const CHAT_MODES: ChatMode[] = [
   { id: "listen", title: "Just Listen", description: "I'll hear you out and validate your feelings." },
   { id: "reflect", title: "Reflect", description: "I'll help you see patterns and clarify thoughts." },
@@ -46,10 +95,10 @@ const getBotExpression = (text: string): string => {
 }
 
 const LOADING_MESSAGES = [
-  "Retrieving medical data...",
-  "Accessing cognitive layer...",
-  "Trying to understand...",
-  "Synthesizing response..."
+  "Listening...",
+  "Thinking...",
+  "Reflecting...",
+  "Typing..."
 ]
 
 const ChatLoadingIndicator = () => {
@@ -81,21 +130,27 @@ const ChatLoadingIndicator = () => {
 export default function TryPragyaChat({
   sessionId,
   initialPlan = "FREE",
-  initialChatCount = 0
+  initialChatCount = 0,
+  userName = ""
 }: {
   sessionId: string;
   initialPlan?: string;
   initialChatCount?: number;
+  userName?: string;
 }) {
   const [hasStarted, setHasStarted] = useState(false)
   const [preferredName, setPreferredName] = useState("")
   const [selectedMode, setSelectedMode] = useState<string | null>("direct")
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [inputMessage, setInputMessage] = useState("")
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
   const [botExpression, setBotExpression] = useState("NEUTRAL")
   const [lastUserMessage, setLastUserMessage] = useState("")
-  
+
   const [summarizing, setSummarizing] = useState(false)
   const [summaryOpen, setSummaryOpen] = useState(false)
   const [summaryReport, setSummaryReport] = useState<string | null>(null)
@@ -108,7 +163,6 @@ export default function TryPragyaChat({
   const [plan, setPlan] = useState(initialPlan)
   const [chatCount, setChatCount] = useState(initialChatCount)
   const [showMemoryPolicy, setShowMemoryPolicy] = useState(false)
-  const [isFullscreen, setIsFullscreen] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -132,52 +186,61 @@ export default function TryPragyaChat({
   }, [plan, chatCount])
 
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement)
-    }
-    document.addEventListener('fullscreenchange', handleFullscreenChange)
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
-  }, [])
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(err => {
-        console.log(`Error attempting to enable fullscreen: ${err.message}`)
-      })
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen()
-      }
-    }
-  }
-
-  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  useEffect(() => {
-    if (!hasStarted && selectedMode) {
-      setHasStarted(true)
-      const modeDetails = CHAT_MODES.find(m => m.id === selectedMode)
-      const initialMsg = `Hi! I'm setting my mode to: ${modeDetails?.title}. How can I help you today?`
-      setMessages([{ role: "assistant", content: initialMsg }])
-      setBotExpression("NEUTRAL")
-    }
-  }, [hasStarted, selectedMode])
+  // Removed auto-start useEffect so the user can see the pre-chat screen.
 
   const handleStartChat = () => {
     if (selectedMode) {
       setHasStarted(true)
       const modeDetails = CHAT_MODES.find(m => m.id === selectedMode)
       const initialMsg = `Hi! I'm setting my mode to: ${modeDetails?.title}. How can I help you today?`
+      setIsTyping(true)
       setMessages([{ role: "assistant", content: initialMsg }])
       setBotExpression("NEUTRAL")
     }
   }
 
+  const handleShowSuggestions = async () => {
+    setIsSuggestionsLoading(true)
+    setShowSuggestions(true)
+    setSuggestions([])
+    try {
+      const res = await fetch("/api/pragya/suggestions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setSuggestions(data.suggestions || [])
+      } else {
+        const shuffled = [...SUGGESTION_POOL].sort(() => 0.5 - Math.random())
+        setSuggestions(shuffled.slice(0, 3))
+      }
+    } catch {
+      const shuffled = [...SUGGESTION_POOL].sort(() => 0.5 - Math.random())
+      setSuggestions(shuffled.slice(0, 3))
+    } finally {
+      setIsSuggestionsLoading(false)
+    }
+  }
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setInputMessage("")
+    setLastUserMessage(suggestion)
+    setMessages((prev) => [...prev, { role: "user", content: suggestion }])
+    sendMessage(undefined, suggestion)
+  }
+
   const sendMessage = async (e?: FormEvent, retryMsg?: string) => {
     e?.preventDefault()
     if ((!inputMessage.trim() && !retryMsg) || isLoading || limitData.isLimitReached) return
+
+    if (!hasStarted) {
+      setHasStarted(true)
+    }
 
     const userMsg = retryMsg || inputMessage
     if (!retryMsg) {
@@ -187,12 +250,18 @@ export default function TryPragyaChat({
     }
 
     setIsLoading(true)
+    setSuggestions([])
+    setShowSuggestions(false)
 
     try {
       const res = await fetch("/api/pragya/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId, message: userMsg, preferred_name: preferredName }),
+        body: JSON.stringify({ 
+          session_id: sessionId, 
+          message: userMsg,
+          generate_suggestions: false
+        }),
       })
 
       if (!res.ok) {
@@ -200,18 +269,22 @@ export default function TryPragyaChat({
         throw new Error(errorData.error || "Failed to connect to the assistant.")
       }
 
-      const data = await res.json() as { reply?: string; currentCount?: number; plan?: string; error?: string }
+      const data = await res.json() as { reply?: string; currentCount?: number; plan?: string; error?: string; suggestions?: string[] }
 
       if (data.error === "LIMIT_REACHED" || (data.currentCount !== undefined && data.currentCount > chatCount)) {
         if (typeof data.currentCount === "number") setChatCount(data.currentCount)
         if (typeof data.plan === "string") setPlan(data.plan)
       }
-      
+
       const reply = typeof data.reply === "string" ? data.reply : "Sorry, I didn't quite get that. Could you please rephrase?"
 
+      setIsTyping(true)
       setMessages((prev) => [...prev, { role: "assistant", content: reply }])
       setBotExpression(getBotExpression(reply))
-      
+      if (data.suggestions && Array.isArray(data.suggestions)) {
+        setSuggestions(data.suggestions)
+      }
+
     } catch (error: any) {
       console.error("Chat error:", error)
       const errorMessage = error.message || "Sorry, I'm having trouble connecting to the backend right now."
@@ -231,6 +304,8 @@ export default function TryPragyaChat({
   const resetChat = () => {
     setHasStarted(false)
     setSelectedMode("direct")
+    setSuggestions([])
+    setShowSuggestions(false)
     setMessages([])
     setBotExpression("NEUTRAL")
     setSummaryOpen(false)
@@ -286,22 +361,20 @@ export default function TryPragyaChat({
   return (
     <>
       <div className="flex flex-col h-full bg-white text-gray-800 overflow-hidden font-sans relative">
-        <div className="flex-1 flex flex-col md:flex-row w-full max-w-[1600px] mx-auto overflow-hidden relative h-full">
-          
+        {/* Subtle grid pattern + soft radial ambient glow */}
+        <div className="absolute inset-0 pointer-events-none z-0 opacity-40" style={{
+          backgroundImage: `
+            radial-gradient(circle at 100% 0%, rgba(254, 215, 170, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 0% 100%, rgba(254, 243, 199, 0.15) 0%, transparent 50%),
+            radial-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px)
+          `,
+          backgroundSize: '100% 100%, 100% 100%, 20px 20px'
+        }}></div>
+        <div className="flex-1 flex flex-col md:flex-row w-full max-w-[1600px] mx-auto overflow-hidden relative h-full z-10">
+
           {/* Mobile Header (Visible only on small screens) */}
-          <div className="md:hidden w-full relative shrink-0 z-20 overflow-hidden" style={{ backgroundColor: '#eddfd3' }}>
+          <div className="md:hidden w-full relative shrink-0 z-20 overflow-hidden bg-transparent">
             <div className="absolute top-4 right-4 z-30 flex items-center gap-2">
-              <button
-                onClick={toggleFullscreen}
-                title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-                className="p-2 text-gray-500 hover:text-orange-500 rounded-full bg-white/40 backdrop-blur-md hover:bg-white transition-colors border border-white/40 shadow-sm"
-              >
-                {isFullscreen ? (
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 14h4v4M4 14l5 5M14 4h4v4M14 4l5-5M4 10h4V6M4 10l5-5M20 14h-4v4M20 14l-5 5" /></svg>
-                ) : (
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
-                )}
-              </button>
               <button
                 onClick={resetChat}
                 title="Reset Chat"
@@ -316,7 +389,7 @@ export default function TryPragyaChat({
                 className={`p-2 rounded-full transition-colors border shadow-sm backdrop-blur-md ${summarizing || !hasStarted || messages.length === 0
                   ? "text-gray-400 bg-white/30 border-white/20 cursor-not-allowed"
                   : "text-white bg-orange-500 border-orange-400 hover:bg-orange-600"
-                }`}
+                  }`}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
               </button>
@@ -350,7 +423,7 @@ export default function TryPragyaChat({
           </div>
 
           {/* Left Sidebar */}
-          <div className="hidden md:flex w-[360px] md:w-[400px] bg-white/90 backdrop-blur-md border-r border-gray-200 flex-col items-center py-8 px-6 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10 relative">
+          <div className="hidden md:flex w-[360px] md:w-[400px] bg-white border-r border-gray-100 flex-col items-center py-8 px-6 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10 relative">
             <div className="flex-1 flex flex-col items-center justify-center w-full pb-12">
               <h1 className="text-xl font-bold text-gray-800 tracking-wide mb-8">Hey Attrangi</h1>
 
@@ -439,8 +512,8 @@ export default function TryPragyaChat({
           </div>
 
           {/* Main Content Area */}
-          <div className={`flex-1 flex justify-center bg-white relative overflow-y-auto ${limitData.isLimitReached ? 'overflow-hidden' : ''}`}>
-            
+          <div className={`flex-1 flex justify-center bg-transparent relative overflow-y-auto ${limitData.isLimitReached ? 'overflow-hidden' : ''}`}>
+
             {/* LIMIT REACHED MODAL OVERLAY */}
             {limitData.isLimitReached && (
               <div className="absolute inset-0 z-50 backdrop-blur-md bg-white/30 flex items-center justify-center p-6 animate-in fade-in duration-500">
@@ -454,18 +527,8 @@ export default function TryPragyaChat({
                   <p className="text-gray-500 mb-8 font-medium">
                     You've used all {limitData.maxChats} chats for your current plan today. Upgrade to continue chatting!
                   </p>
-                                  <div className="mb-8">
-                  <label className="block text-[15px] font-bold text-gray-700 mb-2 ml-1">What should I call you?</label>
-                  <input
-                    type="text"
-                    value={preferredName}
-                    onChange={(e) => setPreferredName(e.target.value)}
-                    placeholder="Enter your preferred name..."
-                    className="w-full px-5 py-4 rounded-xl border border-gray-200 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all bg-gray-50/50 text-[15px]"
-                  />
-                </div>
 
-                <div className="space-y-4">
+                  <div className="space-y-4">
                     <a
                       href="/patient/billing"
                       className="block w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-orange-500/30 transition-all hover:-translate-y-1 active:scale-[0.98]"
@@ -477,188 +540,230 @@ export default function TryPragyaChat({
               </div>
             )}
 
-            {!hasStarted ? (
-              /* Pre-chat Setup Layout */
-              <div className="w-full max-w-xl px-4 md:px-8 flex flex-col justify-center h-full min-h-[min(100%,700px)] animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out py-8 md:py-12 overflow-y-auto">
-                <h2 className="text-[24px] md:text-[28px] font-bold text-gray-800 mb-6 md:mb-8 tracking-tight md:ml-1 text-center md:text-left">How can I help you today?</h2>
-
-                                <div className="mb-8">
-                  <label className="block text-[15px] font-bold text-gray-700 mb-2 ml-1">What should I call you?</label>
-                  <input
-                    type="text"
-                    value={preferredName}
-                    onChange={(e) => setPreferredName(e.target.value)}
-                    placeholder="Enter your preferred name..."
-                    className="w-full px-5 py-4 rounded-xl border border-gray-200 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all bg-gray-50/50 text-[15px]"
-                  />
+            {/* Chat Limit Badge */}
+            <div className={`absolute right-4 md:right-8 top-4 md:top-8 z-50 hidden lg:flex items-center transition-all duration-700 ${hasStarted ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+              <div className="flex items-center gap-3 bg-white border border-gray-200 shadow-sm rounded-full pl-2 pr-5 py-1.5 backdrop-blur-sm bg-white/90 pointer-events-auto">
+                <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
                 </div>
-
-                <div className="space-y-4">
-                  {CHAT_MODES.map((mode) => (
-                    <div
-                      key={mode.id}
-                      onClick={() => setSelectedMode(mode.id)}
-                      className={`w-full px-6 py-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ease-out flex flex-col justify-center ${selectedMode === mode.id
-                        ? 'bg-orange-50 border-orange-400 shadow-[0_8px_20px_rgba(249,107,19,0.15)] ring-1 ring-orange-400/20 translate-x-2'
-                        : 'bg-white border-gray-100 hover:border-orange-200 hover:bg-orange-50/30 hover:shadow-sm'
-                        }`}
-                    >
-                      <h3 className={`text-[16px] font-bold mb-1 ${selectedMode === mode.id ? 'text-orange-700' : 'text-gray-800'}`}>{mode.title}</h3>
-                      <p className="text-[14px] text-gray-500 font-medium">{mode.description}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-10 flex justify-end w-full">
-                  <button
-                    onClick={handleStartChat}
-                    disabled={!selectedMode}
-                    className={`px-8 py-4 rounded-xl font-bold transition-all duration-300 flex items-center gap-2 ${selectedMode
-                      ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-[0_8px_20px_rgba(249,107,19,0.3)] hover:-translate-y-1'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
-                      }`}
-                  >
-                    Start Chatting
-                    {selectedMode && <svg className="w-5 h-5 ml-1 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>}
-                  </button>
+                <div className="flex flex-col items-start leading-tight">
+                  <span className="text-[9px] text-gray-400 uppercase tracking-widest font-black">Available</span>
+                  <span className="text-sm font-bold text-gray-800">
+                    {plan === "FREE"
+                      ? `${limitData.remaining} / 10 Chats`
+                      : plan === "ESSENTIAL"
+                        ? `${limitData.remaining} / 25 Chats`
+                        : "Unlimited Chats"}
+                  </span>
                 </div>
               </div>
-            ) : (
-              /* Active Chat Layout */
-              <div className="w-full max-w-4xl flex flex-col h-full md:h-[90vh] md:my-auto bg-white md:rounded-3xl md:border md:border-gray-100 md:shadow-[0_20px_60px_rgba(0,0,0,0.06)] overflow-hidden animate-in fade-in zoom-in-95 duration-500">
-                
-                {/* Chat Limit Badge for Desktop inside Chat Container */}
-                <div className="absolute right-6 top-6 z-50 hidden lg:flex items-center pointer-events-none">
-                  <div className="flex items-center gap-3 bg-white border border-gray-200 shadow-sm rounded-full pl-2 pr-5 py-1.5 backdrop-blur-sm bg-white/90 pointer-events-auto">
-                    <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
-                    </div>
-                    <div className="flex flex-col items-start leading-tight">
-                      <span className="text-[9px] text-gray-400 uppercase tracking-widest font-black">Available</span>
-                      <span className="text-sm font-bold text-gray-800">
-                        {plan === "FREE" 
-                          ? `${limitData.remaining} / 10 Chats` 
-                          : plan === "ESSENTIAL"
-                            ? `${limitData.remaining} / 25 Chats` 
-                            : "Unlimited Chats"}
-                      </span>
-                    </div>
-                  </div>
+            </div>
+
+            {/* Unified Chat Layout with Smooth Transitions */}
+            <div className="w-full max-w-4xl mx-auto flex flex-col h-full bg-transparent overflow-hidden relative">
+
+              {/* Header / Mode Toggle Area */}
+              <div
+                className={`transition-all duration-700 ease-in-out w-full flex flex-col shrink-0 relative z-10 ${!hasStarted
+                    ? 'flex-1 items-center justify-center mt-[-8vh]'
+                    : 'pt-8 pb-4'
+                  }`}
+              >
+                {/* Big Title */}
+                <div
+                  className={`text-center transition-all duration-700 ease-in-out overflow-hidden ${!hasStarted
+                      ? 'opacity-100 max-h-[200px] mb-12 scale-100'
+                      : 'opacity-0 max-h-0 mb-0 scale-95 pointer-events-none'
+                    }`}
+                >
+                  <h2 className="text-[14px] md:text-[16px] uppercase tracking-[0.2em] font-black text-gray-700 mb-6">
+                    HELLO {userName ? userName.toUpperCase() : "THERE"}!
+                  </h2>
+                  <h1 className="text-[28px] md:text-[40px] font-bold text-gray-900 leading-tight">
+                    I'm here to listen and support you between sessions.
+                  </h1>
                 </div>
 
-                {/* Mode Toggle Header */}
-                <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 p-4 border-b border-gray-100 bg-white/50 backdrop-blur-md z-10 shrink-0 relative pr-16 md:pr-4">
+                {/* Mode Buttons */}
+                <div className="flex flex-wrap justify-center items-center gap-2 md:gap-3 w-full pr-16 md:pr-4">
                   {CHAT_MODES.map((mode) => (
                     <button
                       key={mode.id}
                       onClick={() => {
                         if (selectedMode !== mode.id) {
                           setSelectedMode(mode.id);
-                          setMessages(prev => [...prev, { role: "assistant", content: `I've switched to **${mode.title}** mode. ${mode.description}` }]);
+                          if (hasStarted) {
+                            setIsTyping(true)
+                            setMessages(prev => [...prev, { role: "assistant", content: `I've switched to **${mode.title}** mode. ${mode.description}` }]);
+                          }
                         }
                       }}
-                      className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-300 ${selectedMode === mode.id
-                          ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                          : 'bg-gray-50 text-gray-500 border border-gray-200 hover:bg-gray-100 hover:text-gray-700'
+                      className={`px-3 py-1.5 rounded-full text-[12px] md:px-4 md:py-2 md:text-[13px] font-medium transition-all duration-300 shadow-sm whitespace-nowrap ${selectedMode === mode.id
+                          ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20 scale-105'
+                          : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-orange-200 hover:text-orange-500'
                         }`}
                     >
                       {mode.title}
                     </button>
                   ))}
-
-                  <button
-                    onClick={toggleFullscreen}
-                    title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-                    className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-orange-500 rounded-full bg-white transition-colors border border-gray-200 shadow-sm"
-                  >
-                    {isFullscreen ? (
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 14h4v4M4 14l5 5M14 4h4v4M14 4l5-5M4 10h4V6M4 10l5-5M20 14h-4v4M20 14l-5 5" /></svg>
-                    ) : (
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
-                    )}
-                  </button>
-                </div>
-
-                {/* Chat Messages */}
-                <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent bg-[#fafcfd]">
-                  {messages.map((msg, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-2 duration-300`}
-                    >
-                      <div
-                        className={`max-w-[85%] sm:max-w-[75%] rounded-3xl p-5 text-[15px] leading-relaxed shadow-sm whitespace-pre-wrap ${msg.role === "user"
-                          ? "bg-gradient-to-r from-orange-600 to-orange-500 text-white rounded-tr-sm shadow-[0_4px_14px_rgba(249,107,19,0.25)]"
-                          : msg.isError
-                            ? "bg-red-50 text-red-800 rounded-tl-sm border border-red-100 shadow-[0_2px_10px_rgba(220,38,38,0.04)]"
-                            : "bg-white text-gray-800 rounded-tl-sm border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)]"
-                          }`}
-                      >
-                        {msg.content}
-                        {msg.isError && lastUserMessage && (
-                          <button
-                            onClick={() => sendMessage(undefined, lastUserMessage)}
-                            className="mt-3 flex items-center gap-1.5 text-[13px] font-bold text-red-600 hover:text-red-700 transition-colors bg-white/50 px-3 py-1.5 rounded-lg border border-red-100"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                            Retry
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {isLoading && <ChatLoadingIndicator />}
-                  <div ref={messagesEndRef} className="h-4" />
-                </div>
-
-                {/* Chat Input Field */}
-                <div className="p-4 md:p-6 bg-white border-t border-gray-100 shadow-[0_-10px_30px_rgba(0,0,0,0.02)] z-10">
-                  <div className="max-w-4xl mx-auto">
-                    <div className="flex justify-between items-center mb-2 px-2 md:hidden">
-                      <span className="text-[12px] text-gray-400 font-bold">
-                        {plan !== "PRO" ? `${limitData.remaining} chats remaining today` : ""}
-                      </span>
-                    </div>
-                    <form id="chat-form" onSubmit={sendMessage} className="relative flex items-center">
-                      <input
-                        type="text"
-                        value={inputMessage}
-                        onChange={(e) => setInputMessage(e.target.value)}
-                        placeholder="Type your message here..."
-                        className="w-full bg-gray-50 text-gray-800 placeholder-gray-400 rounded-2xl py-4 pl-6 pr-16 border border-gray-100 focus:outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 focus:bg-white transition-all shadow-inner text-[15px]"
-                        disabled={isLoading}
-                        autoFocus
-                      />
-                      <div className="absolute right-2 top-2 bottom-2 flex items-center">
-                        <button
-                          type="submit"
-                          disabled={isLoading || !inputMessage.trim()}
-                          className={`p-2.5 rounded-[12px] h-full transition-all duration-300 flex items-center justify-center aspect-square ${isLoading || !inputMessage.trim()
-                            ? "text-gray-400 bg-transparent"
-                            : "text-white bg-orange-500 hover:bg-orange-600 shadow-md hover:-translate-y-0.5 hover:shadow-lg shadow-orange-500/30"
-                            }`}
-                        >
-                          <svg className="w-5 h-5 transform translate-x-[-1px] translate-y-[1px]" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-                          </svg>
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                  <div className="flex justify-center items-center mt-4 text-[11px] text-gray-500 font-medium">
-                    <p className="hidden md:block">Pragya may produce inaccurate information about people, places, or facts.</p>
-                    <button
-                      type="button"
-                      onClick={() => setShowMemoryPolicy(true)}
-                      className="md:hidden text-gray-400 hover:text-orange-500 transition-colors flex items-center gap-1"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      Memory Policy
-                    </button>
-                  </div>
                 </div>
               </div>
-            )}
+
+              {/* Chat Messages */}
+              <div
+                className={`overflow-y-auto p-6 md:p-8 space-y-6 no-scrollbar bg-transparent transition-all duration-700 ease-in-out ${!hasStarted ? 'flex-none opacity-0 h-0 p-0 md:p-0' : 'flex-1 opacity-100'
+                  }`}
+              >
+                {messages.map((msg, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-2 duration-300`}
+                  >
+                    <div
+                      className={`max-w-[85%] sm:max-w-[75%] rounded-3xl p-5 text-[15px] leading-relaxed shadow-sm whitespace-pre-wrap ${msg.role === "user"
+                        ? "bg-gradient-to-r from-orange-600 to-orange-500 text-white rounded-tr-sm shadow-[0_4px_14px_rgba(249,107,19,0.25)]"
+                        : msg.isError
+                          ? "bg-red-50 text-red-800 rounded-tl-sm border border-red-100 shadow-[0_2px_10px_rgba(220,38,38,0.04)]"
+                          : "bg-white text-gray-800 rounded-tl-sm border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)]"
+                        }`}
+                    >
+                      {msg.role === "assistant" && !msg.isError && idx === messages.length - 1 ? (
+                        <TypewriterText
+                          text={msg.content}
+                          onCharacterTyped={() => {
+                            messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
+                          }}
+                          onComplete={() => {
+                            setIsTyping(false)
+                            setTimeout(() => {
+                              setShowSuggestions(true)
+                            }, 3000)
+                          }}
+                        />
+                      ) : (
+                        msg.content
+                      )}
+                      {msg.isError && lastUserMessage && (
+                        <button
+                          onClick={() => sendMessage(undefined, lastUserMessage)}
+                          className="mt-3 flex items-center gap-1.5 text-[13px] font-bold text-red-600 hover:text-red-700 transition-colors bg-white/50 px-3 py-1.5 rounded-lg border border-red-100"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                          Retry
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {isLoading && <ChatLoadingIndicator />}
+                <div ref={messagesEndRef} className="h-4" />
+              </div>
+
+              {/* Chat Input Field */}
+              <div className="p-4 md:p-6 pb-8 z-10 bg-transparent shrink-0">
+                <div className="max-w-4xl mx-auto relative">
+                  {showSuggestions && (isSuggestionsLoading || suggestions.length > 0) && !isTyping && !isLoading && hasStarted ? (
+                    <div className="absolute bottom-full mb-3 left-0 right-0 flex items-center justify-between gap-2 px-2 z-20">
+                      {isSuggestionsLoading ? (
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white border border-orange-100 rounded-full text-[13px] text-orange-600 font-medium shadow-[0_2px_8px_rgba(249,107,19,0.1)]">
+                          <div className="flex gap-1">
+                            <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                            <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                            <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                          </div>
+                          <span>Generating suggestions...</span>
+                        </div>
+                      ) : suggestions.length > 0 ? (
+                        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 flex-1">
+                          {suggestions.map((s, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => handleSuggestionClick(s)}
+                              className="whitespace-nowrap px-4 py-2 bg-white border border-orange-200 text-orange-600 rounded-full text-[13px] font-medium shadow-[0_2px_8px_rgba(249,107,19,0.15)] hover:bg-orange-50 hover:-translate-y-0.5 transition-all"
+                            >
+                              {s}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSuggestions([])
+                          setShowSuggestions(false)
+                        }}
+                        className="p-1.5 bg-white border border-orange-200 text-orange-400 hover:text-orange-600 rounded-full shadow-[0_2px_8px_rgba(249,107,19,0.15)] hover:bg-orange-50 transition-all flex items-center justify-center shrink-0"
+                        title="Dismiss suggestions"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    !isTyping && !isLoading && hasStarted && (
+                      <div className="absolute bottom-full mb-3 left-2 z-20">
+                        <button
+                          type="button"
+                          onClick={handleShowSuggestions}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-orange-200 text-orange-600 rounded-full text-[12px] font-bold shadow-[0_2px_8px_rgba(249,107,19,0.1)] hover:bg-orange-50 hover:-translate-y-0.5 transition-all"
+                        >
+                          <svg className="w-3.5 h-3.5 text-orange-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                          </svg>
+                          Suggestions ✨
+                        </button>
+                      </div>
+                    )
+                  )}
+
+                  <div className={`transition-all duration-700 ${!hasStarted ? 'opacity-0 h-0 overflow-hidden mb-0' : 'flex justify-between items-center mb-2 px-2 md:hidden opacity-100 h-auto'}`}>
+                    <span className="text-[12px] text-gray-400 font-bold">
+                      {plan !== "PRO" ? `${limitData.remaining} chats remaining today` : ""}
+                    </span>
+                  </div>
+
+                  <form onSubmit={sendMessage} className="relative flex items-center">
+                    <input
+                      type="text"
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      placeholder={hasStarted ? "Type your message here..." : "Tell me what's been on your mind..."}
+                      className={`w-full bg-white text-gray-800 placeholder-gray-400 py-5 pl-8 pr-16 focus:outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100 transition-all text-[15px] ${!hasStarted ? 'rounded-full border border-orange-100 shadow-[0_10px_40px_rgba(249,107,19,0.08)] font-medium' : 'rounded-2xl border border-gray-100 shadow-inner'}`}
+                      disabled={isLoading}
+                      autoFocus
+                    />
+                    <div className="absolute right-2 top-2 bottom-2 flex items-center">
+                      <button
+                        type="submit"
+                        disabled={isLoading || !inputMessage.trim()}
+                        className={`p-2.5 rounded-[12px] h-full transition-all duration-300 flex items-center justify-center aspect-square ${isLoading || !inputMessage.trim()
+                          ? "text-gray-400 bg-transparent"
+                          : "text-white bg-orange-500 hover:bg-orange-600 shadow-md hover:-translate-y-0.5 hover:shadow-lg shadow-orange-500/30"
+                          }`}
+                      >
+                        <svg className="w-5 h-5 transform translate-x-[-1px] translate-y-[1px]" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                <div className={`transition-all duration-700 ${!hasStarted ? 'opacity-0 h-0 overflow-hidden mt-0' : 'flex justify-center items-center mt-4 text-[11px] text-gray-500 font-medium opacity-100 h-auto'}`}>
+                  <p className="hidden md:block">Pragya may produce inaccurate information about people, places, or facts.</p>
+                  <button
+                    type="button"
+                    onClick={() => setShowMemoryPolicy(true)}
+                    className="md:hidden text-gray-400 hover:text-orange-500 transition-colors flex items-center gap-1"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Memory Policy
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -729,19 +834,9 @@ export default function TryPragyaChat({
                 </svg>
               </button>
             </div>
-            <div className="scrollbar-thin scrollbar-thumb-gray-200 flex-1 overflow-y-auto p-6 bg-gray-50/30">
-                              <div className="mb-8">
-                  <label className="block text-[15px] font-bold text-gray-700 mb-2 ml-1">What should I call you?</label>
-                  <input
-                    type="text"
-                    value={preferredName}
-                    onChange={(e) => setPreferredName(e.target.value)}
-                    placeholder="Enter your preferred name..."
-                    className="w-full px-5 py-4 rounded-xl border border-gray-200 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all bg-gray-50/50 text-[15px]"
-                  />
-                </div>
+            <div className="no-scrollbar flex-1 overflow-y-auto p-6 bg-gray-50/30">
 
-                <div className="space-y-4">
+              <div className="space-y-4">
                 {isHistoryLoading ? (
                   <div className="flex justify-center p-8">
                     <div className="w-8 h-8 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>

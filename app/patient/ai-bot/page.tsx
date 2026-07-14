@@ -23,7 +23,8 @@ async function AIBotContent() {
       <TryPragyaChat 
         sessionId={sessionId} 
         initialPlan={user.plan} 
-        initialChatCount={dailyAiChatCount} 
+        initialChatCount={dailyAiChatCount}
+        userName={user.name || "User"}
       />
     </div>
   )
