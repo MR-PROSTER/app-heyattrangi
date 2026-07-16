@@ -95,7 +95,7 @@ export default function AppointmentsList({ upcomingAppointments, pastAppointment
     
     // If no link exists but the appointment is confirmed, generate the predictable link
     if (!link && (appointment.status === "CONFIRMED" || appointment.status === "PENDING")) {
-      link = `https://meet-heyattrangi.vercel.app/${appointment.id}`
+      link = `/meet/${appointment.id}`
     }
 
     if (!link) {
@@ -103,11 +103,11 @@ export default function AppointmentsList({ upcomingAppointments, pastAppointment
       return
     }
 
-    if (link.includes("meet-heyattrangi.vercel.app")) {
-      const baseUrl = link.split('?')[0].replace(/\/lobby$/, '').replace(/\/$/, '')
-      const userName = session?.user?.name || "Patient"
-      link = `${baseUrl}/lobby?user=${encodeURIComponent(userName)}&audio=true&video=true`
-    }
+    // Adapt any existing external links to the new internal route format
+    const baseUrl = link.split('?')[0].replace(/\/lobby$/, '').replace(/\/$/, '')
+    const finalUrl = baseUrl.replace('https://meet-heyattrangi.vercel.app', '/meet')
+    const userName = session?.user?.name || "Patient"
+    link = `${finalUrl}?user=${encodeURIComponent(userName)}`
 
     window.open(link, "_blank")
   }

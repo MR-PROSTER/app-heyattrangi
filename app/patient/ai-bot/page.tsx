@@ -2,6 +2,7 @@ import { Suspense } from "react"
 import { auth } from "@/auth.config"
 import TryPragyaChat from "@/components/ai-bot/TryPragyaChat"
 import AIBotSkeleton from "@/components/ai-bot/AIBotSkeleton"
+import AiOnboarding from "@/components/ai-bot/AiOnboarding"
 import { prisma } from "@/lib/prisma"
 
 async function AIBotContent() {
@@ -9,7 +10,10 @@ async function AIBotContent() {
   
   if (!session?.user?.id) return null
 
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } })
+  const user = await prisma.user.findUnique({ 
+    where: { id: session.user.id },
+    include: { patient: true }
+  })
   if (!user) return null
 
   const sessionId = `patient_${session.user.id}`
@@ -18,14 +22,20 @@ async function AIBotContent() {
   const isSameDay = user.lastAiChatDate === today
   const dailyAiChatCount = isSameDay ? user.dailyAiChatCount : 0
 
+  const hasOnboarded = !!user.patient?.aiNickname
+
   return (
     <div className="flex-1 min-w-0 h-full flex flex-col relative w-full overflow-hidden bg-[var(--color-bg)]">
-      <TryPragyaChat 
-        sessionId={sessionId} 
-        initialPlan={user.plan} 
-        initialChatCount={dailyAiChatCount}
-        userName={user.name || "User"}
-      />
+      {hasOnboarded ? (
+        <TryPragyaChat 
+          sessionId={sessionId} 
+          initialPlan={user.plan} 
+          initialChatCount={dailyAiChatCount}
+          userName={user.patient?.aiNickname || user.name || "User"}
+        />
+      ) : (
+        <AiOnboarding />
+      )}
     </div>
   )
 }

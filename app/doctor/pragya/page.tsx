@@ -16,15 +16,15 @@ export default function DoctorPragyaPlaceholder() {
         <div className="relative w-64 h-64 mx-auto mb-10 group">
           <div className="absolute inset-0 bg-blue-500/20 blur-[60px] rounded-full group-hover:bg-blue-500/30 transition-all duration-700" />
           <div className="relative w-full h-full rounded-[40px] overflow-hidden border-4 border-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] transform transition-transform duration-700 group-hover:scale-105">
-            <Image 
-              src="/bot_expressions/DEFAULT.jpg" 
-              alt="Pragya AI" 
-              fill 
+            <Image
+              src="/new_bot/neutral.png"
+              alt="Pragya AI"
+              fill
               className="object-cover"
               unoptimized
             />
           </div>
-          
+
           {/* Floating badge */}
           <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-2 rounded-xl text-sm font-black shadow-xl whitespace-nowrap">
             Pragya v2.0

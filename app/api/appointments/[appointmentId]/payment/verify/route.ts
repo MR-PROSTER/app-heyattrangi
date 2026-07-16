@@ -64,7 +64,7 @@ export async function POST(
     }
 
     // Update payment and appointment status
-    const meetingLink = `https://meet-heyattrangi.vercel.app/${appointmentId}`
+    const meetingLink = `/meet/${appointmentId}`
     const chatChannelId = `chat_${appointmentId}`
 
     await prisma.$transaction([

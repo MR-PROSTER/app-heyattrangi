@@ -451,7 +451,7 @@ export default function AppointmentDetailsPanel({
                       {!isRescheduling ? (
                         <div className="flex gap-3">
                           <a
-                            href={`https://meet-heyattrangi.vercel.app/${appointment.id}/lobby?user=${encodeURIComponent(session?.user?.name || appointment.patient?.user?.name || "Patient")}&audio=true&video=true`}
+                            href={`/meet/${appointment.id}?user=${encodeURIComponent(session?.user?.name || appointment.patient?.user?.name || "Patient")}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex-1 px-4 py-3 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-lg font-medium hover:from-teal-600 hover:to-emerald-600 transition-all text-center"

@@ -41,7 +41,7 @@ export async function POST(
     }
 
     // Generate or override with the new unique meeting link
-    const meetingLink = `https://meet-heyattrangi.vercel.app/${appointmentId}`
+    const meetingLink = `/meet/${appointmentId}`
 
     const updatedAppointment = await prisma.appointment.update({
       where: { id: appointmentId },

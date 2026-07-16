@@ -38,14 +38,22 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
     const [transactions, setTransactions] = useState<any[]>([])
     const [isLoadingTransactions, setIsLoadingTransactions] = useState(true)
     const [isMonthly, setIsMonthly] = useState(true)
+    const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null)
 
     useEffect(() => {
         const fetchTransactions = async () => {
             try {
                 const res = await fetch('/api/profile/transactions')
-                const data = await res.json()
-                if (data.success) {
-                    setTransactions(data.transactions)
+                if (!res.ok) {
+                    console.warn(`Transactions API returned ${res.status}`)
+                    return
+                }
+                const contentType = res.headers.get("content-type")
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const data = await res.json()
+                    if (data.success) {
+                        setTransactions(data.transactions)
+                    }
                 }
             } catch (err) {
                 console.error("Failed to fetch transactions:", err)
@@ -85,7 +93,7 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                     amount
                 })
             })
-            
+
             const orderData = await orderRes.json()
             if (!orderData.success) throw new Error(orderData.error)
 
@@ -116,10 +124,19 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                         alert(`Successfully upgraded to ${plan} plan!`)
                         router.refresh()
                         // Reload transactions list
-                        const res = await fetch('/api/profile/transactions')
-                        const data = await res.json()
-                        if (data.success) {
-                            setTransactions(data.transactions)
+                        try {
+                            const res = await fetch('/api/profile/transactions')
+                            if (res.ok) {
+                                const contentType = res.headers.get("content-type")
+                                if (contentType && contentType.indexOf("application/json") !== -1) {
+                                    const data = await res.json()
+                                    if (data.success) {
+                                        setTransactions(data.transactions)
+                                    }
+                                }
+                            }
+                        } catch (err) {
+                            console.error("Failed to reload transactions:", err)
                         }
                     } else {
                         alert(verifyData.error || "Payment verification failed.")
@@ -162,10 +179,19 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                 alert(`Successfully switched to ${targetPlan} plan! (Test Mode)`)
                 router.refresh()
                 // Reload transactions list
-                const txnRes = await fetch('/api/profile/transactions')
-                const txnData = await txnRes.json()
-                if (txnData.success) {
-                    setTransactions(txnData.transactions)
+                try {
+                    const txnRes = await fetch('/api/profile/transactions')
+                    if (txnRes.ok) {
+                        const contentType = txnRes.headers.get("content-type")
+                        if (contentType && contentType.indexOf("application/json") !== -1) {
+                            const txnData = await txnRes.json()
+                            if (txnData.success) {
+                                setTransactions(txnData.transactions)
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error("Failed to reload transactions:", err)
                 }
             } else {
                 alert("Failed to update plan. Please try again.")
@@ -280,15 +306,86 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
     const billing = planBillingMap[currentPlan] || planBillingMap.FREE
     const isOrg = currentPlan === "ORGANIZATION"
 
+    const handleDownloadReceipt = (txn: any) => {
+        const receiptHtml = `
+          <html>
+            <head>
+              <title>Receipt - ${txn.id}</title>
+              <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px; color: #111827; }
+                .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #f3f4f6; padding-bottom: 20px; }
+                .header img { height: 48px; margin-bottom: 8px; object-fit: contain; }
+                .header h1 { font-size: 24px; font-weight: 900; margin: 0; color: #ea580c; display: none; }
+                .header p { margin: 5px 0 0; color: #6b7280; font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; }
+                .details { margin-bottom: 40px; }
+                .row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 14px; border-bottom: 1px solid #f9fafb; padding-bottom: 10px; }
+                .label { color: #6b7280; font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; }
+                .value { font-weight: 700; }
+                .total { font-size: 20px; font-weight: 900; color: #111827; margin-top: 20px; text-align: right; border-top: 2px solid #e5e7eb; padding-top: 20px; }
+                .footer { text-align: center; margin-top: 60px; font-size: 12px; color: #9ca3af; }
+              </style>
+            </head>
+            <body>
+              <div class="header">
+                <img src="${window.location.origin}/images/logo-main.png" alt="Attrangi" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                <h1>Attrangi</h1>
+                <p>Payment Receipt</p>
+              </div>
+              <div class="details">
+                <div class="row">
+                  <span class="label">Transaction ID</span>
+                  <span class="value">${txn.id}</span>
+                </div>
+                <div class="row">
+                  <span class="label">Date</span>
+                  <span class="value">${new Date(txn.createdAt).toLocaleString()}</span>
+                </div>
+                <div class="row">
+                  <span class="label">Service Type</span>
+                  <span class="value">${txn.type === 'SUBSCRIPTION' ? 'Platform Subscription' : 'Clinical Consultation'}</span>
+                </div>
+                <div class="row">
+                  <span class="label">Description</span>
+                  <span class="value">${txn.description}</span>
+                </div>
+                <div class="row">
+                  <span class="label">Payment Method</span>
+                  <span class="value">Online / Razorpay</span>
+                </div>
+                <div class="row">
+                  <span class="label">Status</span>
+                  <span class="value" style="color: #059669;">${txn.status}</span>
+                </div>
+              </div>
+              <div class="total">
+                Total Paid: &#8377;${txn.amount.toFixed(2)}
+              </div>
+              <div class="footer">
+                <p>Thank you for choosing Attrangi.</p>
+                <p>This is a computer-generated receipt.</p>
+              </div>
+            </body>
+          </html>
+        `;
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+            printWindow.document.write(receiptHtml);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+            }, 250);
+        }
+    }
+
     return (
         <div className="space-y-10">
             {/* Active Plan at Top */}
             <div className="bg-white rounded-[24px] p-8 shadow-[0_2px_20px_-5px_rgba(0,0,0,0.05)] border border-gray-50 animate-in fade-in duration-300">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Active Plan</h2>
-                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider ${
-                        isTestMode ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"
-                    }`}>
+                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider ${isTestMode ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"
+                        }`}>
                         {isTestMode ? "Testing Billing Mode" : "Real Billing Mode"}
                     </span>
                 </div>
@@ -336,13 +433,13 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                     </p>
                     {/* Toggle Switch */}
                     <div className="inline-flex items-center gap-2 bg-gray-100 p-1.5 rounded-full border border-gray-200">
-                        <button 
+                        <button
                             onClick={() => setIsMonthly(true)}
                             className={`px-6 py-2 rounded-full font-bold text-sm transition-all duration-300 ${isMonthly ? 'bg-white text-[#0c1421] shadow-sm' : 'text-gray-500 hover:text-[#0c1421]'}`}
                         >
                             Monthly
                         </button>
-                        <button 
+                        <button
                             onClick={() => setIsMonthly(false)}
                             className={`px-6 py-2 rounded-full font-bold text-sm transition-all duration-300 ${!isMonthly ? 'bg-white text-[#0c1421] shadow-sm' : 'text-gray-500 hover:text-[#0c1421]'}`}
                         >
@@ -350,10 +447,9 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                         </button>
                     </div>
                 </div>
-                <div className={`grid grid-cols-1 divide-y lg:divide-y-0 lg:divide-x divide-gray-100 ${
-                    isTestMode ? "lg:grid-cols-4" : "lg:grid-cols-3"
-                }`}>
-                    
+                <div className={`grid grid-cols-1 divide-y lg:divide-y-0 lg:divide-x divide-gray-100 ${isTestMode ? "lg:grid-cols-4" : "lg:grid-cols-3"
+                    }`}>
+
                     {/* Free Plan (Shown in Test Mode only) */}
                     {isTestMode && (
                         <div className="p-6 xl:p-8 flex flex-col hover:bg-gray-50/50 transition-colors">
@@ -365,7 +461,7 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                             <p className="text-sm text-gray-600 mb-8 min-h-[60px]">
                                 Default access to core tools and limited daily AI chats.
                             </p>
-                            
+
                             <div className="space-y-3 mb-8 text-xs">
                                 <div className="flex justify-between items-center border-b border-gray-50 pb-2">
                                     <span className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Chats</span>
@@ -380,11 +476,11 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                                     <span className="font-bold text-gray-900">Standard</span>
                                 </div>
                             </div>
-                            
+
                             {(() => {
                                 const btn = getButtonState("FREE")
                                 return (
-                                    <button 
+                                    <button
                                         onClick={() => handleButtonClick("FREE")}
                                         disabled={btn.disabled || isUpdating !== null}
                                         className={`mt-auto w-full py-3.5 px-2 text-sm lg:text-base font-extrabold rounded-xl transition-all border flex items-center justify-center gap-2 select-none ${btn.className}`}
@@ -425,7 +521,7 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                         <p className="text-sm text-gray-600 mb-8 min-h-[60px]">
                             Daily check-ins, basic mood tracking, and limited voice conversations.
                         </p>
-                        
+
                         <div className="space-y-3 mb-8 text-xs">
                             <div className="flex justify-between items-center border-b border-gray-50 pb-2">
                                 <span className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Chats</span>
@@ -440,11 +536,11 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                                 <span className="font-bold text-gray-900">7-Day</span>
                             </div>
                         </div>
-                        
+
                         {(() => {
                             const btn = getButtonState("ESSENTIAL")
                             return (
-                                <button 
+                                <button
                                     onClick={() => handleButtonClick("ESSENTIAL")}
                                     disabled={btn.disabled || isUpdating !== null}
                                     className={`mt-auto w-full py-3.5 px-2 text-sm lg:text-base font-extrabold rounded-xl transition-all border flex items-center justify-center gap-2 select-none ${btn.className}`}
@@ -493,7 +589,7 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                         <p className="text-sm text-gray-600 mb-8 min-h-[60px]">
                             Unlimited AI support, real-time insights, and long-term memory.
                         </p>
-                        
+
                         <div className="space-y-3 mb-8 text-xs">
                             <div className="flex justify-between items-center border-b border-gray-50 pb-2">
                                 <span className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Chats</span>
@@ -508,11 +604,11 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                                 <span className="font-bold text-gray-900">Long-Term</span>
                             </div>
                         </div>
-                        
+
                         {(() => {
                             const btn = getButtonState("PREMIUM")
                             return (
-                                <button 
+                                <button
                                     onClick={() => handleButtonClick("PREMIUM")}
                                     disabled={btn.disabled || isUpdating !== null}
                                     className={`mt-auto w-full py-3.5 px-2 text-sm xl:text-base font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 select-none ${btn.className}`}
@@ -542,7 +638,7 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                         <p className="text-sm text-gray-600 mb-8 min-h-[60px]">
                             College or corporate plan with organization-managed billing.
                         </p>
-                        
+
                         <div className="space-y-3 mb-8 text-xs">
                             <div className="flex justify-between items-center border-b border-gray-50 pb-2">
                                 <span className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Users</span>
@@ -557,11 +653,11 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                                 <span className="font-bold text-gray-900">Centralized</span>
                             </div>
                         </div>
-                        
+
                         {(() => {
                             const btn = getButtonState("ORGANIZATION")
                             return (
-                                <button 
+                                <button
                                     onClick={() => handleButtonClick("ORGANIZATION")}
                                     disabled={btn.disabled || isUpdating !== null}
                                     className={`mt-auto w-full py-3.5 px-2 text-sm xl:text-base font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 select-none ${btn.className}`}
@@ -593,7 +689,7 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                     </div>
                     <button className="text-xs font-bold text-gray-500 hover:text-gray-800 transition-colors flex items-center gap-1 bg-gray-50 px-3 py-1.5 rounded-md border border-gray-100">
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
                         Download PDF
                     </button>
@@ -606,7 +702,7 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                         <div className="p-8 text-center text-gray-500">No transactions found.</div>
                     ) : (
                         transactions.map((txn, i) => (
-                            <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer group">
+                            <div key={i} onClick={() => setSelectedTransaction(txn)} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer group">
                                 <div className="flex items-center gap-4">
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${txn.type === 'SUBSCRIPTION' ? 'bg-blue-50 text-blue-500' : 'bg-gray-100 text-gray-500'}`}>
                                         {txn.type === 'SUBSCRIPTION' ? (
@@ -616,7 +712,7 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                                             </svg>
                                         ) : (
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                                             </svg>
                                         )}
                                     </div>
@@ -641,6 +737,70 @@ export default function BillingSection({ user, isTestMode = false }: BillingSect
                     </div>
                 )}
             </div>
+
+            {/* Receipt Modal */}
+            {selectedTransaction && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-[32px] max-w-md w-full p-8 shadow-2xl border border-gray-100 flex flex-col gap-6 animate-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-start border-b border-gray-100 pb-4">
+                            <div>
+                                <h3 className="text-xl font-black text-gray-900">Payment Receipt</h3>
+                                <p className="text-xs font-bold text-gray-400 mt-1">Attrangi Health</p>
+                            </div>
+                            <button 
+                                onClick={() => setSelectedTransaction(null)}
+                                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-50 transition-all"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center text-sm border-b border-gray-50 pb-2">
+                                <span className="text-gray-500 font-medium">Transaction ID</span>
+                                <span className="font-mono text-gray-900 font-bold">{selectedTransaction.id.slice(-8).toUpperCase()}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm border-b border-gray-50 pb-2">
+                                <span className="text-gray-500 font-medium">Date</span>
+                                <span className="text-gray-900 font-bold">
+                                    {new Date(selectedTransaction.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm border-b border-gray-50 pb-2">
+                                <span className="text-gray-500 font-medium">Description</span>
+                                <span className="text-gray-900 font-bold text-right max-w-[200px] truncate">{selectedTransaction.description}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm border-b border-gray-50 pb-2">
+                                <span className="text-gray-500 font-medium">Status</span>
+                                <span className="text-teal-600 font-black uppercase">{selectedTransaction.status}</span>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-between items-center pt-2">
+                            <span className="text-gray-900 font-medium">Total Paid</span>
+                            <span className="text-3xl font-black text-gray-900">₹{selectedTransaction.amount.toFixed(2)}</span>
+                        </div>
+
+                        <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
+                            <button
+                                onClick={() => setSelectedTransaction(null)}
+                                className="flex-1 py-3 bg-gray-50 hover:bg-gray-100 text-gray-600 font-black rounded-xl text-sm transition-all"
+                            >
+                                Close
+                            </button>
+                            <button
+                                onClick={() => handleDownloadReceipt(selectedTransaction)}
+                                className="flex-1 py-3 bg-[#E36D49] hover:bg-[#c95937] text-white font-black rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-sm"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                Download PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

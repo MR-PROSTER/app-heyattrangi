@@ -10,8 +10,7 @@
  *   Call the /api/auth/meet-token endpoint, then redirect.
  */
 
-const MEET_APP_URL =
-  process.env.NEXT_PUBLIC_MEET_APP_URL || "https://meet-heyattrangi.vercel.app"
+const MEET_APP_URL = process.env.NEXT_PUBLIC_APP_URL || ""
 
 /**
  * Server-side helper: fetches a meet token from the internal API and
@@ -35,7 +34,7 @@ export async function buildMeetLink(
   }
 
   const { token } = await res.json()
-  return `${MEET_APP_URL}/${encodeURIComponent(roomName)}/lobby?token=${token}`
+  return `${MEET_APP_URL}/meet/${encodeURIComponent(roomName)}?token=${token}`
 }
 
 /**
@@ -54,6 +53,6 @@ export async function joinMeeting(roomName: string): Promise<void> {
   }
 
   const { token } = await res.json()
-  const meetUrl = `${MEET_APP_URL}/${encodeURIComponent(roomName)}/lobby?token=${token}`
+  const meetUrl = `${MEET_APP_URL}/meet/${encodeURIComponent(roomName)}?token=${token}`
   window.open(meetUrl, "_blank")
 }

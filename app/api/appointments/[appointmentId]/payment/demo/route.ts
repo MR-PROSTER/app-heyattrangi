@@ -75,7 +75,7 @@ export async function POST(
     })
 
     // Generate meeting link and chat channel
-    const meetingLink = `https://meet-heyattrangi.vercel.app/${appointmentId}`
+    const meetingLink = `/meet/${appointmentId}`
     const chatChannelId = `chat_${appointmentId}`
 
     // Update appointment status

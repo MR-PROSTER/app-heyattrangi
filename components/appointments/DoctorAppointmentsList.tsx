@@ -86,22 +86,22 @@ export default function DoctorAppointmentsList({ upcomingAppointments, pastAppoi
   const router = useRouter()
 
   const handleJoinOrCreateSession = async (appointment: Appointment) => {
-    // If we have a link and it's already the new domain, open it
-    if (appointment.meetingLink && appointment.meetingLink.includes("meet-heyattrangi.vercel.app")) {
-      const baseUrl = appointment.meetingLink.split('?')[0].replace(/\/lobby$/, '').replace(/\/$/, '')
-      const linkWithParams = `${baseUrl}/lobby?user=${encodeURIComponent(doctorName)}&audio=true&video=true`
-      window.open(linkWithParams, "_blank")
-      return
-    }
+    // We now just use the internal `/meet/[id]` route. 
+    // Old links might exist in DB (e.g. https://meet-heyattrangi.vercel.app/...), 
+    // but we can just override it and navigate to internal route directly.
+    
+    const internalUrl = `/meet/${appointment.id}?user=${encodeURIComponent(doctorName)}&host=true`
 
     // Predict the link if it's missing but paid
     if (!appointment.meetingLink && appointment.paymentStatus === "PAID") {
-      const predictedLink = `https://meet-heyattrangi.vercel.app/${appointment.id}`
-      const linkWithParams = `${predictedLink}/lobby?user=${encodeURIComponent(doctorName)}&audio=true&video=true`
-      window.open(linkWithParams, "_blank")
-      
-      // Optionally trigger the API in background to save it to DB
+      window.open(internalUrl, "_blank")
+      // Optionally trigger the API in background to save it to DB (or we don't even need to save if it's predictable)
       fetch(`/api/appointments/${appointment.id}/meeting`, { method: 'POST' }).catch(console.error)
+      return
+    }
+
+    if (appointment.meetingLink) {
+      window.open(internalUrl, "_blank")
       return
     }
 
@@ -112,10 +112,7 @@ export default function DoctorAppointmentsList({ upcomingAppointments, pastAppoi
         method: 'POST',
       })
       if (res.ok) {
-        const data = await res.json()
-        const baseUrl = data.meetingLink.split('?')[0].replace(/\/lobby$/, '').replace(/\/$/, '')
-        const linkWithParams = `${baseUrl}/lobby?user=${encodeURIComponent(doctorName)}&audio=true&video=true`
-        window.open(linkWithParams, "_blank")
+        window.open(internalUrl, "_blank")
         router.refresh()
       } else {
         alert("Failed to generate meeting link. Please try again.")

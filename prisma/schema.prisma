@@ -37,6 +37,7 @@ model User {
   transactions  Transaction[]
   pragyaMessages PragyaChatMessage[]
   journalEntries JournalEntry[]
+  notifications  Notification[]
   
   @@map("users")
 }
@@ -118,6 +119,11 @@ model Patient {
   healthConcerns  String[] @default([])
   emergencyContact String?
   emergencyPhone  String?
+  
+  // AI Onboarding fields
+  aiNickname      String?
+  heardAboutUs    String?
+  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
@@ -288,6 +294,9 @@ model Appointment {
   meetingLink     String?
   chatChannelId   String?
   doctorNotes     String?           @db.String
+  patientRating   Int?              // 1 to 5 stars
+  patientFeedback String?           @db.String
+  actualDuration  Int?              // in minutes
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   
@@ -407,4 +416,19 @@ model JournalEntry {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@map("journal_entries")
+}
+
+// Notifications (Admin Notes, System Alerts, etc.)
+model Notification {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  title     String
+  message   String   @db.String
+  type      String   @default("ADMIN_NOTE") // e.g., ADMIN_NOTE, APPOINTMENT, SYSTEM
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("notifications")
 }

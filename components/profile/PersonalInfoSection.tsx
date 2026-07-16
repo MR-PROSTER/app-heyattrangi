@@ -56,7 +56,7 @@ export default function PersonalInfoSection({ user, onSavingChange }: PersonalIn
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            const hasChanged = 
+            const hasChanged =
                 formData.name !== (user.name || "") ||
                 formData.age !== (user.patient?.age?.toString() || "") ||
                 formData.gender !== (user.patient?.gender || "") ||
@@ -160,7 +160,7 @@ export default function PersonalInfoSection({ user, onSavingChange }: PersonalIn
                             </div>
                         )}
                     </div>
-                    <button 
+                    <button
                         onClick={() => fileInputRef.current?.click()}
                         className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-black text-white p-2.5 rounded-xl shadow-xl hover:bg-gray-900 transition-all active:scale-90"
                     >
@@ -177,17 +177,17 @@ export default function PersonalInfoSection({ user, onSavingChange }: PersonalIn
                         className="hidden"
                     />
                 </div>
-                
+
                 <div className="flex gap-2">
-                    <button 
-                        onClick={() => fileInputRef.current?.click()} 
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
                         className="text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition-colors border border-gray-200"
                     >
                         Upload to Cloudinary
                     </button>
                     {user.image && (
-                        <button 
-                            onClick={handleRemoveCustomPhoto} 
+                        <button
+                            onClick={handleRemoveCustomPhoto}
                             className="text-xs font-bold bg-white hover:bg-red-50 text-red-500 px-3 py-1.5 rounded-lg transition-colors border border-gray-200"
                         >
                             Reset to Default Google Image
@@ -289,6 +289,7 @@ export default function PersonalInfoSection({ user, onSavingChange }: PersonalIn
                     />
                 </div>
             </div>
+
         </div>
     )
 }

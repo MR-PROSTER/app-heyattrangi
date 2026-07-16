@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
-import VanderbiltAssessmentBot from "@/components/patient/library/VanderbiltAssessmentBot"
+
 
 // --- TYPES ---
 interface JournalEntry {
@@ -119,7 +119,7 @@ export default function LibraryPage() {
   }
 
   return (
-    <div className="flex-1 h-full overflow-y-auto w-full bg-gradient-to-br from-[#f8fafc] via-[#f0f4f9] to-[#e8f1f8] text-slate-800 flex flex-col font-sans">
+    <div className="flex-1 h-full overflow-y-auto w-full bg-white text-slate-800 flex flex-col font-sans">
       
 
 
@@ -137,168 +137,128 @@ export default function LibraryPage() {
         {activeTab === "discover" && (
           <div className="space-y-12 animate-in fade-in duration-300">
             
-            {/* Welcome section */}
-            <div className="text-center max-w-2xl mx-auto mb-4">
-              <p className="text-slate-600 text-sm font-medium leading-relaxed">
-                Choose a learning path below to begin your mental wellness journey. Each module offers interactive exercises, resources, and tools to support your emotional growth.
-              </p>
+            {/* Self Assessment Categories */}
+            <div className="space-y-6 mb-12">
+              <div className="text-center max-w-2xl mx-auto mb-10">
+                <h3 className="font-extrabold text-3xl text-slate-900 mb-4">Self-Assessments</h3>
+                <p className="text-slate-600 text-sm font-medium leading-relaxed mb-6">
+                  Explore our comprehensive library of clinical and self-guided assessments to track your progress.
+                </p>
+                <Link
+                  href="/patient/assessments/engine"
+                  className="inline-block bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-black py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all uppercase tracking-wider text-sm"
+                >
+                  Start Dynamic Assessment
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[
+                  { 
+                    category: "Mental Health", 
+                    tests: ["PHQ-9", "GAD-7", "PSS", "WHO-5", "ASRS", "PTSD", "OCD"], 
+                    color: "from-blue-50 to-blue-100/50 border-blue-200/50", 
+                    titleColor: "text-blue-900", 
+                    badgeColor: "bg-blue-100 text-blue-700 hover:bg-blue-500 hover:text-white border border-blue-200",
+                    icon: (
+                      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-5 text-blue-500 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
+                        <path d="M24 10C16 10 10 16 10 24C10 32 16 38 24 38C32 38 38 32 38 24C38 16 32 10 24 10Z" fill="currentColor" fillOpacity="0.15"/>
+                        <path d="M24 14C19 14 15 18 15 24C15 30 19 34 24 34C29 34 33 30 33 24C33 18 29 14 24 14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M24 6V10M24 38V42M6 24H10M38 24H42M11 11L14 14M34 34L37 37M11 37L14 34M34 11L37 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    )
+                  },
+                  { 
+                    category: "Student Life", 
+                    tests: ["Academic Stress", "Exam Anxiety", "Burnout", "Time Management", "Procrastination", "Study Skills"], 
+                    color: "from-purple-50 to-purple-100/50 border-purple-200/50", 
+                    titleColor: "text-purple-900", 
+                    badgeColor: "bg-purple-100 text-purple-700 hover:bg-purple-500 hover:text-white border border-purple-200",
+                    icon: (
+                      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-5 text-purple-500 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
+                        <path d="M8 16L24 8L40 16L24 24L8 16Z" fill="currentColor" fillOpacity="0.15"/>
+                        <path d="M8 16L24 8L40 16L24 24L8 16Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+                        <path d="M12 18V30C12 30 20 36 24 36C28 36 36 30 36 30V18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M40 16V32" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    )
+                  },
+                  { 
+                    category: "Lifestyle", 
+                    tests: ["Sleep", "Digital Well-being", "Physical Activity", "Nutrition"], 
+                    color: "from-emerald-50 to-emerald-100/50 border-emerald-200/50", 
+                    titleColor: "text-emerald-900", 
+                    badgeColor: "bg-emerald-100 text-emerald-700 hover:bg-emerald-500 hover:text-white border border-emerald-200",
+                    icon: (
+                      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-5 text-emerald-500 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
+                        <circle cx="24" cy="24" r="14" fill="currentColor" fillOpacity="0.15"/>
+                        <path d="M8 24H16L20 12L28 36L32 24H40" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )
+                  },
+                  { 
+                    category: "Personal Growth", 
+                    tests: ["Self-Esteem", "Resilience", "Emotional Intelligence", "Self-Compassion", "Mindfulness"], 
+                    color: "from-orange-50 to-orange-100/50 border-orange-200/50", 
+                    titleColor: "text-orange-900", 
+                    badgeColor: "bg-orange-100 text-orange-700 hover:bg-orange-500 hover:text-white border border-orange-200",
+                    icon: (
+                      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-5 text-orange-500 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
+                        <path d="M24 36C24 36 12 36 12 24C12 12 24 12 24 12" fill="currentColor" fillOpacity="0.15"/>
+                        <path d="M24 36C24 36 36 36 36 24C36 12 24 12 24 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M24 12V40M16 40H32" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    )
+                  },
+                  { 
+                    category: "Relationships", 
+                    tests: ["Attachment Style", "Communication", "Social Connectedness", "Loneliness"], 
+                    color: "from-pink-50 to-pink-100/50 border-pink-200/50", 
+                    titleColor: "text-pink-900", 
+                    badgeColor: "bg-pink-100 text-pink-700 hover:bg-pink-500 hover:text-white border border-pink-200",
+                    icon: (
+                      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-5 text-pink-500 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
+                        <circle cx="18" cy="16" r="6" fill="currentColor" fillOpacity="0.15"/>
+                        <circle cx="30" cy="20" r="6" stroke="currentColor" strokeWidth="2"/>
+                        <path d="M8 36C8 30 13 26 18 26C20.5 26 22.5 27 24 28" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M40 38C40 32 35 28 30 28C27.5 28 25.5 29 24 30.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    )
+                  },
+                  { 
+                    category: "Habits", 
+                    tests: ["Alcohol", "Smoking", "Screen Time", "Substance Use"], 
+                    color: "from-slate-50 to-slate-100/50 border-slate-200/50", 
+                    titleColor: "text-slate-900", 
+                    badgeColor: "bg-white text-slate-700 hover:bg-slate-700 hover:text-white border border-slate-200",
+                    icon: (
+                      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-5 text-slate-600 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
+                        <rect x="10" y="12" width="28" height="28" rx="4" fill="currentColor" fillOpacity="0.15"/>
+                        <rect x="10" y="12" width="28" height="28" rx="4" stroke="currentColor" strokeWidth="2"/>
+                        <path d="M16 8V16M32 8V16M10 20H38" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M18 28L22 32L30 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )
+                  },
+                ].map((section, idx) => (
+                  <div key={idx} className={`bg-gradient-to-br ${section.color} rounded-3xl p-6 border shadow-sm hover:shadow-md transition-all flex flex-col h-full group hover:-translate-y-1`}>
+                    {section.icon}
+                    <h4 className={`font-black text-xl mb-6 ${section.titleColor}`}>{section.category}</h4>
+                    <div className="flex flex-wrap gap-2.5 mt-auto">
+                      {section.tests.map((test, i) => (
+                        <Link 
+                          key={i} 
+                          href={`/patient/assessments/${test.toLowerCase().split(' ').join('-')}`}
+                          className={`px-3 py-1.5 rounded-lg text-[11px] font-extrabold uppercase tracking-wider transition-all cursor-pointer shadow-sm hover:shadow-md ${section.badgeColor}`}
+                        >
+                          {test}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Discover Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
-              
-              {/* Category Card: Mental Wellness */}
-              <button
-                onClick={() => setActiveTab("wellness")}
-                className="group relative overflow-hidden rounded-[28px] p-6 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 flex flex-col text-left min-h-[220px] bg-gradient-to-br from-[#3b82f6] via-[#2563eb] to-[#1e40af] text-white border border-blue-400/30"
-              >
-                <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity pointer-events-none" style={{backgroundImage: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 0%, transparent 50%)"}}></div>
-                <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" viewBox="0 0 400 300" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M0 120C120 100 200 180 400 130V300H0V120Z" fill="white" />
-                  <path d="M0 150C150 130 250 190 400 160V300H0V150Z" fill="white" opacity="0.5" />
-                </svg>
-                <div className="z-10 flex items-start justify-between mb-6">
-                  <span className="inline-block px-4 py-2 bg-white/15 backdrop-blur-sm rounded-full text-xs font-black border border-white/20 group-hover:bg-white/25 transition-colors">
-                    5 mins
-                  </span>
-                    <div className="text-xs uppercase tracking-[0.25em] font-black text-white/80">Wellness</div>
-                </div>
-                <h3 className="z-10 font-black text-3xl mb-3 tracking-tight group-hover:translate-y-[-2px] transition-transform">Mental Wellness</h3>
-                <p className="z-10 text-white/90 font-medium text-sm leading-relaxed max-w-xs mb-8 flex-grow">
-                  Guided breathing exercises, relaxation scripts, and calming meditation guides.
-                </p>
-                <div className="z-10 self-end flex items-center justify-center border border-white/50 bg-white/10 group-hover:bg-white/20 text-white font-black text-xs px-6 py-2.5 rounded-full backdrop-blur-sm transition-all gap-2">
-                  Explore
-                </div>
-              </button>
-
-              {/* Category Card: Distress Signals */}
-              <button
-                onClick={() => setActiveTab("distress")}
-                className="group relative overflow-hidden rounded-[28px] p-6 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 flex flex-col text-left min-h-[220px] bg-gradient-to-br from-[#f07865] via-[#f87171] to-[#fca5a5] text-white border border-red-300/30"
-              >
-                <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity pointer-events-none" style={{backgroundImage: "radial-gradient(circle at 70% 70%, rgba(255,255,255,0.3) 0%, transparent 50%)"}}></div>
-                <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" viewBox="0 0 400 300" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M0 100 Q 50 150 100 100 T 200 100 T 300 100 T 400 100 V300 H0 Z" fill="white" />
-                  <path d="M0 130 Q 70 170 140 130 T 280 130 T 400 130 V300 H0 Z" fill="white" opacity="0.4" />
-                </svg>
-                <div className="z-10 flex items-start justify-between mb-6">
-                  <span className="inline-block px-4 py-2 bg-white/15 backdrop-blur-sm rounded-full text-xs font-black border border-white/20 group-hover:bg-white/25 transition-colors">
-                    IMMEDIATE
-                  </span>
-                    <div className="text-xs uppercase tracking-[0.25em] font-black text-white/80">Distress</div>
-                </div>
-                <h3 className="z-10 font-black text-3xl mb-3 tracking-tight group-hover:translate-y-[-2px] transition-transform">Distress Signals</h3>
-                <p className="z-10 text-white/90 font-medium text-sm leading-relaxed max-w-xs mb-8 flex-grow">
-                  Emergency support contacts and active grounding techniques for urgent help.
-                </p>
-                <div className="z-10 self-end flex items-center justify-center border border-white/50 bg-white/10 group-hover:bg-white/20 text-white font-black text-xs px-6 py-2.5 rounded-full backdrop-blur-sm transition-all gap-2">
-                  Explore
-                </div>
-              </button>
-
-              {/* Category Card: Understanding Mental Illness */}
-              <button
-                onClick={() => setActiveTab("illness")}
-                className="group relative overflow-hidden rounded-[28px] p-6 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 flex flex-col text-left min-h-[220px] bg-gradient-to-br from-[#0d9488] via-[#14b8a6] to-[#5eead4] text-white border border-teal-300/30"
-              >
-                <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity pointer-events-none" style={{backgroundImage: "radial-gradient(circle at 30% 60%, rgba(255,255,255,0.3) 0%, transparent 50%)"}}></div>
-                <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" viewBox="0 0 400 300" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="340" cy="180" r="100" fill="white" />
-                  <circle cx="280" cy="140" r="60" fill="white" opacity="0.4" />
-                  <circle cx="380" cy="80" r="80" fill="white" opacity="0.3" />
-                </svg>
-                <div className="z-10 flex items-start justify-between mb-6">
-                  <span className="inline-block px-4 py-2 bg-white/15 backdrop-blur-sm rounded-full text-xs font-black border border-white/20 group-hover:bg-white/25 transition-colors">
-                    EDUCATION
-                  </span>
-                    <div className="text-xs uppercase tracking-[0.25em] font-black text-white/80">Insight</div>
-                </div>
-                <h3 className="z-10 font-black text-3xl mb-3 tracking-tight group-hover:translate-y-[-2px] transition-transform">Understanding Illness</h3>
-                <p className="z-10 text-white/90 font-medium text-sm leading-relaxed max-w-xs mb-8 flex-grow">
-                  Condition reference files and support information for special populations.
-                </p>
-                <div className="z-10 self-end flex items-center justify-center border border-white/50 bg-white/10 group-hover:bg-white/20 text-white font-black text-xs px-6 py-2.5 rounded-full backdrop-blur-sm transition-all gap-2">
-                  Explore
-                </div>
-              </button>
-
-              {/* Category Card: Our Success Stories */}
-              <button
-                onClick={() => setActiveTab("stories")}
-                className="group relative overflow-hidden rounded-[28px] p-6 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 flex flex-col text-left min-h-[220px] bg-gradient-to-br from-[#6366f1] via-[#7c3aed] to-[#a855f7] text-white border border-purple-300/30"
-              >
-                <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity pointer-events-none" style={{backgroundImage: "radial-gradient(circle at 70% 30%, rgba(255,255,255,0.3) 0%, transparent 50%)"}}></div>
-                <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" viewBox="0 0 400 300" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M0 180 L 150 100 L 300 140 L 400 60 V300 H0 Z" fill="white" />
-                  <path d="M0 190 L 120 130 L 250 160 L 400 100 V300 H0 Z" fill="white" opacity="0.4" />
-                </svg>
-                <div className="z-10 flex items-start justify-between mb-6">
-                  <span className="inline-block px-4 py-2 bg-white/15 backdrop-blur-sm rounded-full text-xs font-black border border-white/20 group-hover:bg-white/25 transition-colors">
-                    COMMUNITY
-                  </span>
-                  <div className="text-xs uppercase tracking-[0.25em] font-black text-white/80">Strength</div>
-                </div>
-                <h3 className="z-10 font-black text-3xl mb-3 tracking-tight group-hover:translate-y-[-2px] transition-transform">Success Stories</h3>
-                <p className="z-10 text-white/90 font-medium text-sm leading-relaxed max-w-xs mb-8 flex-grow">
-                  Real narratives from people who reclaimed their peace of mind and wellbeing.
-                </p>
-                <div className="z-10 self-end flex items-center justify-center border border-white/50 bg-white/10 group-hover:bg-white/20 text-white font-black text-xs px-6 py-2.5 rounded-full backdrop-blur-sm transition-all gap-2">
-                  Explore
-                </div>
-              </button>
-
-              {/* Category Card: Self Help */}
-              <button
-                onClick={() => setActiveTab("selfhelp")}
-                className="group relative overflow-hidden rounded-[28px] p-6 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 flex flex-col text-left min-h-[220px] bg-gradient-to-br from-[#059669] via-[#10b981] to-[#34d399] text-white border border-emerald-300/30"
-              >
-                <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity pointer-events-none" style={{backgroundImage: "radial-gradient(circle at 40% 70%, rgba(255,255,255,0.3) 0%, transparent 50%)"}}></div>
-                <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" viewBox="0 0 400 300" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M300 300 C300 130 350 100 400 100 V300 H300 Z" fill="white" />
-                  <path d="M220 300 C220 150 280 120 350 120 V300 H220 Z" fill="white" opacity="0.4" />
-                </svg>
-                <div className="z-10 flex items-start justify-between mb-6">
-                  <span className="inline-block px-4 py-2 bg-white/15 backdrop-blur-sm rounded-full text-xs font-black border border-white/20 group-hover:bg-white/25 transition-colors">
-                    TOOLS
-                  </span>
-                  <div className="text-xs uppercase tracking-[0.25em] font-black text-white/80">Tools</div>
-                </div>
-                <h3 className="z-10 font-black text-3xl mb-3 tracking-tight group-hover:translate-y-[-2px] transition-transform">Self Help</h3>
-                <p className="z-10 text-white/90 font-medium text-sm leading-relaxed max-w-xs mb-8 flex-grow">
-                  Interactive self-diagnostics, worksheets, and printable tracking logs.
-                </p>
-                <div className="z-10 self-end flex items-center justify-center border border-white/50 bg-white/10 group-hover:bg-white/20 text-white font-black text-xs px-6 py-2.5 rounded-full backdrop-blur-sm transition-all gap-2">
-                  Explore
-                </div>
-              </button>
-
-              {/* Category Card: Brain Food Room */}
-              <button
-                onClick={() => setActiveTab("brainfood")}
-                className="group relative overflow-hidden rounded-[28px] p-6 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 flex flex-col text-left min-h-[220px] bg-gradient-to-br from-[#db2777] via-[#f472b6] to-[#fb7185] text-white border border-pink-300/30"
-              >
-                <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity pointer-events-none" style={{backgroundImage: "radial-gradient(circle at 60% 40%, rgba(255,255,255,0.3) 0%, transparent 50%)"}}></div>
-                <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" viewBox="0 0 400 300" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M 280 300 L 330 110 L 400 160 V 300 Z" fill="white" opacity="0.3" />
-                  <path d="M 200 300 L 290 80 L 360 140 L 400 120 V 300 Z" fill="white" opacity="0.4" />
-                </svg>
-                <div className="z-10 flex items-start justify-between mb-6">
-                  <span className="inline-block px-4 py-2 bg-white/15 backdrop-blur-sm rounded-full text-xs font-black border border-white/20 group-hover:bg-white/25 transition-colors">
-                    10 mins
-                  </span>
-                  <div className="text-xs uppercase tracking-[0.25em] font-black text-white/80">Focus</div>
-                </div>
-                <h3 className="z-10 font-black text-3xl mb-3 tracking-tight group-hover:translate-y-[-2px] transition-transform">Brain Food Room</h3>
-                <p className="z-10 text-white/90 font-medium text-sm leading-relaxed max-w-xs mb-8 flex-grow">
-                  Focus training games, ambient sound sessions, and a thought diary log.
-                </p>
-                <div className="z-10 self-end flex items-center justify-center border border-white/50 bg-white/10 group-hover:bg-white/20 text-white font-black text-xs px-6 py-2.5 rounded-full backdrop-blur-sm transition-all gap-2">
-                  Explore
-                </div>
-              </button>
-
-            </div>
           </div>
         )}
 
@@ -602,11 +562,7 @@ export default function LibraryPage() {
         {/* --- 5. SELF HELP MODULE --- */}
         {activeTab === "selfhelp" && (
           <div className="space-y-10 animate-in fade-in duration-300">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              
-              {/* Assessment Bot */}
-              <VanderbiltAssessmentBot />
-            </div>
+
 
             {/* PDF Downloads with enhanced design */}
               <div className="bg-white rounded-3xl p-10 border border-slate-200/80 shadow-lg hover:shadow-xl transition-shadow space-y-8">

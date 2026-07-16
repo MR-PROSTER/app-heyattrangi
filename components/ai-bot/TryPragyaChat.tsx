@@ -41,7 +41,7 @@ const TypewriterText = ({
   useEffect(() => {
     let index = 0
     setDisplayedText("")
-    
+
     // Dynamically calculate chunk size to ensure typing finishes within ~750ms
     const totalTicks = 50
     const increment = Math.max(1, Math.ceil(text.length / totalTicks))
@@ -82,6 +82,20 @@ const EXPRESSION_KEYWORDS: Record<string, string[]> = {
   "STEADY": ["okay", "alright", "stable", "steady", "manage", "cope", "going through"],
   "TALKING": ["tell me", "share", "want to talk", "what happened", "go on", "listening", "what's going on"],
   "NEUTRAL": ["noted", "sure", "okay", "right", "yes", "no"],
+}
+
+const EXPRESSION_FILE_MAP: Record<string, string> = {
+  "SAFETY": "steady.png",
+  "COMFORTING": "warm.png",
+  "EMPATHETIC": "empathy.png",
+  "REFLECTIVE": "reflective.png",
+  "WARM": "warm.png",
+  "STRESSED": "stressed.png",
+  "TIRED": "tired.png",
+  "STEADY": "steady.png",
+  "TALKING": "talking.png",
+  "NEUTRAL": "neutral.png",
+  "DEFAULT": "neutral.png"
 }
 
 const getBotExpression = (text: string): string => {
@@ -257,8 +271,8 @@ export default function TryPragyaChat({
       const res = await fetch("/api/pragya/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          session_id: sessionId, 
+        body: JSON.stringify({
+          session_id: sessionId,
           message: userMsg,
           generate_suggestions: false
         }),
@@ -398,7 +412,7 @@ export default function TryPragyaChat({
             <div className="flex px-5 pt-10 pb-8 items-center justify-between relative z-10 max-w-lg mx-auto">
               <div className="relative w-[150px] h-[150px] shrink-0 -ml-6 z-10">
                 <Image
-                  src={`/bot_expressions/${botExpression}.jpg`}
+                  src={`/new_bot/${EXPRESSION_FILE_MAP[botExpression] || 'neutral.png'}`}
                   alt="Pragya Avatar"
                   fill
                   className="object-cover scale-[1.15]"
@@ -431,7 +445,7 @@ export default function TryPragyaChat({
               <div className="relative w-[320px] h-[320px] rounded-[2.5rem] shadow-[0_20px_50px_rgba(249,107,19,0.15)] mb-8 overflow-hidden group border border-orange-50/50">
                 <div className="relative w-full h-full transform transition-transform duration-700 ease-out group-hover:scale-105">
                   <Image
-                    src={`/bot_expressions/${botExpression}.jpg`}
+                    src={`/new_bot/${EXPRESSION_FILE_MAP[botExpression] || 'neutral.png'}`}
                     alt="Pragya Avatar"
                     fill
                     className="object-cover"
@@ -565,15 +579,15 @@ export default function TryPragyaChat({
               {/* Header / Mode Toggle Area */}
               <div
                 className={`transition-all duration-700 ease-in-out w-full flex flex-col shrink-0 relative z-10 ${!hasStarted
-                    ? 'flex-1 items-center justify-center mt-[-8vh]'
-                    : 'pt-8 pb-4'
+                  ? 'flex-1 items-center justify-center mt-[-8vh]'
+                  : 'pt-8 pb-4'
                   }`}
               >
                 {/* Big Title */}
                 <div
                   className={`text-center transition-all duration-700 ease-in-out overflow-hidden ${!hasStarted
-                      ? 'opacity-100 max-h-[200px] mb-12 scale-100'
-                      : 'opacity-0 max-h-0 mb-0 scale-95 pointer-events-none'
+                    ? 'opacity-100 max-h-[200px] mb-12 scale-100'
+                    : 'opacity-0 max-h-0 mb-0 scale-95 pointer-events-none'
                     }`}
                 >
                   <h2 className="text-[14px] md:text-[16px] uppercase tracking-[0.2em] font-black text-gray-700 mb-6">
@@ -599,8 +613,8 @@ export default function TryPragyaChat({
                         }
                       }}
                       className={`px-3 py-1.5 rounded-full text-[12px] md:px-4 md:py-2 md:text-[13px] font-medium transition-all duration-300 shadow-sm whitespace-nowrap ${selectedMode === mode.id
-                          ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20 scale-105'
-                          : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-orange-200 hover:text-orange-500'
+                        ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20 scale-105'
+                        : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-orange-200 hover:text-orange-500'
                         }`}
                     >
                       {mode.title}

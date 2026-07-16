@@ -40,9 +40,9 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
                 {/* Avatar Area */}
                 <div className="relative shrink-0 group mb-2 md:mb-0">
                     <div className="w-28 h-28 md:w-36 md:h-36 relative z-10 flex items-center justify-center">
-                        <img 
-                            src="/new_bot/Ai%20icon.png" 
-                            alt="Avatar" 
+                        <img
+                            src="/new_bot/Ai%20icon.png"
+                            alt="Avatar"
                             className="w-full h-full object-contain"
                         />
                     </div>
@@ -92,7 +92,7 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
                             const isBlurred = index >= 2;
 
                             return (
-                                <div key={apt.id || index} className="min-w-[440px] bg-white shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-[#f1f5f9] relative overflow-hidden group rounded-[20px] shrink-0 flex min-h-[250px]">
+                                <div key={apt.id || index} className="min-w-[280px] sm:min-w-[340px] md:min-w-[440px] bg-white shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-[#f1f5f9] relative overflow-hidden group rounded-[20px] shrink-0 flex min-h-[250px]">
                                     {/* Left Content Area */}
                                     <div className={`flex-1 p-4 flex flex-col relative z-10 ${isBlurred ? 'blur-[3px] opacity-40 pointer-events-none' : ''}`}>
                                         {/* Status Label */}
@@ -125,7 +125,7 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
                                                     {format(new Date(apt.appointmentDate), "MMM d, yyyy")}
                                                 </span>
                                                 <span className="text-[10px] text-[#2563eb] font-bold">
-                                                    {new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'UTC' }).format(new Date(apt.appointmentDate))} (UTC)
+                                                    {format(new Date(apt.appointmentDate), "h:mm a")}
                                                 </span>
                                             </div>
                                         </div>
@@ -226,7 +226,7 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
                         {/* Daily Progress Bar */}
                         <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-[24px] p-6 border border-orange-100 shadow-sm relative overflow-hidden">
                             <div className="absolute right-0 top-0 w-32 h-32 bg-orange-200/40 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-                            
+
                             <div className="flex items-end justify-between mb-4 relative z-10">
                                 <div>
                                     <h4 className="text-[15px] font-black text-orange-900 tracking-tight mb-1">Today's Journey</h4>
@@ -237,7 +237,7 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
                                     <span className="text-[14px] font-bold text-orange-400"> / 4</span>
                                 </div>
                             </div>
-                            
+
                             <div className="w-full h-3 bg-white/60 rounded-full overflow-hidden border border-orange-100 relative z-10">
                                 <div className="h-full bg-gradient-to-r from-orange-400 to-amber-500 rounded-full w-[50%] relative">
                                     <div className="absolute inset-0 bg-white/20 w-full h-full rounded-full" style={{ backgroundImage: 'linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)', backgroundSize: '1rem 1rem' }}></div>
@@ -284,7 +284,7 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
                     <div className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-[32px] p-8 shadow-[0_4px_30px_rgba(0,0,0,0.04)] border border-indigo-100/60 flex-col flex flex-1 min-h-[292px] relative overflow-hidden group">
                         <div className="absolute right-0 top-0 w-48 h-48 bg-indigo-200/30 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none group-hover:bg-indigo-300/30 transition-colors duration-500"></div>
                         <div className="absolute left-0 bottom-0 w-48 h-48 bg-purple-200/30 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none group-hover:bg-purple-300/30 transition-colors duration-500"></div>
-                        
+
                         <div className="flex justify-between items-start mb-6 relative z-10">
                             <div className="w-12 h-12 bg-white rounded-2xl shadow-sm border border-indigo-50 flex items-center justify-center">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-indigo-500">

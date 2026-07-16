@@ -52,7 +52,6 @@ export default function TherapistList() {
   // Filtering & Sorting states
   const [specialization, setSpecialization] = useState("") // Default active tab is empty (All Experts)
   const [search, setSearch] = useState("")
-  const [selectedCentre, setSelectedCentre] = useState("")
   const [selectedLanguage, setSelectedLanguage] = useState("")
   const [selectedPrice, setSelectedPrice] = useState("")
   const [selectedGender, setSelectedGender] = useState("")
@@ -71,7 +70,7 @@ export default function TherapistList() {
 
   // Bookmarks & Collapsible Filters Drawer states
   const [bookmarks, setBookmarks] = useState<{ [doctorId: string]: boolean }>({})
-  const [showFilterDropdowns, setShowFilterDropdowns] = useState(false)
+  const [showFilterDropdowns, setShowFilterDropdowns] = useState(true)
 
   // Fetch doctors list
   const { data, isLoading } = useSWR(
@@ -87,16 +86,6 @@ export default function TherapistList() {
 
   // Client-side filtering
   const filteredDoctors = rawDoctors
-    .filter((doctor) => {
-      // Centre Filter
-      if (selectedCentre) {
-        if (selectedCentre === "Online") {
-          return doctor.consultationTypes?.some(c => c.toLowerCase().includes("video") || c.toLowerCase().includes("chat"))
-        }
-        return doctor.city?.toLowerCase().includes(selectedCentre.toLowerCase())
-      }
-      return true
-    })
     .filter((doctor) => {
       // Language Filter
       if (selectedLanguage) {
@@ -250,141 +239,124 @@ export default function TherapistList() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#1A1A2E] pb-24 font-sans antialiased">
-      <div className="w-full px-6 sm:px-10 py-8">
+    <div className="min-h-screen bg-white text-[#1A1A2E] pb-24 font-sans antialiased flex flex-col">
+      <div className="max-w-[1440px] mx-auto px-8 py-8 w-full flex flex-col flex-1">
         
-        {/* Main Grid Layout: Left/Center panel (col-span-9), Right Sidebar (col-span-3) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full">
-          
-          {/* =============================================================== */}
-          {/* LEFT/CENTER MAIN COLUMN */}
-          {/* =============================================================== */}
-          <div className="lg:col-span-9 flex flex-col gap-6">
+        {/* Main Full-Width Layout */}
+        <div className="w-full flex flex-col gap-8 flex-1">
             
             {/* Header Title Block */}
-            <div className="text-left">
-              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight leading-tight">
-                Our therapists
+            <div className="text-left max-w-2xl">
+              <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight leading-tight mb-2">
+                Our Therapists
               </h1>
-              <p className="text-xs font-bold text-gray-400 mt-1 leading-normal">
-                Curated for you — verified professionals on <span className="text-[#E36D49] font-black">Attrangi</span>
+              <p className="text-sm font-semibold text-gray-500 leading-normal">
+                Curated for you — verified professionals on <span className="text-[#E36D49] font-black">Attrangi</span>.
               </p>
             </div>
 
             {/* Search and Filters Toggle Row */}
-            <div className="flex gap-3.5 w-full">
-              <div className="relative flex-1">
+            <div className="flex gap-4 w-full flex-wrap">
+              <div className="relative flex-1 min-w-[200px] max-w-xl">
                 <input
                   type="text"
                   placeholder="Search therapists, specializations, issues..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-white border border-gray-100 rounded-2xl text-xs font-bold text-gray-600 outline-none focus:border-orange-300 focus:bg-white shadow-sm transition-all"
+                  className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm font-semibold text-gray-700 outline-none focus:border-orange-300 focus:bg-white shadow-sm transition-all placeholder-gray-400"
                 />
-                <span className="absolute inset-y-0 left-4 flex items-center text-gray-400 text-sm">
-                  🔍
+                <span className="absolute inset-y-0 left-4 flex items-center text-gray-400 text-lg">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 </span>
               </div>
               <button
-                onClick={() => setShowFilterDropdowns(!showFilterDropdowns)}
-                className={`px-5 py-3 rounded-2xl text-xs font-black tracking-wide flex items-center gap-2 shadow-sm border transition-all duration-300
-                  ${showFilterDropdowns
-                    ? "bg-[#E36D49] border-[#E36D49] text-white"
-                    : "bg-white border-gray-100 text-gray-600 hover:border-orange-200"
+                onClick={() => setSpecialization(specialization === "Organization Doctor" ? "" : "Organization Doctor")}
+                className={`px-6 py-3.5 rounded-2xl text-sm font-black tracking-wide flex items-center gap-2 shadow-sm border transition-all duration-300
+                  ${specialization === "Organization Doctor"
+                    ? "bg-[#131E29] border-[#131E29] text-white"
+                    : "bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50"
                   }
                 `}
               >
-                <span>⚙️</span>
+                <span>🏢 Org Therapists</span>
+              </button>
+              <button
+                onClick={() => setShowFilterDropdowns(!showFilterDropdowns)}
+                className={`px-6 py-3.5 rounded-2xl text-sm font-black tracking-wide flex items-center gap-2 shadow-sm border transition-all duration-300
+                  ${showFilterDropdowns
+                    ? "bg-[#E36D49] border-[#E36D49] text-white"
+                    : "bg-white border-gray-200 text-gray-700 hover:border-orange-200 hover:bg-orange-50/30"
+                  }
+                `}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
                 <span>Filters</span>
               </button>
             </div>
 
             {/* Collapsible Dropdown Filter Drawers */}
             {showFilterDropdowns && (
-              <div className="flex flex-wrap items-center gap-3.5 w-full bg-white/50 border border-gray-100/50 p-4 rounded-3xl animate-in slide-in-from-top-3 duration-300">
-                {/* Filter: Centre */}
-                <div className="relative flex-1 min-w-[150px]">
+              <div className="flex flex-wrap items-center gap-4 w-full bg-white border border-gray-100 p-5 rounded-3xl animate-in slide-in-from-top-3 duration-300 shadow-sm">
+                {/* Filter: Specialization */}
+                <div className="relative flex-1 min-w-[200px]">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">Specialization</label>
                   <select
-                    value={selectedCentre}
-                    onChange={(e) => setSelectedCentre(e.target.value)}
-                    className="appearance-none w-full bg-white border border-gray-100 px-4 py-2.5 rounded-full text-xs font-bold text-gray-500 shadow-sm hover:border-gray-200 outline-none cursor-pointer pr-9"
+                    value={specialization}
+                    onChange={(e) => setSpecialization(e.target.value)}
+                    className="appearance-none w-full bg-gray-50 border border-transparent px-4 py-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-100 outline-none cursor-pointer pr-10 focus:border-orange-300 transition-all"
                   >
-                    <option value="">📍 Select Centre</option>
-                    <option value="Online">Online Sessions</option>
-                    <option value="Bengaluru">Bengaluru</option>
-                    <option value="Delhi">Delhi</option>
-                    <option value="Mumbai">Mumbai</option>
+                    <option value="">All Therapists</option>
+                    <option value="Psychiatrist">Psychiatrist</option>
+                    <option value="Psychologist">Psychologist</option>
+                    <option value="Counselor">Counselor</option>
+                    <option value="Clinical Psychologist">Clinical Psychologist</option>
+                    <option value="Organization Doctor">Organization Doctor</option>
                   </select>
-                  <span className="absolute inset-y-0 right-3 flex items-center text-gray-400 pointer-events-none text-[8px]">▼</span>
+                  <span className="absolute bottom-3 right-3 flex items-center text-gray-400 pointer-events-none">▼</span>
                 </div>
 
                 {/* Filter: Language */}
-                <div className="relative flex-1 min-w-[150px]">
+                <div className="relative flex-1 min-w-[200px]">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">Language</label>
                   <select
                     value={selectedLanguage}
                     onChange={(e) => setSelectedLanguage(e.target.value)}
-                    className="appearance-none w-full bg-white border border-gray-100 px-4 py-2.5 rounded-full text-xs font-bold text-gray-500 shadow-sm hover:border-gray-200 outline-none cursor-pointer pr-9"
+                    className="appearance-none w-full bg-gray-50 border border-transparent px-4 py-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-100 outline-none cursor-pointer pr-10 focus:border-orange-300 transition-all"
                   >
-                    <option value="">🗣️ Languages</option>
+                    <option value="">All Languages</option>
                     <option value="English">English</option>
                     <option value="Hindi">Hindi</option>
                     <option value="Marathi">Marathi</option>
                     <option value="Telugu">Telugu</option>
                   </select>
-                  <span className="absolute inset-y-0 right-3 flex items-center text-gray-400 pointer-events-none text-[8px]">▼</span>
+                  <span className="absolute bottom-3 right-3 flex items-center text-gray-400 pointer-events-none">▼</span>
                 </div>
 
                 {/* Filter: Price */}
-                <div className="relative flex-1 min-w-[150px]">
+                <div className="relative flex-1 min-w-[200px]">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">Price Range</label>
                   <select
                     value={selectedPrice}
                     onChange={(e) => setSelectedPrice(e.target.value)}
-                    className="appearance-none w-full bg-white border border-gray-100 px-4 py-2.5 rounded-full text-xs font-bold text-gray-500 shadow-sm hover:border-gray-200 outline-none cursor-pointer pr-9"
+                    className="appearance-none w-full bg-gray-50 border border-transparent px-4 py-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-100 outline-none cursor-pointer pr-10 focus:border-orange-300 transition-all"
                   >
-                    <option value="">🏷️ Price</option>
+                    <option value="">Any Price</option>
                     <option value="low">Under ₹1500</option>
                     <option value="mid">₹1500 - ₹2500</option>
                     <option value="high">Above ₹2500</option>
                   </select>
-                  <span className="absolute inset-y-0 right-3 flex items-center text-gray-400 pointer-events-none text-[8px]">▼</span>
+                  <span className="absolute bottom-3 right-3 flex items-center text-gray-400 pointer-events-none">▼</span>
                 </div>
               </div>
             )}
 
-            {/* Horizontal Categories Scrollbar Tag Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2 w-full border-b border-gray-100">
-              {[
-                { id: "", label: "All Therapists (120)" },
-                { id: "Psychiatrist", label: "Psychiatrist" },
-                { id: "Psychologist", label: "Psychologist" },
-                { id: "Counselor", label: "Counselor" },
-                { id: "Clinical Psychologist", label: "Clinical Psychologist" },
-                { id: "Neuropsychologist", label: "Neuropsychologist" },
-                { id: "Child Psychologist", label: "Child Psychologist" }
-              ].map((cat) => {
-                const isActive = specialization === cat.id
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setSpecialization(cat.id)}
-                    className={`px-4 py-2 rounded-full text-[11px] font-bold tracking-wide transition-all shrink-0 border
-                      ${isActive
-                        ? "bg-[#131E29] border-[#131E29] text-white shadow-sm scale-[1.02]"
-                        : "bg-white border-gray-100 text-gray-500 hover:border-gray-200"
-                      }
-                    `}
-                  >
-                    {cat.label}
-                  </button>
-                )
-              })}
-            </div>
+
 
             {/* Therapists Main Cards Grid */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
               {isLoading ? (
-                Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-[220px] bg-white rounded-[24px] border border-gray-100 animate-pulse shadow-sm"></div>
+                Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="h-[280px] bg-gray-50 rounded-3xl animate-pulse"></div>
                 ))
               ) : filteredDoctors.length > 0 ? (
                 filteredDoctors.map((doctor) => {
@@ -392,55 +364,17 @@ export default function TherapistList() {
                   const docId = doctor.id
                   const isBookmarked = bookmarks[docId] || false
                   const nextSlotLabel = getNextAvailableSlot(doctor)
-
-                  // Determine if we should render our premium professional illustration avatars
-                  const isPlaceholder = !displayPhoto || 
-                    displayPhoto === "null" || 
-                    displayPhoto === "undefined" || 
-                    displayPhoto.includes("googleusercontent.com/a/") ||
-                    doctor.user.name?.includes("Charan")
+                  const isPlaceholder = !displayPhoto || displayPhoto === "null" || displayPhoto === "undefined" || displayPhoto.includes("googleusercontent.com/a/") || doctor.user.name?.includes("Charan")
 
                   const renderProfessionalAvatar = () => {
                     if (isPlaceholder) {
                       if (doctor.user.name?.includes("Charan")) {
-                        // Male psychiatrist illustration
                         return (
-                          <svg viewBox="0 0 100 100" className="w-full h-full object-cover">
-                            <circle cx="50" cy="50" r="50" fill="#E8F5F5" />
-                            <rect x="46" y="55" width="8" height="15" fill="#E5B28F" />
-                            <circle cx="50" cy="44" r="17" fill="#F2C19E" />
-                            <path d="M33 38c0-8 6-13 17-13s17 5 17 13v3h-34v-3z" fill="#3D3028" />
-                            <path d="M33 46c0 10 7 17 17 17s17-7 17-17h-3v3c0 7-6 11-14 11s-14-4-14-11v-3" fill="#3D3028" />
-                            <path d="M43 51c3 1 11 1 14 0c1-1 1-2 0-2c-2 0-12 0-14 2" fill="#3D3028" />
-                            <circle cx="44" cy="42" r="1.5" fill="#2E2521" />
-                            <circle cx="56" cy="42" r="1.5" fill="#2E2521" />
-                            <circle cx="44" cy="42" r="4.0" fill="none" stroke="#2E2521" strokeWidth="1.2" />
-                            <circle cx="56" cy="42" r="4.0" fill="none" stroke="#2E2521" strokeWidth="1.2" />
-                            <line x1="48" y1="42" x2="52" y2="42" stroke="#2E2521" strokeWidth="1.2" />
-                            <path d="M47 48c1 1 5 1 6 0" fill="none" stroke="#E36D49" strokeWidth="1.5" strokeLinecap="round" />
-                            <path d="M22 85c0-12 10-20 20-20h16c10 0 20 8 20 20v15H22V85z" fill="#E36D49" />
-                            <path d="M50 65l-5 12h10z" fill="#E8F5F5" />
-                          </svg>
+                          <svg viewBox="0 0 100 100" className="w-full h-full object-cover"><circle cx="50" cy="50" r="50" fill="#E8F5F5" /><rect x="46" y="55" width="8" height="15" fill="#E5B28F" /><circle cx="50" cy="44" r="17" fill="#F2C19E" /><path d="M33 38c0-8 6-13 17-13s17 5 17 13v3h-34v-3z" fill="#3D3028" /><path d="M33 46c0 10 7 17 17 17s17-7 17-17h-3v3c0 7-6 11-14 11s-14-4-14-11v-3" fill="#3D3028" /><path d="M43 51c3 1 11 1 14 0c1-1 1-2 0-2c-2 0-12 0-14 2" fill="#3D3028" /><circle cx="44" cy="42" r="1.5" fill="#2E2521" /><circle cx="56" cy="42" r="1.5" fill="#2E2521" /><circle cx="44" cy="42" r="4.0" fill="none" stroke="#2E2521" strokeWidth="1.2" /><circle cx="56" cy="42" r="4.0" fill="none" stroke="#2E2521" strokeWidth="1.2" /><line x1="48" y1="42" x2="52" y2="42" stroke="#2E2521" strokeWidth="1.2" /><path d="M47 48c1 1 5 1 6 0" fill="none" stroke="#E36D49" strokeWidth="1.5" strokeLinecap="round" /><path d="M22 85c0-12 10-20 20-20h16c10 0 20 8 20 20v15H22V85z" fill="#E36D49" /><path d="M50 65l-5 12h10z" fill="#E8F5F5" /></svg>
                         )
                       }
-                      // Female therapist illustration
                       return (
-                        <svg viewBox="0 0 100 100" className="w-full h-full object-cover">
-                          <circle cx="50" cy="50" r="50" fill="#FFE9DF" />
-                          <circle cx="50" cy="38" r="23" fill="#4B3F38" />
-                          <rect x="46" y="52" width="8" height="15" fill="#F4C3A1" />
-                          <circle cx="50" cy="44" r="17" fill="#FAD4B2" />
-                          <path d="M33 38c0-10 8-16 17-16s17 6 17 16c0 3-1 5-2 5s-2-4-4-4s-3 3-5 3s-3-2-6-2s-6 3-6 3s-1-5-1-5" fill="#4B3F38" />
-                          <circle cx="50" cy="18" r="7" fill="#4B3F38" />
-                          <circle cx="44" cy="44" r="1.5" fill="#2E2521" />
-                          <circle cx="56" cy="44" r="1.5" fill="#2E2521" />
-                          <circle cx="44" cy="44" r="4.5" fill="none" stroke="#E36D49" strokeWidth="1.2" />
-                          <circle cx="56" cy="44" r="4.5" fill="none" stroke="#E36D49" strokeWidth="1.2" />
-                          <line x1="48.5" y1="44" x2="51.5" y2="44" stroke="#E36D49" strokeWidth="1.2" />
-                          <path d="M46 51c1.5 2 5.5 2 7 0" fill="none" stroke="#E36D49" strokeWidth="1.5" strokeLinecap="round" />
-                          <path d="M22 85c0-12 10-20 20-20h16c10 0 20 8 20 20v15H22V85z" fill="#1A6B6B" />
-                          <path d="M50 65l-6 10h12z" fill="#FFF3E8" />
-                        </svg>
+                        <svg viewBox="0 0 100 100" className="w-full h-full object-cover"><circle cx="50" cy="50" r="50" fill="#FFE9DF" /><circle cx="50" cy="38" r="23" fill="#4B3F38" /><rect x="46" y="52" width="8" height="15" fill="#F4C3A1" /><circle cx="50" cy="44" r="17" fill="#FAD4B2" /><path d="M33 38c0-10 8-16 17-16s17 6 17 16c0 3-1 5-2 5s-2-4-4-4s-3 3-5 3s-3-2-6-2s-6 3-6 3s-1-5-1-5" fill="#4B3F38" /><circle cx="50" cy="18" r="7" fill="#4B3F38" /><circle cx="44" cy="44" r="1.5" fill="#2E2521" /><circle cx="56" cy="44" r="1.5" fill="#2E2521" /><circle cx="44" cy="44" r="4.5" fill="none" stroke="#E36D49" strokeWidth="1.2" /><circle cx="56" cy="44" r="4.5" fill="none" stroke="#E36D49" strokeWidth="1.2" /><line x1="48.5" y1="44" x2="51.5" y2="44" stroke="#E36D49" strokeWidth="1.2" /><path d="M46 51c1.5 2 5.5 2 7 0" fill="none" stroke="#E36D49" strokeWidth="1.5" strokeLinecap="round" /><path d="M22 85c0-12 10-20 20-20h16c10 0 20 8 20 20v15H22V85z" fill="#1A6B6B" /><path d="M50 65l-6 10h12z" fill="#FFF3E8" /></svg>
                       )
                     }
                     return <Image src={displayPhoto} alt={doctor.user.name || "Doctor"} fill className="object-cover" />
@@ -449,155 +383,67 @@ export default function TherapistList() {
                   return (
                     <div
                       key={doctor.id}
-                      className="bg-white rounded-3xl p-5 border border-gray-100 flex gap-4 relative shadow-[0_4px_20px_rgba(0,0,0,0.015)] hover:shadow-[0_10px_30px_rgba(0,0,0,0.03)] hover:border-orange-100/50 transition-all duration-300 text-left"
+                      className="bg-white rounded-[32px] p-6 border border-gray-100 flex flex-col relative shadow-sm hover:shadow-xl hover:border-gray-200 transition-all duration-300 text-left group"
                     >
-                      {/* Left Portrait container with soft gradient overlay */}
-                      <div className="w-[130px] h-[180px] rounded-2xl overflow-hidden relative shrink-0 bg-gradient-to-t from-[#FFE9DF] to-[#FFF9F5] border border-orange-50/20 shadow-inner flex items-center justify-center">
-                        {renderProfessionalAvatar()}
+                      <button
+                        onClick={() => setBookmarks(prev => ({ ...prev, [docId]: !isBookmarked }))}
+                        className="absolute top-6 right-6 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm shadow-sm flex items-center justify-center text-gray-300 hover:text-orange-500 transition-colors border border-gray-100"
+                      >
+                        <svg viewBox="0 0 24 24" fill={isBookmarked ? "#E36D49" : "none"} stroke={isBookmarked ? "#E36D49" : "currentColor"} strokeWidth="2" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" /></svg>
+                      </button>
 
-                        {/* Top-left availability dot tag pill */}
-                        <div className="absolute top-2.5 left-2.5 bg-white/95 backdrop-blur-[2px] shadow-sm px-2 py-0.5 rounded-full text-[9px] font-black tracking-wide flex items-center gap-1 text-gray-700">
-                          <span className={`w-1.5 h-1.5 rounded-full ${doctor.availability?.isAvailable !== false ? "bg-emerald-500" : "bg-sky-500"}`}></span>
-                          <span>{doctor.availability?.isAvailable !== false ? "Available today" : "Available tomorrow"}</span>
-                        </div>
-                      </div>
-
-                      {/* Right details column */}
-                      <div className="flex-1 flex flex-col justify-between">
-                        {/* Header Details */}
-                        <div className="relative pr-6 text-left">
-                          {/* Bookmark Toggle Icon */}
-                          <button
-                            onClick={() => setBookmarks(prev => ({ ...prev, [docId]: !isBookmarked }))}
-                            className="absolute top-0 right-0 text-gray-300 hover:text-orange-500 transition-colors"
-                          >
-                            <svg 
-                              xmlns="http://www.w3.org/2000/svg" 
-                              viewBox="0 0 24 24" 
-                              fill={isBookmarked ? "#E36D49" : "none"} 
-                              stroke={isBookmarked ? "#E36D49" : "currentColor"} 
-                              strokeWidth="2" 
-                              className="w-5 h-5 transition-all"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
-                            </svg>
-                          </button>
-
-                          <span className="text-[10px] font-black uppercase tracking-wider text-[#E36D49]">{doctor.specialization || "Psychologist"}</span>
-                          <h3 className="text-[16px] font-black text-gray-900 leading-tight mt-0.5">{doctor.user.name}</h3>
+                      <Link href={`/patient/therapists/${doctor.id}`} className="flex flex-col flex-1">
+                        <div className="flex items-center gap-5">
+                          <div className="w-[84px] h-[84px] rounded-2xl overflow-hidden relative shrink-0 bg-gradient-to-t from-[#FFE9DF] to-[#FFF9F5] border border-gray-100 shadow-inner">
+                            {renderProfessionalAvatar()}
+                          </div>
                           
-                          <p className="text-[10px] font-bold text-gray-400 mt-1 leading-snug">
-                            {doctor.yearsOfExperience || doctor.experience || 5}+ years of experience
-                          </p>
+                          <div className="flex flex-col flex-1 min-w-0">
+                            <span className="text-[11px] font-black uppercase tracking-wider text-[#E36D49] mb-1">{doctor.specialization || "Psychologist"}</span>
+                            <h3 className="text-[18px] font-extrabold text-gray-900 truncate leading-tight">{doctor.user.name}</h3>
+                            <p className="text-xs font-bold text-gray-400 mt-1">
+                              {doctor.yearsOfExperience || doctor.experience || 5}+ years exp.
+                            </p>
+                          </div>
                         </div>
 
-                        {/* Focus tag pills */}
-                        <div className="flex flex-wrap gap-1 my-2">
-                          {(doctor.secondarySpecializations?.slice(0, 3) || ["Anxiety", "Depression", "Stress"]).map((tag) => (
-                            <span key={tag} className="px-2.5 py-0.5 bg-[#FAF8F5] border border-gray-100/50 rounded-lg text-[9px] font-bold text-gray-600">
-                              {tag}
-                            </span>
-                          ))}
-                          {doctor.secondarySpecializations && doctor.secondarySpecializations.length > 3 && (
-                            <span className="px-2 py-0.5 bg-gray-50 rounded-lg text-[9px] font-bold text-gray-400">
-                              +{doctor.secondarySpecializations.length - 3}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Ratings reviews row */}
-                        <div className="flex items-center gap-1 text-[11px] font-bold text-gray-500 text-left">
-                          <span className="text-yellow-400 text-sm">★</span>
+                        <div className="flex items-center gap-1.5 mt-5 text-xs font-bold text-gray-500">
+                          <svg className="w-4 h-4 text-yellow-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                           <span className="text-gray-900 font-black">4.9</span>
-                          <span>(128 reviews)</span>
+                          <span>(128)</span>
+                          <span className="mx-1">•</span>
+                          <span>₹{doctor.consultationFee} / session</span>
                         </div>
+                      </Link>
 
-                        {/* Booking Slots Timing indicator & fee */}
-                        <div className="mt-2 text-[10px] font-bold text-gray-400 text-left">
-                          <span className="text-[#E36D49] font-black">{nextSlotLabel}</span>
-                          <span className="mx-1.5">•</span>
-                          <span>₹{doctor.consultationFee} ({doctor.appointmentDuration || 45} mins)</span>
+                      <div className="mt-5 pt-5 border-t border-gray-50 flex items-center justify-between">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Next Available</span>
+                          <span className="text-[12px] font-black text-gray-900 mt-0.5">{nextSlotLabel.split(" ")[0]} {nextSlotLabel.split(" ")[1]}</span>
                         </div>
-
-                        {/* Solid rust-orange action profile button */}
-                        <button
-                          onClick={() => setShowProfileModal(doctor)}
-                          className="mt-3 bg-[#E36D49] hover:bg-[#d05c38] text-white py-2.5 rounded-2xl text-[11px] font-black flex items-center justify-center gap-1.5 w-full shadow-sm shadow-orange-100 transition-all"
+                        <Link
+                          href={`/patient/therapists/${doctor.id}`}
+                          className="bg-[#131E29] hover:bg-[#E36D49] text-white px-5 py-2.5 rounded-xl text-xs font-black transition-colors shadow-sm"
                         >
-                          <span>View Profile</span>
-                          <span>→</span>
-                        </button>
+                          Book
+                        </Link>
                       </div>
                     </div>
                   )
                 })
               ) : (
-                <div className="col-span-2 bg-white rounded-3xl border border-gray-100 p-12 text-center shadow-sm">
-                  <span className="text-4xl">🔎</span>
-                  <h3 className="text-md font-black text-gray-700 mt-4">No matching experts found</h3>
-                  <p className="text-xs text-gray-400 mt-2 max-w-[280px] mx-auto">Try selecting a different specialization, centre location, or price dropdown filter.</p>
+                <div className="col-span-full bg-gray-50 rounded-3xl p-16 text-center">
+                  <span className="text-4xl block mb-4">🔎</span>
+                  <h3 className="text-lg font-black text-gray-900">No matching experts found</h3>
+                  <p className="text-sm font-semibold text-gray-500 mt-2 max-w-md mx-auto">Try adjusting your filters or search terms to find available professionals.</p>
                 </div>
               )}
             </div>
-
-            {/* Bottom Shield verification guidelines banner */}
-            <div className="bg-[#FAF8F5] border border-gray-100 rounded-2xl p-4 flex items-center justify-between mt-4 text-xs font-bold text-gray-600">
-              <div className="flex items-center gap-2 text-left">
-                <span className="text-lg">🛡️</span>
-                <span>All professionals are verified and follow ethical practice guidelines.</span>
-              </div>
-              <a href="#" className="text-[#E36D49] font-black flex items-center gap-0.5 hover:underline">
-                <span>Learn more</span>
-                <span>&gt;</span>
-              </a>
-            </div>
-
-          </div>
-
-          {/* =============================================================== */}
-          {/* RIGHT SIDEBAR COLUMN */}
-          {/* =============================================================== */}
-          <div className="lg:col-span-3 flex flex-col gap-6">
             
-            {/* Meditating woman matching assessment banner */}
-            <div className="bg-gradient-to-br from-[#FFF5F0] via-[#FFFBF9] to-[#FFF5F0] border border-orange-100/50 rounded-[32px] p-6 text-left relative overflow-hidden flex flex-col justify-between min-h-[220px] shadow-[0_4px_24px_rgba(227,109,73,0.02)]">
-              {/* Close icon button */}
-              <button className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xs transition-colors z-20">
-                ✕
-              </button>
-
-              <div className="z-10 max-w-[65%]">
-                <h3 className="text-xl font-black text-gray-900 leading-tight">
-                  Find the right therapist for you
-                </h3>
-                <p className="text-[10px] font-bold text-gray-400 mt-2 leading-relaxed">
-                  Take a short assessment and we'll match you with the best fit.
-                </p>
-                <button className="bg-[#131E29] hover:bg-[#1f2f3f] text-white text-[10px] font-black tracking-wider px-5 py-2.5 rounded-full mt-4 flex items-center gap-1.5 transition-all shadow-sm">
-                  <span>TAKE ASSESSMENT</span>
-                  <span>→</span>
-                </button>
-              </div>
-
-              {/* Vector Meditator artwork illustration SVG */}
-              <div className="w-[120px] h-[150px] absolute right-2 bottom-0 opacity-95 shrink-0 z-0">
-                <svg viewBox="0 0 100 120" className="w-full h-full">
-                  {/* Soft Background Leaf Elements */}
-                  <path d="M70,30 C90,45 85,80 60,95 C45,85 50,45 70,30 Z" fill="#FFE9DF" opacity="0.6" />
-                  <path d="M20,60 C10,75 25,100 45,95 C40,80 30,70 20,60 Z" fill="#FFE9DF" opacity="0.4" />
-                  
-                  {/* Meditating figure representation */}
-                  <circle cx="50" cy="40" r="7" fill="#E36D49" />
-                  <path d="M43,37 C43,30 57,30 57,37 C57,40 43,40 43,37 Z" fill="#131E29" />
-                  <path d="M50,47 L50,65" stroke="#E36D49" strokeWidth="4" strokeLinecap="round" />
-                  <path d="M35,75 C35,60 65,60 65,75 Z" fill="#131E29" />
-                  <circle cx="36" cy="68" r="2.5" fill="#E36D49" />
-                  <circle cx="64" cy="68" r="2.5" fill="#E36D49" />
-                </svg>
-              </div>
+            <div className="mt-8 flex items-center justify-center gap-2 text-xs font-bold text-gray-400 bg-gray-50 py-4 rounded-2xl">
+              <span className="text-base">🛡️</span>
+              All professionals are verified and follow strict ethical guidelines.
             </div>
-
-          </div>
 
         </div>
 

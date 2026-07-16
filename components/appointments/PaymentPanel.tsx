@@ -41,7 +41,7 @@ interface PaymentPanelProps {
   appointment: Appointment
 }
 
-type Step = "APPOINTMENT" | "PAYMENT" | "FINISH"
+type Step = "APPOINTMENT" | "FINISH"
 
 export default function PaymentPanel({ appointment }: PaymentPanelProps) {
   const router = useRouter()
@@ -61,36 +61,86 @@ export default function PaymentPanel({ appointment }: PaymentPanelProps) {
     hour: "2-digit", minute: "2-digit", hour12: true,
   })
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement('script')
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+      script.onload = () => resolve(true)
+      script.onerror = () => resolve(false)
+      document.body.appendChild(script)
+    })
+  }
+
   const handlePayment = async () => {
     setIsProcessing(true)
-    // Simulate payment processing
-    setTimeout(async () => {
-      try {
-        const response = await fetch(`/api/appointments/${appointment.id}/payment/demo`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ paymentMethod }),
-        })
-
-        if (response.ok) {
-          setCurrentStep("FINISH")
-          router.refresh()
-        } else {
-          const error = await response.json()
-          alert(error.error || "Payment failed. Please try again.")
-        }
-      } catch (error) {
-        console.error("Error processing payment:", error)
-        alert("Payment failed. Please try again.")
-      } finally {
-        setIsProcessing(false)
+    try {
+      const isLoaded = await loadRazorpayScript()
+      if (!isLoaded) {
+        alert("Razorpay SDK failed to load. Are you online?")
+        return
       }
-    }, 1500)
+
+      // Create Order
+      const orderRes = await fetch(`/api/appointments/${appointment.id}/payment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      })
+
+      const orderData = await orderRes.json()
+      if (!orderData.success) throw new Error(orderData.error || "Failed to create order")
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_T2HN6tpPOHf8Mw',
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "Hey Attrangi",
+        description: `Consultation with ${doctorName}`,
+        order_id: orderData.orderId,
+        handler: async function (response: any) {
+          // Verify
+          const verifyRes = await fetch(`/api/appointments/${appointment.id}/payment/verify`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            })
+          })
+
+          const verifyData = await verifyRes.json()
+          if (verifyData.success) {
+            setCurrentStep("FINISH")
+            router.refresh()
+          } else {
+            alert(verifyData.error || "Payment verification failed.")
+          }
+        },
+        prefill: {
+          name: appointment.patient?.user.name || "",
+          email: appointment.patient?.user.email || "",
+        },
+        theme: {
+          color: "#f97316",
+        }
+      }
+
+      const rzp = new (window as any).Razorpay(options)
+      rzp.on('payment.failed', function (response: any) {
+        alert(`Payment Failed: ${response.error.description}`)
+      })
+      rzp.open()
+      
+    } catch (error: any) {
+      console.error("Payment error:", error)
+      alert(error.message || "Payment failed. Please try again.")
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   const steps = [
     { id: "APPOINTMENT", label: "Booking" },
-    { id: "PAYMENT", label: "Payment" },
     { id: "FINISH", label: "Finish" },
   ]
 
@@ -105,7 +155,6 @@ export default function PaymentPanel({ appointment }: PaymentPanelProps) {
         </button>
         <h1 className="text-lg font-bold text-gray-900">
           {currentStep === "APPOINTMENT" && "Booking Appointment"}
-          {currentStep === "PAYMENT" && "Payment"}
           {currentStep === "FINISH" && "Finish"}
         </h1>
         <button className="text-gray-400">
@@ -206,85 +255,14 @@ export default function PaymentPanel({ appointment }: PaymentPanelProps) {
             </div>
 
             <button
-              onClick={() => setCurrentStep("PAYMENT")}
-              className="w-full mt-12 py-5 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-orange-100 transition-all active:scale-95"
-            >
-              Proceed to payment
-            </button>
-          </motion.div>
-        )}
-
-        {currentStep === "PAYMENT" && (
-          <motion.div
-            key="payment"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="flex-1 px-4"
-          >
-            {/* Warning Alert */}
-            <div className="bg-orange-50 border border-orange-100 rounded-2xl p-5 mb-8 flex gap-4">
-              <div className="w-6 h-6 rounded-full border-2 border-orange-500 flex items-center justify-center text-orange-500 flex-shrink-0">
-                <span className="text-[10px] font-black">!</span>
-              </div>
-              <p className="text-xs font-bold text-orange-700/80 leading-relaxed">
-                Please complete payment within 15 minutes, or else your appointment request will be cancelled.
-              </p>
-            </div>
-
-            {/* Payment Methods Grid */}
-            <div className="grid grid-cols-2 gap-4">
-              <PaymentMethodCard 
-                id="mastercard" 
-                selected={paymentMethod === "mastercard"}
-                onClick={() => setPaymentMethod("mastercard")}
-                logo="/images/payment/mastercard.png"
-                label="Mastercard"
-              />
-              <PaymentMethodCard 
-                id="visa" 
-                selected={paymentMethod === "visa"}
-                onClick={() => setPaymentMethod("visa")}
-                logo="/images/payment/visa.png"
-                label="Visa"
-              />
-              <PaymentMethodCard 
-                id="payoneer" 
-                selected={paymentMethod === "payoneer"}
-                onClick={() => setPaymentMethod("payoneer")}
-                logo="/images/payment/payoneer.png"
-                label="Payoneer"
-              />
-              <PaymentMethodCard 
-                id="applepay" 
-                selected={paymentMethod === "applepay"}
-                onClick={() => setPaymentMethod("applepay")}
-                logo="/images/payment/apple-pay.png"
-                label="Apple Pay"
-              />
-              <PaymentMethodCard 
-                id="paypal" 
-                selected={paymentMethod === "paypal"}
-                onClick={() => setPaymentMethod("paypal")}
-                logo="/images/payment/paypal.png"
-                label="PayPal"
-                className="col-span-1"
-              />
-            </div>
-
-            <div className="mt-12 text-center text-[10px] font-bold text-gray-400 px-8 leading-relaxed mb-12">
-              By clicking <span className="text-gray-900">MAKE PAYMENT</span>, you are agreeing to the Attrangi terms and conditions of care & privacy policy.
-            </div>
-
-            <button
               onClick={handlePayment}
               disabled={isProcessing}
-              className="w-full py-5 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-orange-100 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center"
+              className="w-full mt-12 py-5 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-orange-100 transition-all active:scale-95 flex items-center justify-center disabled:opacity-50"
             >
               {isProcessing ? (
                 <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
               ) : (
-                "Make payment"
+                "Proceed to payment"
               )}
             </button>
           </motion.div>
