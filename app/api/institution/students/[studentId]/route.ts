@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth.config"
 
-export async function PATCH(request: NextRequest, { params }: { params: { studentId: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ studentId: string }> }) {
   try {
     const session = await auth()
     
@@ -11,7 +11,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { studen
     }
 
     const orgId = (session.user as any).orgId
-    const studentId = params.studentId
+    const { studentId } = await params;
 
     // Verify student exists and belongs to the admin's org
     const patient = await prisma.patient.findUnique({

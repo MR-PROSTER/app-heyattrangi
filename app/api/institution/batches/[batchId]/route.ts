@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth.config"
 
-export async function PATCH(request: NextRequest, { params }: { params: { batchId: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ batchId: string }> }) {
   try {
     const session = await auth()
     
@@ -11,7 +11,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { batchI
     }
 
     const orgId = (session.user as any).orgId
-    const batchId = params.batchId
+    const { batchId } = await params;
 
     // Verify batch belongs to org
     const batch = await prisma.batch.findUnique({ where: { id: batchId } })
