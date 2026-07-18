@@ -2,13 +2,14 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { format } from "date-fns"
-import { useState } from "react"
+import { format, formatDistanceToNow } from "date-fns"
+import { useState, useEffect } from "react"
 import UpgradeOffersBanner from "./UpgradeOffersBanner"
-
-
+import { useRouter } from "next/navigation"
+import BreathingModule from "./BreathingModule"
 
 export default function CenterColumn({ displayName, plan, upcomingAppointments, dailyTasks = [] }: { displayName: string, plan?: string, upcomingAppointments: any[], dailyTasks?: any[] }) {
+    const router = useRouter()
     const [activityFilter, setActivityFilter] = useState('Monthly')
     const [activityFilterOpen, setActivityFilterOpen] = useState(false)
     const normalizedPlan = plan || 'FREE'
@@ -26,6 +27,46 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
         { month: "Nov", value: 60 },
         { month: "Dec", value: 85, active: true },
     ]
+
+    const moodOptions = [
+        { name: "Great", score: 5, emoji: "🤩" },
+        { name: "Good", score: 4, emoji: "😊" },
+        { name: "Happy", score: 5, emoji: "😄" },
+        { name: "Calm", score: 4, emoji: "😌" },
+        { name: "Neutral", score: 3, emoji: "😐" },
+        { name: "Tired", score: 3, emoji: "🥱" },
+        { name: "Sad", score: 2, emoji: "😔" },
+        { name: "Anxious", score: 2, emoji: "😟" },
+        { name: "Stressed", score: 1, emoji: "😵‍💫" },
+        { name: "Angry", score: 1, emoji: "😠" }
+    ];
+
+    const [moodData, setMoodData] = useState<{ happy: number, calm: number, sad: number, score: number, message: string, lastUpdated?: string | null }>({ happy: 30, calm: 40, sad: 30, score: 60, message: "AI Mood Analysis Summary." })
+    const [isLoadingMood, setIsLoadingMood] = useState(true)
+    const [timeFilter, setTimeFilter] = useState("All")
+    const [selectedMood, setSelectedMood] = useState<string>("Good")
+    const [isBreathingOpen, setIsBreathingOpen] = useState(false)
+
+    useEffect(() => {
+        setIsLoadingMood(true)
+        fetch(`/api/patient/analytics/mood?filter=${timeFilter}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && typeof data.score === 'number') {
+                    setMoodData(data)
+                }
+                setIsLoadingMood(false)
+            })
+            .catch(() => setIsLoadingMood(false))
+    }, [timeFilter])
+
+    const c = 251.2;
+    const happyLen = (moodData.happy / 100) * c;
+    const calmLen = (moodData.calm / 100) * c;
+    const sadLen = (moodData.sad / 100) * c;
+    
+    const calmOffset = -happyLen;
+    const sadOffset = -(happyLen + calmLen);
 
     const nextApt = upcomingAppointments && upcomingAppointments.length > 0 ? upcomingAppointments[0] : null
 
@@ -218,62 +259,147 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6 mb-10 w-full">
 
-                {/* Daily Progress Card */}
+                {/* AI Mood Analysis Card */}
                 <div className="bg-white rounded-[32px] p-6 shadow-[0_2px_24px_rgba(0,0,0,0.03)] border border-gray-100 flex flex-col relative min-h-[400px]">
-                    <h3 className="font-extrabold text-[22px] text-gray-900 mb-8">Daily Progress</h3>
+                    <div className="flex justify-between items-start mb-6">
+                        <div>
+                            {isLoadingMood ? (
+                                <div className="h-10 w-24 bg-gray-100 rounded animate-pulse mb-2"></div>
+                            ) : (
+                                <h3 className="font-extrabold text-[42px] text-gray-900 leading-none mb-1">{moodData.score}%</h3>
+                            )}
+                            <p className="text-[14px] font-bold text-gray-500">{moodData.message}</p>
+                        </div>
+                    </div>
 
-                    <div className="flex flex-col gap-6 w-full">
-                        {/* Daily Progress Bar */}
-                        <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-[24px] p-6 border border-orange-100 shadow-sm relative overflow-hidden">
-                            <div className="absolute right-0 top-0 w-32 h-32 bg-orange-200/40 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                    {/* Filter Pills */}
+                    <div className="flex gap-2 mb-8">
+                        {['All', 'Today', 'Week'].map(filter => (
+                            <button 
+                                key={filter}
+                                onClick={() => setTimeFilter(filter)}
+                                className={`px-5 py-2 rounded-full text-xs transition-all ${
+                                    timeFilter === filter 
+                                        ? "bg-[#ff8b59] text-white font-black shadow-md shadow-orange-200" 
+                                        : "bg-gray-50 text-gray-500 hover:bg-gray-100 font-bold"
+                                }`}
+                            >
+                                {filter}
+                            </button>
+                        ))}
+                    </div>
 
-                            <div className="flex items-end justify-between mb-4 relative z-10">
-                                <div>
-                                    <h4 className="text-[15px] font-black text-orange-900 tracking-tight mb-1">Today's Journey</h4>
-                                    <p className="text-[12px] font-semibold text-orange-700/70">You're making great progress!</p>
+                    {/* Donut Chart Section */}
+                    <div className="flex items-center justify-between mb-8 px-2">
+                        {/* Legend */}
+                        <div className="flex flex-col gap-4">
+                            <div className="flex flex-col">
+                                <div className="flex items-center gap-2 mb-0.5">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-[#ff8b59]"></div>
+                                    <span className="text-[13px] font-black text-gray-800">Happy</span>
                                 </div>
-                                <div className="text-right">
-                                    <span className="text-[24px] font-black text-orange-600 leading-none">2</span>
-                                    <span className="text-[14px] font-bold text-orange-400"> / 4</span>
-                                </div>
+                                <span className="text-[11px] font-bold text-gray-400 ml-4.5">{isLoadingMood ? '...' : `${moodData.happy}%`}</span>
                             </div>
-
-                            <div className="w-full h-3 bg-white/60 rounded-full overflow-hidden border border-orange-100 relative z-10">
-                                <div className="h-full bg-gradient-to-r from-orange-400 to-amber-500 rounded-full w-[50%] relative">
-                                    <div className="absolute inset-0 bg-white/20 w-full h-full rounded-full" style={{ backgroundImage: 'linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)', backgroundSize: '1rem 1rem' }}></div>
+                            <div className="flex flex-col">
+                                <div className="flex items-center gap-2 mb-0.5">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-[#9f85ff]"></div>
+                                    <span className="text-[13px] font-black text-gray-800">Calm</span>
                                 </div>
+                                <span className="text-[11px] font-bold text-gray-400 ml-4.5">{isLoadingMood ? '...' : `${moodData.calm}%`}</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <div className="flex items-center gap-2 mb-0.5">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-[#82b863]"></div>
+                                    <span className="text-[13px] font-black text-gray-800">Sad</span>
+                                </div>
+                                <span className="text-[11px] font-bold text-gray-400 ml-4.5">{isLoadingMood ? '...' : `${moodData.sad}%`}</span>
                             </div>
                         </div>
 
-                        {/* Task List */}
-                        <div className="flex flex-col gap-3">
-                            {[
-                                { title: "Morning Check-in", time: "5 mins", completed: true, color: "blue" },
-                                { title: "Mindful Breathing", time: "3 mins", completed: true, color: "teal" },
-                                { title: "The Thoughts-Feelings Loop", time: "10 mins", completed: false, color: "amber" },
-                                { title: "Evening Reflection", time: "5 mins", completed: false, color: "purple" },
-                            ].map((task, i) => (
-                                <div key={i} className={`flex items-center justify-between p-4 rounded-[20px] border transition-all ${task.completed ? 'bg-gray-50 border-gray-100 opacity-70' : 'bg-white border-gray-200 shadow-sm hover:border-orange-200 hover:shadow-md'}`}>
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${task.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
-                                            {task.completed ? (
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-4 h-4"><polyline points="20 6 9 17 4 12" /></svg>
-                                            ) : (
-                                                <div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <h5 className={`font-black text-[14px] ${task.completed ? 'text-gray-500 line-through decoration-gray-300' : 'text-gray-800'}`}>{task.title}</h5>
-                                            <span className="text-[11px] font-bold text-gray-400">{task.time}</span>
-                                        </div>
-                                    </div>
-                                    {!task.completed && (
-                                        <button className={`px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider text-${task.color}-600 bg-${task.color}-50 hover:bg-${task.color}-100 transition-colors`}>
-                                            Start
-                                        </button>
-                                    )}
+                        {/* SVG Donut Chart */}
+                        <div className="relative w-36 h-36">
+                            <svg viewBox="0 0 100 100" className={`w-full h-full transform -rotate-90 drop-shadow-md transition-opacity duration-500 ${isLoadingMood ? 'opacity-50' : 'opacity-100'}`}>
+                                {/* Happy Segment */}
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="#ff8b59" strokeWidth="16" strokeDasharray={`${happyLen} ${c}`} className="drop-shadow-sm transition-all duration-1000 ease-out" />
+                                {/* Calm Segment */}
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="#9f85ff" strokeWidth="16" strokeDasharray={`${calmLen} ${c}`} strokeDashoffset={calmOffset} className="transition-all duration-1000 ease-out" />
+                                {/* Sad Segment */}
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="#82b863" strokeWidth="16" strokeDasharray={`${sadLen} ${c}`} strokeDashoffset={sadOffset} className="transition-all duration-1000 ease-out" />
+                            </svg>
+                            {/* Inner cut-out to make it a donut and match aesthetics */}
+                            <div className="absolute inset-0 m-auto w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-inner">
+                                <span className="text-3xl">😊</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bottom Action Cards */}
+                    <div className="grid grid-cols-2 gap-4 mt-auto">
+                        {/* Breathing Exercise Card */}
+                        <div 
+                            onClick={() => setIsBreathingOpen(true)}
+                            className="bg-[#e8f6f0] rounded-[24px] p-5 relative overflow-hidden flex flex-col justify-between group hover:scale-[1.02] transition-transform cursor-pointer shadow-sm min-h-[140px]">
+                            <div className="flex gap-4 items-center">
+                                {/* Red Character Blob */}
+                                <div className="w-14 h-14 bg-[#f47b85] rounded-full shrink-0 flex items-center justify-center relative shadow-sm">
+                                    <span className="text-2xl drop-shadow-sm">😵‍💫</span>
                                 </div>
-                            ))}
+                                <div>
+                                    <h4 className="font-black text-[15px] text-[#2c4c3b] leading-tight mb-1">Relieve stress</h4>
+                                    <p className="text-[10px] font-bold text-[#558268]">Breathing practice</p>
+                                </div>
+                            </div>
+                            <div className="mt-4 flex">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/60 text-[#2c4c3b] text-[10px] font-black uppercase tracking-wider rounded-full shadow-sm backdrop-blur-sm">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3 h-3"><path d="M4 4h16c.3 0 .5.2.5.5v2.3c0 .5-.2.9-.5 1.3l-5 4.9c-.3.3-.5.7-.5 1.1s.2.8.5 1.1l5 4.9c.3.4.5.8.5 1.3v2.3c0 .3-.2.5-.5.5H4c-.3 0-.5-.2-.5-.5v-2.3c0-.5.2-.9.5-1.3l5-4.9c.3-.3.5-.7.5-1.1s-.2-.8-.5-1.1l-5-4.9c-.3-.4-.5-.8-.5-1.3V4.5c0-.3.2-.5.5-.5z"/></svg>
+                                    15 min
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Mood Selector Card */}
+                        <div className="bg-gradient-to-b from-[#fff5e0] to-[#ffe5be] rounded-[24px] p-5 relative overflow-hidden flex flex-col justify-between shadow-sm min-h-[140px] items-center text-center">
+                            <h4 className="font-black text-[13px] text-[#a04e22] leading-tight mb-0.5">How are you really feeling today?</h4>
+                            {moodData.lastUpdated && (
+                                <p className="text-[9px] font-bold text-[#d67240]/80">
+                                    Last updated {formatDistanceToNow(new Date(moodData.lastUpdated), { addSuffix: true })}
+                                </p>
+                            )}
+                            
+                            {/* Big Blob Face & Soundwave */}
+                            <div className="flex-1 flex flex-col items-center justify-center w-full relative z-10 py-3">
+                                <div className="w-20 h-20 bg-[#fbbd57] rounded-[40%] flex items-center justify-center text-5xl shadow-md transition-transform hover:scale-105 cursor-pointer relative">
+                                    <span className="relative z-10">{moodOptions.find(m => m.name === selectedMood)?.emoji || "😊"}</span>
+                                </div>
+                                {/* Abstract wave under the face */}
+                                <div className="flex items-end justify-center gap-0.5 mt-3 h-5 opacity-40">
+                                    {[2, 4, 6, 8, 12, 16, 20, 16, 12, 8, 6, 4, 2].map((h, i) => (
+                                        <div key={i} className="w-[1.5px] bg-[#a04e22] rounded-full" style={{ height: `${h}px` }}></div>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            {/* Horizontal scroll picker */}
+                            <div className="w-[calc(100%+2rem)] -ml-4 -mr-4 overflow-x-auto pb-1 px-4 flex items-center justify-start gap-1 custom-scrollbar snap-x no-scrollbar">
+                                <div className="shrink-0 w-4"></div> {/* Spacer */}
+                                {moodOptions.map(mood => (
+                                    <button 
+                                        key={mood.name}
+                                        onClick={async () => {
+                                            setSelectedMood(mood.name);
+                                            await fetch('/api/patient/journal', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ content: `Feeling ${mood.name.toLowerCase()} today.`, moodScore: mood.score })
+                                            });
+                                            router.refresh();
+                                        }}
+                                        className={`snap-center shrink-0 px-4 py-2 rounded-full text-[11px] font-black shadow-sm transition-all hover:scale-105 ${selectedMood === mood.name ? 'bg-white text-[#a04e22]' : 'bg-transparent text-[#d67240] hover:text-[#a04e22] shadow-none'}`}>
+                                        {mood.name}
+                                    </button>
+                                ))}
+                                <div className="shrink-0 w-4"></div> {/* Spacer */}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -334,6 +460,7 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
                 </div>
             </div>
 
+            <BreathingModule isOpen={isBreathingOpen} onClose={() => setIsBreathingOpen(false)} />
         </div>
     )
 }

@@ -55,7 +55,14 @@ export default async function TherapistDetailPage({
             gte: new Date(new Date().setHours(0, 0, 0, 0)),
             lte: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
           },
-          status: { not: "CANCELLED" }
+          OR: [
+            { status: "CONFIRMED" },
+            { status: "COMPLETED" },
+            { 
+              status: "PENDING", 
+              createdAt: { gte: new Date(Date.now() - 15 * 60 * 1000) } 
+            }
+          ]
         },
         select: {
           appointmentDate: true

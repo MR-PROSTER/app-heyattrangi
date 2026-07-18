@@ -11,12 +11,15 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await req.json()
-    const { age, gender, healthConcerns, emergencyContact, emergencyPhone } = data
+    const { age, gender, healthConcerns, emergencyContact, emergencyPhone, orgId } = data
 
-    // Update user role if needed
+    // Update user role and orgId if provided
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { role: "PATIENT" },
+      data: { 
+        role: "PATIENT",
+        ...(orgId && { orgId })
+      },
     })
 
     // Create patient profile

@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { Suspense } from "react"
 import { auth } from "@/auth.config"
 import { getCurrentUser } from "@/lib/auth"
@@ -34,7 +35,7 @@ async function DashboardContent() {
 
     const now = new Date()
     upcomingAppointments = appointments.filter(
-      (apt) => new Date(apt.appointmentDate) > now && apt.status !== "CANCELLED"
+      (apt) => new Date(apt.appointmentDate) > now && (apt.status === "CONFIRMED" || apt.status === "COMPLETED")
     )
 
     dailyTasks = []

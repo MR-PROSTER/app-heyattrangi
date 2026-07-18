@@ -52,13 +52,20 @@ export async function POST(req: NextRequest) {
     const dayDateObj = new Date(appointmentDateObj)
     dayDateObj.setHours(0, 0, 0, 0)
 
+    const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000)
+
     const existingAppointment = await prisma.appointment.findFirst({
       where: {
         doctorId: doctorId,
         appointmentDate: appointmentDateObj,
-        status: {
-          notIn: ["CANCELLED", "NO_SHOW"],
-        },
+        OR: [
+          { status: "CONFIRMED" },
+          { status: "COMPLETED" },
+          { 
+            status: "PENDING", 
+            createdAt: { gte: fifteenMinsAgo } 
+          }
+        ]
       },
     })
 

@@ -50,11 +50,48 @@ model Organization {
   aiLimit       Int?
   journalingType String?
   goalType      String?
+  status        String    @default("ACTIVE") // ACTIVE, INACTIVE
+  sessionLimit  Int?      // Global limit on sessions for the institution
+  studentLimit  Int?      // Global limit on students for the institution
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  
   users         User[]
+  batches       Batch[]
+  departments   Department[]
+  assignedDoctors OrganizationDoctor[]
 
   @@map("organizations")
+}
+
+model Batch {
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  organizationId  String       @db.ObjectId
+  name            String       // e.g., "2025 B.Tech CSE"
+  graduationYear  Int?
+  startDate       DateTime?
+  endDate         DateTime?
+  status          String       @default("ACTIVE") // ACTIVE, ARCHIVED
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  patients        Patient[]
+
+  @@map("batches")
+}
+
+model Department {
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  organizationId  String       @db.ObjectId
+  name            String       // e.g., "CSE", "ECE"
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  patients        Patient[]
+
+  @@map("departments")
 }
 
 model Account {
@@ -101,6 +138,7 @@ enum UserRole {
   PATIENT
   DOCTOR
   ADMIN
+  INSTITUTION_ADMIN
 }
 
 enum PlanType {
@@ -120,6 +158,12 @@ model Patient {
   emergencyContact String?
   emergencyPhone  String?
   
+  // Institution fields
+  batchId         String?  @db.ObjectId
+  departmentId    String?  @db.ObjectId
+  rollNumber      String?
+  studentStatus   String   @default("ACTIVE") // ACTIVE, SUSPENDED, GRADUATED
+  
   // AI Onboarding fields
   aiNickname      String?
   heardAboutUs    String?
@@ -129,6 +173,8 @@ model Patient {
   
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   appointments Appointment[]
+  batch       Batch?       @relation(fields: [batchId], references: [id])
+  department  Department?  @relation(fields: [departmentId], references: [id])
   
   // Gamification
   currentStreak   Int               @default(0)
@@ -221,8 +267,24 @@ model Doctor {
   user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   appointments      Appointment[]
   timeSlots         TimeSlot[]
+  organizations     OrganizationDoctor[]
   
   @@map("doctors")
+}
+
+// Join table for Doctors and Organizations
+model OrganizationDoctor {
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  organizationId  String       @db.ObjectId
+  doctorId        String       @db.ObjectId
+  assignedByAdmin Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  doctor          Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, doctorId])
+  @@map("organization_doctors")
 }
 
 enum DoctorStatus {

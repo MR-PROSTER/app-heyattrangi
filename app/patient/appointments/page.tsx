@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { Suspense } from "react"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -38,7 +39,7 @@ async function AppointmentsContent() {
     where: {
       patientId: patient.id,
       appointmentDate: { gt: now },
-      status: { not: "CANCELLED" },
+      status: { in: ["CONFIRMED", "COMPLETED"] },
     },
     include: {
       doctor: {
