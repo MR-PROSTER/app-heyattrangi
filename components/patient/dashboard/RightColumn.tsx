@@ -55,12 +55,12 @@ export default function RightColumn({ upcomingAppointments }: { upcomingAppointm
     const displayAppointments = upcomingAppointments && upcomingAppointments.length > 0 ? upcomingAppointments.slice(0, 3) : []
 
     return (
-        <div className="hidden xl:flex flex-col w-[400px] bg-white h-full px-5 py-5 relative">
-
-            {/* Schedule Section */}
-            <div className="mb-3">
-                <h3 className="text-[15px] font-black text-gray-900 text-center">Schedule</h3>
-            </div>
+        <div className="hidden xl:flex flex-col w-[400px] bg-white h-full relative border-l border-gray-100">
+            <div className="flex-1 overflow-y-auto custom-scrollbar px-5 py-5 flex flex-col">
+                {/* Schedule Section */}
+                <div className="mb-3">
+                    <h3 className="text-[15px] font-black text-gray-900 text-center">Schedule</h3>
+                </div>
 
             {/* Calendar Area */}
             <div className="bg-white rounded-[24px] p-3.5 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-gray-100/80 mb-4 relative z-10 w-full hover:shadow-[0_8px_40px_rgb(0,0,0,0.05)] transition-shadow duration-300">
@@ -143,8 +143,9 @@ export default function RightColumn({ upcomingAppointments }: { upcomingAppointm
                     )}
                 </div>
             </div>
-            <div className="mt-auto">
+            <div className="mt-6 flex-1 flex flex-col">
                 <DailyCheckinCards />
+            </div>
             </div>
         </div>
     )
