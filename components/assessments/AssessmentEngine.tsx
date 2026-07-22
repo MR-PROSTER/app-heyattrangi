@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
+import { Activity, AlertTriangle, Brain, ListChecks, MessageSquare } from "lucide-react"
 import { triageQuestions, screeners, TriageQuestion, Screener } from "@/lib/data/assessmentEngine"
 
 type ChatMessage = {
@@ -27,6 +28,7 @@ export default function AssessmentEngine() {
     // Triage State
     const [triageIndex, setTriageIndex] = useState(0)
     const [triggeredScreeners, setTriggeredScreeners] = useState<Set<string>>(new Set())
+    const [who5Score, setWho5Score] = useState(0)
     
     // Screener State
     const [activeScreenerQueue, setActiveScreenerQueue] = useState<string[]>([])
@@ -67,6 +69,11 @@ export default function AssessmentEngine() {
         // Track triggered screeners
         if (option.triggerScreener) {
             setTriggeredScreeners(prev => new Set(prev).add(option.triggerScreener))
+        }
+
+        // Track WHO-5 Score
+        if (option.who5Value !== undefined) {
+            setWho5Score(prev => prev + option.who5Value)
         }
 
         const nextIndex = triageIndex + 1
@@ -141,29 +148,109 @@ export default function AssessmentEngine() {
     }
 
     const calculateFinalResults = async () => {
-        const results: any = {}
-        const allRecommendations = new Set<string>()
+        const rawFindings: any[] = []
+
+        // 1. Collect all findings (WHO-5 is treated separately or as a base finding)
+        let who5Interpretation = "Good Wellbeing"
+        if (who5Score < 13) who5Interpretation = "Poor Wellbeing"
+        if (who5Score < 5) who5Interpretation = "Very Poor Wellbeing"
+
+        rawFindings.push({
+            id: 'who5',
+            name: "WHO-5 Wellbeing",
+            fullName: "WHO-5 Wellbeing Index",
+            score: who5Score,
+            severity: who5Interpretation,
+            priorityWeight: 20,
+            confidenceLevel: "High",
+            recommendations: who5Interpretation.includes("Poor") ? ["Consider tracking your mood daily", "Focus on sleep and nutrition"] : []
+        })
 
         for (const [screenerId, score] of Object.entries(screenerScores)) {
             const screener = screeners[screenerId]
             const rule = screener.scoring.find(r => score >= r.min && score <= r.max)
             
-            results[screenerId] = {
-                name: screener.name,
-                score,
-                severity: rule?.severity || "Unknown"
-            }
-
-            if (rule?.recommendations) {
-                rule.recommendations.forEach(r => allRecommendations.add(r))
+            // Add if it's flagged or we want to record it
+            if (rule && rule.severity !== "Minimal") {
+                rawFindings.push({
+                    id: screenerId,
+                    name: screener.name.split(" ")[0], // e.g. "PHQ-9" or "PTSD"
+                    fullName: screener.name,
+                    score,
+                    severity: rule.severity,
+                    priorityWeight: screener.priorityWeight,
+                    confidenceLevel: screener.confidenceLevel,
+                    recommendations: rule.recommendations || []
+                })
             }
         }
 
+        // 2. Sort findings by priority weight (highest first)
+        rawFindings.sort((a, b) => b.priorityWeight - a.priorityWeight)
+
+        // 3. Generate Overall Assessment Sentence
+        let overallAssessment = "Your responses indicate generally stable wellbeing with no major clinical flags."
+        const flaggedClinical = rawFindings.filter(f => f.id !== 'who5' && f.severity !== "Minimal")
+        
+        if (flaggedClinical.length > 0) {
+            const topNames = flaggedClinical.slice(0, 2).map(f => `${f.severity.toLowerCase()} ${f.name} symptoms`)
+            overallAssessment = `Your responses suggest symptoms that may be consistent with ${topNames.join(" together with ")}.`
+            if (flaggedClinical.length > 2) {
+                overallAssessment += ` Some of your answers also indicate other areas that should be explored further.`
+            }
+            overallAssessment += " These screening results are not a diagnosis, but they help identify which areas may benefit from further evaluation."
+        } else if (who5Score < 13) {
+            overallAssessment = "While no specific clinical domains were strongly flagged, your overall wellbeing score suggests you are currently going through a difficult time."
+        }
+
+        // 4. Generate AI Interpretation
+        let aiInterpretation = "No significant clinical symptoms were detected. Continue to monitor your wellbeing."
+        if (flaggedClinical.length > 0) {
+            aiInterpretation = `The combination of ${flaggedClinical.slice(0, 2).map(f => f.name).join(" and ")} symptoms is notable. `
+            if (flaggedClinical.some(f => f.confidenceLevel === "Screening only")) {
+                aiInterpretation += `Several screening questions also suggest additional areas of concern. Because these were identified by brief screeners, a comprehensive clinical assessment is recommended before drawing conclusions.`
+            } else {
+                aiInterpretation += `Please discuss these results with a healthcare provider to determine an appropriate care plan.`
+            }
+        }
+
+        // 5. Structure Prioritized Action Plan
+        const topPriorities: any[] = []
+        const additionalFindings: any[] = []
+        const selfHelp: string[] = []
+        
+        rawFindings.forEach((finding, idx) => {
+            if (finding.id === 'who5' && finding.severity === "Good Wellbeing") return;
+            
+            if (topPriorities.length < 3 && finding.id !== 'who5') {
+                topPriorities.push({
+                    condition: finding.fullName,
+                    status: finding.severity,
+                    recommendation: finding.recommendations[0] || "Requires further evaluation."
+                })
+            } else if (finding.id !== 'who5') {
+                additionalFindings.push({
+                    condition: finding.fullName,
+                    status: finding.severity,
+                    recommendation: finding.recommendations[0] || "Monitor symptoms."
+                })
+            }
+            
+            // Add remaining recommendations to self-help if applicable
+            if (finding.recommendations.length > 1) {
+                selfHelp.push(...finding.recommendations.slice(1))
+            }
+        })
+
         const payload = {
-            assessmentId: Date.now().toString(), // Mock UUID
+            assessmentId: Date.now().toString(),
             date: new Date().toISOString().split('T')[0],
-            results,
-            recommendations: Array.from(allRecommendations)
+            overallAssessment,
+            confidenceLevels: rawFindings,
+            topPriorities,
+            additionalFindings,
+            selfHelp: Array.from(new Set(selfHelp)),
+            aiInterpretation
         }
 
         setFinalResults(payload)
@@ -290,71 +377,145 @@ export default function AssessmentEngine() {
             
             {/* Results Overlay overlay on top if finished */}
             {phase === "results" && finalResults && (
-                <div className="absolute inset-0 bg-white/95 backdrop-blur-sm z-20 overflow-y-auto p-6 md:p-12 flex flex-col items-center">
-                    <div className="w-full max-w-2xl">
+                <div className="absolute inset-0 bg-slate-50 z-20 overflow-y-auto p-6 md:p-12 flex flex-col items-center">
+                    <div className="w-full max-w-4xl">
                         <div className="text-center mb-10">
-                            <h2 className="text-3xl font-extrabold text-slate-900 mb-3">Assessment Summary</h2>
-                            <p className="text-slate-500 font-medium">Completed on {finalResults.date}</p>
+                            <h2 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">Clinical Assessment Report</h2>
+                            <p className="text-slate-500 font-medium text-lg">Completed on {finalResults.date}</p>
                         </div>
 
-                        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden mb-8">
-                            <div className="bg-slate-50 border-b border-slate-200 px-6 py-4">
-                                <h3 className="font-bold text-slate-800 uppercase tracking-wider text-sm">Clinical Domains</h3>
+                        {/* Section 1: Overall Assessment */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+                            <div className="bg-indigo-600 px-8 py-5">
+                                <h3 className="font-bold text-white uppercase tracking-wider text-sm flex items-center gap-2">
+                                    <Activity className="w-5 h-5" /> 1. Overall Assessment
+                                </h3>
                             </div>
-                            <div className="divide-y divide-slate-100">
-                                {Object.keys(finalResults.results).length === 0 ? (
-                                     <div className="p-6 text-center text-slate-500 font-medium">No major concerns detected.</div>
-                                ) : (
-                                    Object.values(finalResults.results).map((res: any, idx: number) => (
-                                        <div key={idx} className="p-6 flex justify-between items-center">
-                                            <div>
-                                                <h4 className="font-bold text-slate-900 text-lg">{res.name.split(' ')[0]}</h4>
-                                                <span className="text-sm text-slate-500 font-medium">{res.name}</span>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className={`inline-flex px-4 py-1.5 rounded-full font-bold text-sm ${
-                                                    res.severity.includes("Severe") ? "bg-red-100 text-red-700" :
-                                                    res.severity.includes("Moderate") ? "bg-orange-100 text-orange-700" :
-                                                    res.severity.includes("Mild") ? "bg-yellow-100 text-yellow-700" :
-                                                    "bg-green-100 text-green-700"
-                                                }`}>
-                                                    {res.severity} (Score: {res.score})
-                                                </div>
-                                            </div>
+                            <div className="p-8">
+                                <p className="text-xl text-slate-800 leading-relaxed font-medium">
+                                    {finalResults.overallAssessment}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Section 2: Confidence Levels */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+                            <div className="bg-slate-100 border-b border-slate-200 px-8 py-5">
+                                <h3 className="font-bold text-slate-800 uppercase tracking-wider text-sm flex items-center gap-2">
+                                    <Brain className="w-5 h-5 text-indigo-600" /> 2. Findings & Confidence
+                                </h3>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-slate-50 border-b border-slate-200">
+                                            <th className="py-4 px-8 font-semibold text-slate-600 text-sm">Domain</th>
+                                            <th className="py-4 px-8 font-semibold text-slate-600 text-sm">Status</th>
+                                            <th className="py-4 px-8 font-semibold text-slate-600 text-sm">Confidence</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {finalResults.confidenceLevels.map((finding: any, idx: number) => (
+                                            <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                                                <td className="py-4 px-8 font-bold text-slate-900">{finding.fullName}</td>
+                                                <td className="py-4 px-8">
+                                                    <span className={`inline-flex px-3 py-1 rounded-md font-bold text-xs ${
+                                                        finding.severity.includes("Severe") || finding.severity.includes("Very Poor") ? "bg-red-100 text-red-700" :
+                                                        finding.severity.includes("Moderate") || finding.severity.includes("Poor") ? "bg-orange-100 text-orange-700" :
+                                                        finding.severity.includes("Mild") || finding.severity.includes("Flagged") ? "bg-yellow-100 text-yellow-700" :
+                                                        "bg-green-100 text-green-700"
+                                                    }`}>
+                                                        {finding.severity}
+                                                    </span>
+                                                </td>
+                                                <td className="py-4 px-8">
+                                                    <span className={`inline-flex items-center gap-1.5 font-medium text-sm ${
+                                                        finding.confidenceLevel === "High" ? "text-indigo-600" : "text-slate-500"
+                                                    }`}>
+                                                        {finding.confidenceLevel === "High" && <div className="w-1.5 h-1.5 rounded-full bg-indigo-600"></div>}
+                                                        {finding.confidenceLevel}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* Section 3: Prioritized Action Plan */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+                            <div className="bg-slate-100 border-b border-slate-200 px-8 py-5">
+                                <h3 className="font-bold text-slate-800 uppercase tracking-wider text-sm flex items-center gap-2">
+                                    <ListChecks className="w-5 h-5 text-indigo-600" /> 3. Prioritized Action Plan
+                                </h3>
+                            </div>
+                            
+                            <div className="p-8 space-y-8">
+                                {/* Top Priorities */}
+                                <div>
+                                    <h4 className="text-lg font-bold text-red-600 mb-4 flex items-center gap-2">
+                                        <AlertTriangle className="w-5 h-5" /> Top Priorities
+                                    </h4>
+                                    <ul className="space-y-4">
+                                        {finalResults.topPriorities.length > 0 ? finalResults.topPriorities.map((item: any, idx: number) => (
+                                            <li key={idx} className="bg-red-50/50 rounded-xl p-5 border border-red-100">
+                                                <div className="font-bold text-slate-900 mb-1">{item.recommendation}</div>
+                                                <div className="text-sm text-slate-600">Reason: <span className="font-medium text-slate-800">{item.condition} ({item.status})</span></div>
+                                            </li>
+                                        )) : <li className="text-slate-500 italic">No urgent clinical actions required.</li>}
+                                    </ul>
+                                </div>
+
+                                {/* Additional Findings */}
+                                {finalResults.additionalFindings.length > 0 && (
+                                    <div>
+                                        <h4 className="text-md font-bold text-slate-800 mb-4">Additional Assessments Recommended</h4>
+                                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            {finalResults.additionalFindings.map((item: any, idx: number) => (
+                                                <li key={idx} className="bg-slate-50 rounded-lg p-4 border border-slate-100 flex items-center gap-3">
+                                                    <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                                                    <span className="font-medium text-slate-700">{item.condition}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {/* Self Help */}
+                                {finalResults.selfHelp.length > 0 && (
+                                    <div>
+                                        <h4 className="text-md font-bold text-slate-800 mb-4">Self-Help Strategies</h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {finalResults.selfHelp.map((item: string, idx: number) => (
+                                                <span key={idx} className="bg-indigo-50 text-indigo-700 font-medium px-4 py-2 rounded-full text-sm">
+                                                    {item}
+                                                </span>
+                                            ))}
                                         </div>
-                                    ))
+                                    </div>
                                 )}
                             </div>
                         </div>
 
-                        {finalResults.recommendations.length > 0 && (
-                            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden mb-12">
-                                <div className="bg-indigo-50 border-b border-indigo-100 px-6 py-4">
-                                    <h3 className="font-bold text-indigo-900 uppercase tracking-wider text-sm">Recommended Actions</h3>
-                                </div>
-                                <div className="p-6">
-                                    <ul className="space-y-4">
-                                        {finalResults.recommendations.map((rec: string, idx: number) => (
-                                            <li key={idx} className="flex items-start gap-3">
-                                                <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                    <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                </div>
-                                                <span className="text-slate-700 font-medium">{rec}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
+                        {/* Section 4: AI Clinical Interpretation */}
+                        <div className="bg-slate-900 rounded-2xl shadow-sm border border-slate-800 overflow-hidden mb-12">
+                            <div className="bg-slate-800 border-b border-slate-700 px-8 py-5">
+                                <h3 className="font-bold text-indigo-300 uppercase tracking-wider text-sm flex items-center gap-2">
+                                    <MessageSquare className="w-5 h-5" /> 4. AI Clinical Interpretation
+                                </h3>
                             </div>
-                        )}
+                            <div className="p-8 text-slate-300 leading-relaxed text-lg italic">
+                                "{finalResults.aiInterpretation}"
+                            </div>
+                        </div>
 
                         <div className="text-center">
                             <button 
                                 onClick={() => router.push('/patient/library')}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-10 rounded-full shadow-lg transition-all uppercase tracking-wider text-sm"
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-12 rounded-full shadow-lg transition-all uppercase tracking-wider text-sm"
                             >
-                                Return to Library
+                                Acknowledge & Return to Library
                             </button>
                         </div>
                     </div>
