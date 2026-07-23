@@ -64,6 +64,27 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    const isNewUser = !user.patient && !user.doctor && !user.admin
+
+    if (isNewUser) {
+      if (!selectedRole) {
+        console.log("New Google/OAuth user without role - redirecting to signup for role selection")
+        return NextResponse.redirect(new URL("/auth/signup", req.url))
+      }
+      if (user.role !== selectedRole) {
+        try {
+          user = await prisma.user.update({
+            where: { id: session.user.id },
+            data: { role: selectedRole as any },
+            include: { patient: true, doctor: true, admin: true }
+          })
+        } catch (error) {
+          console.error("Error updating Google user role:", error)
+        }
+      }
+      return NextResponse.redirect(new URL(`/onboarding?role=${selectedRole}`, req.url))
+    }
+
     // CRITICAL FIX: Differentiate between Sign In and Sign Up
     // SIGN IN: Always go to dashboard, skip onboarding check completely
     // SIGN UP: Check onboarding and redirect if incomplete

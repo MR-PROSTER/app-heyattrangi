@@ -494,3 +494,13 @@ model Notification {
   
   @@map("notifications")
 }
+
+model LoginOtp {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  otp       String
+  createdAt DateTime @default(now())
+
+  @@map("login_otps")
+}
+

@@ -19,16 +19,68 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
+        otp: { label: "OTP", type: "text" },
+        role: { label: "Role", type: "text" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        if (!credentials?.email) {
+          return null
+        }
+
+        const sanitizedEmail = (credentials.email as string).trim().toLowerCase();
+
+        // 1. If OTP is provided, verify it
+        if (credentials.otp) {
+          const otpEntry = await prisma.loginOtp.findUnique({
+            where: { email: sanitizedEmail },
+          });
+
+          if (!otpEntry || otpEntry.otp !== credentials.otp) {
+            return null;
+          }
+
+          // Check expiration (5-minute window)
+          const expiryTime = new Date(otpEntry.createdAt);
+          expiryTime.setMinutes(expiryTime.getMinutes() + 5);
+
+          if (new Date() > expiryTime) {
+            await prisma.loginOtp.deleteMany({ where: { email: sanitizedEmail } });
+            return null;
+          }
+
+          // Clean up OTP to prevent replay attacks
+          await prisma.loginOtp.deleteMany({ where: { email: sanitizedEmail } });
+
+          // Find or create user
+          let user = await prisma.user.findUnique({
+            where: { email: sanitizedEmail }
+          });
+
+          if (!user) {
+            const userRole = (credentials.role === "DOCTOR" || credentials.role === "PATIENT")
+              ? credentials.role
+              : "PATIENT";
+
+            user = await prisma.user.create({
+              data: {
+                email: sanitizedEmail,
+                role: userRole,
+              },
+            });
+          }
+
+          return user;
+        }
+
+        // 2. Fallback to password-based sign-in
+        if (!credentials.password) {
           return null
         }
 
         const user = await prisma.user.findUnique({
           where: {
-            email: credentials.email as string
+            email: sanitizedEmail
           }
         })
 
