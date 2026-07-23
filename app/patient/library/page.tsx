@@ -14,60 +14,9 @@ interface JournalEntry {
 }
 
 // --- MOCK DASHBOARD DATA ---
-const aiSummary = {
-  date: "Today, July 22",
-  highlights: [
-    "New meta-analysis suggests CBT in combination with mindfulness is highly effective for moderate anxiety.",
-    "APA releases updated guidelines on treating adult ADHD.",
-    "WHO publishes new statistics on global mental wellness trends showing increased sleep disturbances."
-  ]
-}
+// aiSummary is now a state variable
 
-const latestResearch = [
-  {
-    id: 1,
-    title: "Efficacy of Cognitive Behavioral Therapy in treating generalized anxiety disorder",
-    journal: "Journal of Psychiatric Research",
-    date: "July 20, 2026",
-    tag: "Anxiety",
-    link: "#"
-  },
-  {
-    id: 2,
-    title: "Impact of digital screen time on adolescent sleep patterns and depression",
-    journal: "Nature Mental Health",
-    date: "July 18, 2026",
-    tag: "Depression",
-    link: "#"
-  },
-  {
-    id: 3,
-    title: "Neurobiological correlates of PTSD: A functional MRI study",
-    journal: "American Journal of Psychiatry",
-    date: "July 15, 2026",
-    tag: "PTSD",
-    link: "#"
-  }
-]
-
-const mentalHealthNews = [
-  {
-    id: 1,
-    source: "Psychology Today",
-    title: "Why 'Quiet Quitting' is Impacting Mental Health in the Workplace",
-    time: "2 hours ago",
-    image: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=300&auto=format&fit=crop",
-    link: "#"
-  },
-  {
-    id: 2,
-    source: "Reuters Health",
-    title: "New study links regular nature walks to significant reduction in cortisol levels",
-    time: "5 hours ago",
-    image: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=300&auto=format&fit=crop",
-    link: "#"
-  }
-]
+// mentalHealthNews and latestResearch are now state variables inside the component
 
 const clinicalGuidelines = [
   {
@@ -96,6 +45,44 @@ const clinicalGuidelines = [
 export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState<string>("discover") // discover | wellness | distress | illness | stories | selfhelp | brainfood
   const [searchQuery, setSearchQuery] = useState<string>("")
+  const [news, setNews] = useState<any[]>([])
+  const [research, setResearch] = useState<any[]>([])
+  const [summary, setSummary] = useState<any>(null)
+  const [loadingData, setLoadingData] = useState(true)
+
+  // Fetch live data
+  useEffect(() => {
+    const fetchLiveData = async () => {
+      try {
+        const [newsRes, researchRes, summaryRes] = await Promise.all([
+          fetch('/api/library/news'),
+          fetch('/api/library/research'),
+          fetch('/api/library/summary')
+        ])
+        
+        if (newsRes.ok) {
+          const newsData = await newsRes.json()
+          setNews(newsData.news || [])
+        }
+        
+        if (researchRes.ok) {
+          const researchData = await researchRes.json()
+          setResearch(researchData.research || [])
+        }
+
+        if (summaryRes.ok) {
+          const summaryData = await summaryRes.json()
+          setSummary(summaryData.summary)
+        }
+      } catch (error) {
+        console.error("Failed to fetch library live data", error)
+      } finally {
+        setLoadingData(false)
+      }
+    }
+    
+    fetchLiveData()
+  }, [])
 
   // --- Interactive States ---
   // Breathing exercise
@@ -413,16 +400,26 @@ export default function LibraryPage() {
                   <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
                     <Sparkles className="w-6 h-6 text-indigo-100" />
                   </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-indigo-200 uppercase tracking-widest mb-1">AI Daily Summary • {aiSummary.date}</h4>
-                    <ul className="mt-4 space-y-3">
-                      {aiSummary.highlights.map((highlight, idx) => (
-                        <li key={idx} className="flex items-start gap-3">
-                          <span className="text-indigo-300 mt-1">●</span>
-                          <span className="text-white/90 font-medium leading-relaxed">{highlight}</span>
-                        </li>
-                      ))}
-                    </ul>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-bold text-indigo-200 uppercase tracking-widest mb-1">
+                      AI Daily Summary • {summary ? summary.date : "Loading..."}
+                    </h4>
+                    {loadingData || !summary ? (
+                      <div className="mt-4 space-y-3">
+                        <div className="h-4 bg-indigo-800/50 rounded w-3/4 animate-pulse"></div>
+                        <div className="h-4 bg-indigo-800/50 rounded w-2/3 animate-pulse"></div>
+                        <div className="h-4 bg-indigo-800/50 rounded w-5/6 animate-pulse"></div>
+                      </div>
+                    ) : (
+                      <ul className="mt-4 space-y-3">
+                        {summary.highlights.map((highlight: string, idx: number) => (
+                          <li key={idx} className="flex items-start gap-3">
+                            <span className="text-indigo-300 mt-1">●</span>
+                            <span className="text-white/90 font-medium leading-relaxed">{highlight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
               </div>
@@ -438,27 +435,31 @@ export default function LibraryPage() {
                     </h4>
                     <span className="text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-1 rounded-md">PubMed</span>
                   </div>
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex-1 flex flex-col p-2">
-                    <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                      <div className="divide-y divide-slate-100">
-                        {latestResearch.map((item) => (
-                          <div key={item.id} className="p-4 hover:bg-slate-50 transition-colors group rounded-xl">
-                            <div className="flex justify-between items-start mb-2">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{item.journal}</span>
-                              <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-1"><Clock className="w-3 h-3"/> {item.date}</span>
+                  <div className="flex-1 flex flex-col gap-4">
+                    {loadingData ? (
+                      <div className="bg-white rounded-2xl border border-slate-200 p-4 text-center text-slate-400 text-xs flex-1 flex items-center justify-center">Loading latest research...</div>
+                    ) : research.length === 0 ? (
+                      <div className="bg-white rounded-2xl border border-slate-200 p-4 text-center text-slate-400 text-xs flex-1 flex items-center justify-center">No research articles found.</div>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-4">
+                        {research.slice(0, 4).map((item, idx) => (
+                          <div key={item.id} className="bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-md p-5 rounded-2xl transition-all group flex flex-col h-full">
+                            <div className="flex justify-between items-start mb-3">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md truncate pr-2 max-w-[70%]">{item.journal}</span>
+                              <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-1 whitespace-nowrap"><Clock className="w-3 h-3"/> {item.date}</span>
                             </div>
-                            <h5 className="font-bold text-slate-800 text-sm leading-snug mb-3 group-hover:text-indigo-600 transition-colors">{item.title}</h5>
-                            <div className="flex justify-between items-center">
-                              <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">{item.tag}</span>
-                              <a href={item.link} className="text-slate-400 hover:text-indigo-600 transition-colors">
-                                <ExternalLink className="w-4 h-4" />
+                            <h5 className="font-bold text-slate-800 text-[14px] leading-snug mb-4 group-hover:text-indigo-600 transition-colors flex-1">{item.title}</h5>
+                            <div className="flex justify-between items-center mt-auto">
+                              <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">{item.tag}</span>
+                              <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-indigo-600 transition-colors p-1.5 bg-slate-50 hover:bg-indigo-50 rounded-full">
+                                <ExternalLink className="w-3.5 h-3.5" />
                               </a>
                             </div>
                           </div>
                         ))}
                       </div>
-                    </div>
-                    <button className="w-full py-3 text-xs font-bold text-slate-500 hover:text-indigo-600 transition-colors border-t border-slate-100 flex items-center justify-center gap-1 mt-2">
+                    )}
+                    <button className="w-full mt-auto py-3 bg-white rounded-2xl border border-slate-200 text-xs font-bold text-slate-500 hover:text-indigo-600 hover:border-indigo-200 transition-colors flex items-center justify-center gap-1 shadow-sm">
                       View all research <ArrowRight className="w-3 h-3" />
                     </button>
                   </div>
@@ -472,26 +473,29 @@ export default function LibraryPage() {
                     </h4>
                     <span className="text-xs font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-md">NewsAPI</span>
                   </div>
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex-1 flex flex-col p-4 gap-4">
-                    {mentalHealthNews.map((news) => (
-                      <a key={news.id} href={news.link} className="flex gap-4 group cursor-pointer border border-transparent hover:border-slate-100 hover:bg-slate-50 p-2 -mx-2 rounded-xl transition-all">
-                        <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100">
-                          <img src={news.image} alt="News thumbnail" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                        </div>
-                        <div className="flex flex-col justify-between py-1">
-                          <h5 className="font-bold text-slate-800 text-sm leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors">{news.title}</h5>
-                          <div className="flex items-center justify-between mt-2">
-                            <span className="text-[11px] font-semibold text-slate-500">{news.source}</span>
-                            <span className="text-[10px] text-slate-400">{news.time}</span>
-                          </div>
-                        </div>
-                      </a>
-                    ))}
-                    <div className="mt-auto pt-4 text-center border-t border-slate-100">
-                      <button className="text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors inline-flex items-center gap-1">
-                        Load more stories <ArrowRight className="w-3 h-3" />
-                      </button>
-                    </div>
+                  <div className="flex-1 flex flex-col gap-4">
+                    {loadingData ? (
+                      <div className="bg-white rounded-2xl border border-slate-200 p-4 text-center text-slate-400 text-xs flex-1 flex items-center justify-center">Loading news...</div>
+                    ) : news.length === 0 ? (
+                      <div className="bg-white rounded-2xl border border-slate-200 p-4 text-center text-slate-400 text-xs flex-1 flex items-center justify-center">No news articles found.</div>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-4">
+                        {news.slice(0, 4).map((item, idx) => (
+                          <a key={item.id} href={item.link} target="_blank" rel="noopener noreferrer" className={`group cursor-pointer rounded-2xl p-5 transition-all border ${idx === 0 ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100 hover:border-blue-300 shadow-sm' : 'bg-white border-slate-200 hover:border-blue-300 hover:shadow-md'}`}>
+                            <div className="flex flex-col h-full">
+                              <div className="flex items-center justify-between mb-3">
+                                <span className={`text-[10px] font-bold uppercase tracking-wider truncate max-w-[60%] px-2 py-1 rounded-md ${idx === 0 ? 'text-blue-700 bg-blue-100/50' : 'text-blue-600 bg-blue-50'}`}>{item.source}</span>
+                                <span className={`text-[10px] font-semibold whitespace-nowrap ${idx === 0 ? 'text-blue-400' : 'text-slate-400'}`}>{item.time}</span>
+                              </div>
+                              <h5 className={`font-bold text-[14px] leading-snug line-clamp-3 transition-colors ${idx === 0 ? 'text-blue-900 group-hover:text-blue-700' : 'text-slate-800 group-hover:text-blue-600'}`}>{item.title}</h5>
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                    <button className="w-full mt-auto py-3 bg-white rounded-2xl border border-slate-200 text-xs font-bold text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-colors flex items-center justify-center gap-1 shadow-sm">
+                      Load more stories <ArrowRight className="w-3 h-3" />
+                    </button>
                   </div>
                 </div>
 
@@ -503,31 +507,27 @@ export default function LibraryPage() {
                     </h4>
                     <span className="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-md">Official</span>
                   </div>
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex-1 flex flex-col p-2">
-                    <div className="divide-y divide-slate-100">
+                  <div className="flex-1 flex flex-col gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                       {clinicalGuidelines.map((guideline) => (
-                        <div key={guideline.id} className="p-4 hover:bg-slate-50 transition-colors group rounded-xl flex items-start gap-4">
-                          <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0 text-emerald-600 font-black text-xs border border-emerald-100">
-                            {guideline.org}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-sm ${
-                                guideline.status === 'Updated' ? 'bg-orange-100 text-orange-600' :
-                                guideline.status === 'New Evidence' ? 'bg-blue-100 text-blue-600' :
-                                'bg-emerald-100 text-emerald-600'
-                              }`}>{guideline.status}</span>
+                        <div key={guideline.id} className="bg-white border border-slate-200 hover:border-emerald-300 hover:shadow-md p-5 rounded-2xl transition-all group flex flex-col h-full">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0 text-emerald-600 font-black text-xs border border-emerald-100 shadow-sm">
+                              {guideline.org}
                             </div>
-                            <h5 className="font-bold text-slate-800 text-sm leading-tight group-hover:text-emerald-600 transition-colors pr-4">{guideline.title}</h5>
+                            <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-md ${
+                              guideline.status === 'Updated' ? 'bg-orange-50 text-orange-600' :
+                              guideline.status === 'New Evidence' ? 'bg-blue-50 text-blue-600' :
+                              'bg-emerald-50 text-emerald-600'
+                            }`}>{guideline.status}</span>
                           </div>
+                          <h5 className="font-bold text-slate-800 text-[14px] leading-tight group-hover:text-emerald-600 transition-colors mt-auto pr-2">{guideline.title}</h5>
                         </div>
                       ))}
                     </div>
-                    <div className="mt-auto p-4 text-center border-t border-slate-100">
-                      <button className="text-xs font-bold text-slate-500 hover:text-emerald-600 transition-colors inline-flex items-center gap-1">
-                        View full directory <ArrowRight className="w-3 h-3" />
-                      </button>
-                    </div>
+                    <button className="w-full mt-auto py-3 bg-white rounded-2xl border border-slate-200 text-xs font-bold text-slate-500 hover:text-emerald-600 hover:border-emerald-200 transition-colors flex items-center justify-center gap-1 shadow-sm">
+                      View full directory <ArrowRight className="w-3 h-3" />
+                    </button>
                   </div>
                 </div>
 
@@ -567,6 +567,7 @@ export default function LibraryPage() {
                 {[
                   {
                     title: "Adult ADHD Self-Report Scale",
+                    shortName: "ASRS-v1.1",
                     desc: "Start the assessment to know if your struggles with attention and focus might be more than occasional distractions.",
                     time: "3 mins quiz",
                     image: "/assessments/adhd.png",
@@ -574,6 +575,7 @@ export default function LibraryPage() {
                   },
                   {
                     title: "How severe are my OCD symptoms?",
+                    shortName: "OCI-R",
                     desc: "Start the assessment to understand whether your thoughts or behaviours might be signs of OCD.",
                     time: "5 mins quiz",
                     image: "/assessments/ocd.png",
@@ -581,6 +583,7 @@ export default function LibraryPage() {
                   },
                   {
                     title: "Am I Sad or Depressed?",
+                    shortName: "PHQ-9",
                     desc: "Start with the assessment to understand whether your feelings of sadness may be more than a temporary mood.",
                     time: "5 mins quiz",
                     image: "/assessments/depression.png",
@@ -588,6 +591,7 @@ export default function LibraryPage() {
                   },
                   {
                     title: "Am I Anxious?",
+                    shortName: "GAD-7",
                     desc: "Take this quick assessment to understand if your feelings of worry or stress indicate anxiety.",
                     time: "3 mins quiz",
                     image: "/assessments/anxiety.png",
@@ -595,14 +599,16 @@ export default function LibraryPage() {
                   },
                   {
                     title: "Primary Care PTSD Screen",
+                    shortName: "PC-PTSD-5",
                     desc: "Start the assessment to understand if you might be experiencing signs of Post-Traumatic Stress.",
                     time: "4 mins quiz",
                     image: "/assessments/ptsd.png",
                     link: "/patient/assessments/ptsd"
                   }
-                ].filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()) || item.desc.toLowerCase().includes(searchQuery.toLowerCase())).map((item, idx) => (
+                ].filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()) || item.desc.toLowerCase().includes(searchQuery.toLowerCase()) || item.shortName.toLowerCase().includes(searchQuery.toLowerCase())).map((item, idx) => (
                   <div key={idx} className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 flex flex-col h-full hover:shadow-md transition-all">
-                    <h4 className="font-bold text-xl text-slate-700 mb-4 tracking-tight pr-4">{item.title}</h4>
+                    <h4 className="font-bold text-xl text-slate-700 mb-1 tracking-tight pr-4">{item.title}</h4>
+                    <p className="text-[11px] font-black text-rose-500 uppercase tracking-widest mb-4">{item.shortName}</p>
                     <p className="text-slate-500 text-sm leading-relaxed mb-6 flex-grow">{item.desc}</p>
                     
                     <div className="flex items-end justify-between mt-auto">

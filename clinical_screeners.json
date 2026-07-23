@@ -1,0 +1,985 @@
+{
+    "README": [
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "PHQ-9 (low mood), GAD-7 (excessive worry), ASRS v1.1 (inattention/hyperactivity), PC-PTSD-5 (trauma), OCI-R (obsessions/compulsions) \u2014 extracted from official published sources for use as clinical-spec input for a Dynamic Assessment Engine.",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "Sheets",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "Sheet",
+            "Unnamed: 1": "Instrument",
+            "Unnamed: 2": "Items",
+            "Unnamed: 3": "Trigger (per your triage engine)",
+            "Unnamed: 4": "Public domain / free to use?"
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "PHQ9",
+            "Unnamed: 1": "Patient Health Questionnaire-9",
+            "Unnamed: 2": "9 + 1 impairment item",
+            "Unnamed: 3": "Low mood",
+            "Unnamed: 4": "Yes \u2014 Pfizer released without copyright restriction, 2010"
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "GAD7",
+            "Unnamed: 1": "Generalized Anxiety Disorder-7",
+            "Unnamed: 2": "7",
+            "Unnamed: 3": "Excessive worry",
+            "Unnamed: 4": "Yes \u2014 same Pfizer release as PHQ-9"
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "ASRS",
+            "Unnamed: 1": "Adult ADHD Self-Report Scale v1.1",
+            "Unnamed: 2": "18 (Part A = first 6)",
+            "Unnamed: 3": "Inattention/hyperactivity",
+            "Unnamed: 4": "Copyrighted (WHO) \u2014 widely reprinted \"with permission,\" confirm formal license before commercial use"
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "PC_PTSD_5",
+            "Unnamed: 1": "Primary Care PTSD Screen for DSM-5",
+            "Unnamed: 2": "1 gate + 5",
+            "Unnamed: 3": "Trauma",
+            "Unnamed: 4": "Yes \u2014 public domain, National Center for PTSD / VA"
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "OCIR",
+            "Unnamed: 1": "Obsessive-Compulsive Inventory-Revised",
+            "Unnamed: 2": "18",
+            "Unnamed: 3": "Obsessions/compulsions",
+            "Unnamed: 4": "Unclear \u2014 \"Copyright Edna B. Foa 2002\" printed on the scale itself, no public free-use statement found. Confirm with Legal before shipping in-app."
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "Licensing \u2014 read before building anything user-facing",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "\u2022 PHQ-9, GAD-7, and PC-PTSD-5 can be reproduced and embedded without permission \u2014 confirmed via Pfizer's 2010 public release (PHQ-9/GAD-7) and the VA National Center for PTSD's public-domain statement (PC-PTSD-5).",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "\u2022 ASRS v1.1 is copyrighted by the World Health Organization. Every official reprint says \"Reprinted with permission of WHO\" \u2014 that implies permission was sought, not that it's blanket-free for any use. NYU's Technology Opportunities & Ventures office lists a formal ASRS license product, which suggests commercial embedding may need a real license, not just attribution. Flagging for Legal to confirm \u2014 do not treat as cleared the way PHQ-9/GAD-7/PC-PTSD-5 are.",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "\u2022 OCI-R prints \"Copyright by Edna B. Foa 2002\" directly on the instrument with no public free-use grant found in this research pass. Treat as needs-permission until Legal confirms otherwise \u2014 same posture as the AI-vendor-DPA and other unresolved-rights items already flagged elsewhere in Attrangi's legal docs.",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "\u2022 This sheet documents what was found in this research pass, not a legal clearance. It is not legal advice \u2014 a licensed lawyer should confirm reproduction/commercial-use rights for ASRS and OCI-R before either ships in a paid product.",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "How to use",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "\u2022 Each item sheet has a yellow Score input column with a dropdown restricting entry to valid values. Scoring Summary blocks below recalculate automatically via formula.",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "\u2022 Severity bands and diagnostic-screen flags reproduce each instrument's own published cutoffs \u2014 decision support only, not a diagnosis. Every sheet carries its source instrument's own disclaimer language.",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "Targeted Clinical Screeners \u2014 Extracted Data": "\u2022 PHQ-9 item 9 (self-harm/suicidal ideation) has a flagged crisis-routing note on its sheet, consistent with the crisis-escalation work already logged in 04_Clinical/crisis_escalation_sop_synthesis.md \u2014 any score above 0 on that item should route to the same escalation path, not just add to the total score.",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        }
+    ],
+    "PHQ9": [
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": "Over the last 2 weeks, how often have you been bothered by any of the following problems? Public domain (Pfizer, released 2010) \u2014 free to reproduce, no permission required.",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": "Item #",
+            "Unnamed: 1": "Item Text",
+            "Unnamed: 2": "Score",
+            "Unnamed: 3": "Response Scale",
+            "Unnamed: 4": "Notes"
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": 1,
+            "Unnamed: 1": "Little interest or pleasure in doing things",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not at all 1=Several days 2=More than half the days 3=Nearly every day",
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": 2,
+            "Unnamed: 1": "Feeling down, depressed, or hopeless",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not at all 1=Several days 2=More than half the days 3=Nearly every day",
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": 3,
+            "Unnamed: 1": "Trouble falling or staying asleep, or sleeping too much",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not at all 1=Several days 2=More than half the days 3=Nearly every day",
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": 4,
+            "Unnamed: 1": "Feeling tired or having little energy",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not at all 1=Several days 2=More than half the days 3=Nearly every day",
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": 5,
+            "Unnamed: 1": "Poor appetite or overeating",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not at all 1=Several days 2=More than half the days 3=Nearly every day",
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": 6,
+            "Unnamed: 1": "Feeling bad about yourself \u2014 or that you are a failure or have let yourself or your family down",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not at all 1=Several days 2=More than half the days 3=Nearly every day",
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": 7,
+            "Unnamed: 1": "Trouble concentrating on things, such as reading the newspaper or watching television",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not at all 1=Several days 2=More than half the days 3=Nearly every day",
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": 8,
+            "Unnamed: 1": "Moving or speaking so slowly that other people could have noticed? Or the opposite \u2014 being so fidgety or restless that you have been moving around a lot more than usual",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not at all 1=Several days 2=More than half the days 3=Nearly every day",
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": 9,
+            "Unnamed: 1": "Thoughts that you would be better off dead, or of hurting yourself in some way",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not at all 1=Several days 2=More than half the days 3=Nearly every day",
+            "Unnamed: 4": "CRISIS ROUTING: any score >0 routes to crisis-escalation workflow (see 04_Clinical/crisis_escalation_sop_synthesis.md), not just the total score"
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": "\u2014",
+            "Unnamed: 1": "If you checked off any problems, how difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not difficult at all 1=Somewhat difficult 2=Very difficult 3=Extremely difficult",
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": "Scoring Summary",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": "Metric",
+            "Unnamed: 1": "Result",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": "Total Score (items 1-9, range 0-27)",
+            "Unnamed: 1": 0,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": "Severity",
+            "Unnamed: 1": "None-minimal",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": "Item 9 (self-harm) flag",
+            "Unnamed: 1": "-",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        },
+        {
+            "PHQ-9 \u2014 Patient Health Questionnaire (Depression / Low Mood)": "Source: Spitzer, Kroenke, Williams (Pfizer). Public domain since 2010 \u2014 no permission required to reproduce, translate, display, or distribute.",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN
+        }
+    ],
+    "GAD7": [
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": "Over the last 2 weeks, how often have you been bothered by the following problems? Public domain (Pfizer, released 2010) \u2014 free to reproduce, no permission required.",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": "Item #",
+            "Unnamed: 1": "Item Text",
+            "Unnamed: 2": "Score",
+            "Unnamed: 3": "Response Scale"
+        },
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": 1,
+            "Unnamed: 1": "Feeling nervous, anxious, or on edge",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not at all 1=Several days 2=More than half the days 3=Nearly every day"
+        },
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": 2,
+            "Unnamed: 1": "Not being able to stop or control worrying",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not at all 1=Several days 2=More than half the days 3=Nearly every day"
+        },
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": 3,
+            "Unnamed: 1": "Worrying too much about different things",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not at all 1=Several days 2=More than half the days 3=Nearly every day"
+        },
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": 4,
+            "Unnamed: 1": "Trouble relaxing",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not at all 1=Several days 2=More than half the days 3=Nearly every day"
+        },
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": 5,
+            "Unnamed: 1": "Being so restless that it is hard to sit still",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not at all 1=Several days 2=More than half the days 3=Nearly every day"
+        },
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": 6,
+            "Unnamed: 1": "Becoming easily annoyed or irritable",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not at all 1=Several days 2=More than half the days 3=Nearly every day"
+        },
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": 7,
+            "Unnamed: 1": "Feeling afraid, as if something awful might happen",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": "0=Not at all 1=Several days 2=More than half the days 3=Nearly every day"
+        },
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": "Scoring Summary",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": "Metric",
+            "Unnamed: 1": "Result",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": "Total Score (items 1-7, range 0-21)",
+            "Unnamed: 1": 0,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": "Severity",
+            "Unnamed: 1": "Minimal",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "GAD-7 \u2014 Generalized Anxiety Disorder Scale (Excessive Worry)": "Source: Spitzer, Kroenke, Williams, Lowe (Pfizer). Public domain since 2010.",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        }
+    ],
+    "ASRS": [
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": "Ask the respondent to answer each question and circle the response that best describes how they have felt over the past 6 months. For adults 18+. Copyrighted by the World Health Organization \u2014 reprinted with permission in every official source found; confirm formal licensing before commercial/app use (see README).",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": NaN
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": NaN
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": "Item #",
+            "Unnamed: 1": "Part",
+            "Unnamed: 2": "Domain",
+            "Unnamed: 3": "Item Text",
+            "Unnamed: 4": "1=Never 2=Rarely 3=Sometimes 4=Often 5=Very Often",
+            "Unnamed: 5": "Positive threshold"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 1,
+            "Unnamed: 1": "A",
+            "Unnamed: 2": "Inattention",
+            "Unnamed: 3": "How often do you have trouble wrapping up the final details of a project, once the challenging parts have been done?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Sometimes+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 2,
+            "Unnamed: 1": "A",
+            "Unnamed: 2": "Inattention",
+            "Unnamed: 3": "How often do you have difficulty getting things in order when you have to do a task that requires organization?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Sometimes+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 3,
+            "Unnamed: 1": "A",
+            "Unnamed: 2": "Inattention",
+            "Unnamed: 3": "How often do you have problems remembering appointments or obligations?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Sometimes+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 4,
+            "Unnamed: 1": "A",
+            "Unnamed: 2": "Inattention",
+            "Unnamed: 3": "When you have a task that requires a lot of thought, how often do you avoid or delay getting started?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Often+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 5,
+            "Unnamed: 1": "A",
+            "Unnamed: 2": "Hyperactivity-Impulsivity",
+            "Unnamed: 3": "How often do you fidget or squirm with your hands or feet when you have to sit down for a long time?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Often+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 6,
+            "Unnamed: 1": "A",
+            "Unnamed: 2": "Hyperactivity-Impulsivity",
+            "Unnamed: 3": "How often do you feel overly active and compelled to do things, like you were driven by a motor?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Often+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 7,
+            "Unnamed: 1": "B",
+            "Unnamed: 2": "Inattention",
+            "Unnamed: 3": "How often do you make careless mistakes when you have to work on a boring or difficult project?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Often+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 8,
+            "Unnamed: 1": "B",
+            "Unnamed: 2": "Inattention",
+            "Unnamed: 3": "How often do you have difficulty keeping your attention when you are doing boring or repetitive work?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Often+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 9,
+            "Unnamed: 1": "B",
+            "Unnamed: 2": "Inattention",
+            "Unnamed: 3": "How often do you have difficulty concentrating on what people say to you, even when they are speaking to you directly?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Sometimes+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 10,
+            "Unnamed: 1": "B",
+            "Unnamed: 2": "Inattention",
+            "Unnamed: 3": "How often do you misplace or have difficulty finding things at home or at work?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Often+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 11,
+            "Unnamed: 1": "B",
+            "Unnamed: 2": "Inattention",
+            "Unnamed: 3": "How often are you distracted by activity or noise around you?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Often+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 12,
+            "Unnamed: 1": "B",
+            "Unnamed: 2": "Hyperactivity-Impulsivity",
+            "Unnamed: 3": "How often do you leave your seat in meetings or other situations in which you are expected to remain seated?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Sometimes+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 13,
+            "Unnamed: 1": "B",
+            "Unnamed: 2": "Hyperactivity-Impulsivity",
+            "Unnamed: 3": "How often do you feel restless or fidgety?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Often+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 14,
+            "Unnamed: 1": "B",
+            "Unnamed: 2": "Hyperactivity-Impulsivity",
+            "Unnamed: 3": "How often do you have difficulty unwinding and relaxing when you have time to yourself?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Often+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 15,
+            "Unnamed: 1": "B",
+            "Unnamed: 2": "Hyperactivity-Impulsivity",
+            "Unnamed: 3": "How often do you find yourself talking too much when you are in social situations?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Often+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 16,
+            "Unnamed: 1": "B",
+            "Unnamed: 2": "Hyperactivity-Impulsivity",
+            "Unnamed: 3": "When you're in a conversation, how often do you find yourself finishing the sentences of the people you are talking to, before they can finish them themselves?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Sometimes+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 17,
+            "Unnamed: 1": "B",
+            "Unnamed: 2": "Hyperactivity-Impulsivity",
+            "Unnamed: 3": "How often do you have difficulty waiting your turn in situations when turn taking is required?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Often+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": 18,
+            "Unnamed: 1": "B",
+            "Unnamed: 2": "Hyperactivity-Impulsivity",
+            "Unnamed: 3": "How often do you interrupt others when they are busy?",
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": "Sometimes+"
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": NaN
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": "Scoring Summary \u2014 Part A (6-item screener)",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": NaN
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": "Metric",
+            "Unnamed: 1": "Result",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": NaN
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": "Part A positive-item count (need >=4 of 6)",
+            "Unnamed: 1": 0,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": NaN
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": "Part A screen result",
+            "Unnamed: 1": "Negative screen",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": NaN
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": NaN
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": "Scoring Summary \u2014 Full 18-item checklist (context only, no numeric cutoff)",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": NaN
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": "Metric",
+            "Unnamed: 1": "Result",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": NaN
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": "Total positive items (all 18)",
+            "Unnamed: 1": 0,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": NaN
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": "Positive items \u2014 Inattention domain (of 9)",
+            "Unnamed: 1": 0,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": NaN
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": "Positive items \u2014 Hyperactivity-Impulsivity domain (of 9)",
+            "Unnamed: 1": 0,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": NaN
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": NaN
+        },
+        {
+            "ASRS v1.1 \u2014 Adult ADHD Self-Report Scale (Inattention/Hyperactivity)": "Source: Kessler et al. 2005, WHO/Harvard/NYU Workgroup on Adult ADHD. Screener validated sensitivity 68.7% / specificity 99.5% on Part A alone. This is a screening tool, not a diagnostic instrument \u2014 age 18+ per instrument design (flag against Attrangi's 16-26 wedge, same as Vanderbilt handoff).",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN,
+            "Unnamed: 4": NaN,
+            "Unnamed: 5": NaN
+        }
+    ],
+    "PC_PTSD_5": [
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": "Public domain \u2014 developed by the VA National Center for PTSD, not copyrighted, free to use without permission.",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": "Gate question",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": "Sometimes things happen to people that are unusually or especially frightening, horrible, or traumatic. For example: a serious accident or fire; a physical or sexual assault or abuse; an earthquake or flood; a war; seeing someone be killed or seriously injured; having a loved one die through homicide or suicide. Have you ever experienced this kind of event?",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": "If Yes: in the past month, have you...",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": "Item #",
+            "Unnamed: 1": "Item Text",
+            "Unnamed: 2": "Response"
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": 1,
+            "Unnamed: 1": "had nightmares about the event(s) or thought about the event(s) when you did not want to?",
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": 2,
+            "Unnamed: 1": "tried hard not to think about the event(s) or went out of your way to avoid situations that reminded you of the event(s)?",
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": 3,
+            "Unnamed: 1": "been constantly on guard, watchful, or easily startled?",
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": 4,
+            "Unnamed: 1": "felt numb or detached from people, activities, or your surroundings?",
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": 5,
+            "Unnamed: 1": "felt guilty or unable to stop blaming yourself or others for the event(s) or any problems the event(s) may have caused?",
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": "Scoring Summary",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": "Metric",
+            "Unnamed: 1": "Result",
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": "Trauma exposure (gate question)",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": "Total score (0-5; only scored if gate = \"Yes\")",
+            "Unnamed: 1": 0,
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": "Screen result (cutoff 3 = sensitive, 4 = more specific)",
+            "Unnamed: 1": "N/A \u2014 no trauma exposure reported",
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN
+        },
+        {
+            "PC-PTSD-5 \u2014 Primary Care PTSD Screen for DSM-5 (Trauma)": "Source: Prins, Bovin, Kimerling, Kaloupek, Marx, Pless Kaiser, Schnurr (2015). National Center for PTSD. Public domain, ptsd.va.gov.",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN
+        }
+    ],
+    "OCIR": [
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": "The following statements refer to experiences in everyday life. Circle the number that best describes how much that experience has DISTRESSED or BOTHERED you during the PAST MONTH. Copyright Edna B. Foa, 2002 \u2014 no public free-use statement found; confirm licensing with Legal before shipping in-app (see README).",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": "Item #",
+            "Unnamed: 1": "Subscale",
+            "Unnamed: 2": "Item Text",
+            "Unnamed: 3": "Score (0-4)"
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 1,
+            "Unnamed: 1": "Hoarding",
+            "Unnamed: 2": "I have saved up so many things that they get in the way.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 2,
+            "Unnamed: 1": "Checking",
+            "Unnamed: 2": "I check things more often than necessary.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 3,
+            "Unnamed: 1": "Ordering",
+            "Unnamed: 2": "I get upset if objects are not arranged properly.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 4,
+            "Unnamed: 1": "Neutralizing",
+            "Unnamed: 2": "I feel compelled to count while I am doing things.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 5,
+            "Unnamed: 1": "Washing",
+            "Unnamed: 2": "I find it difficult to touch an object when I know it has been touched by strangers or certain people.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 6,
+            "Unnamed: 1": "Obsessing",
+            "Unnamed: 2": "I find it difficult to control my own thoughts.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 7,
+            "Unnamed: 1": "Hoarding",
+            "Unnamed: 2": "I collect things I don't need.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 8,
+            "Unnamed: 1": "Checking",
+            "Unnamed: 2": "I repeatedly check doors, windows, drawers, etc.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 9,
+            "Unnamed: 1": "Ordering",
+            "Unnamed: 2": "I get upset if others change the way I have arranged things.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 10,
+            "Unnamed: 1": "Neutralizing",
+            "Unnamed: 2": "I feel I have to repeat certain numbers.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 11,
+            "Unnamed: 1": "Washing",
+            "Unnamed: 2": "I sometimes have to wash or clean myself simply because I feel contaminated.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 12,
+            "Unnamed: 1": "Obsessing",
+            "Unnamed: 2": "I am upset by unpleasant thoughts that come into my mind against my will.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 13,
+            "Unnamed: 1": "Hoarding",
+            "Unnamed: 2": "I avoid throwing things away because I am afraid I might need them later.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 14,
+            "Unnamed: 1": "Checking",
+            "Unnamed: 2": "I repeatedly check gas and water taps and light switches after turning them off.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 15,
+            "Unnamed: 1": "Ordering",
+            "Unnamed: 2": "I need things to be arranged in a particular order.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 16,
+            "Unnamed: 1": "Neutralizing",
+            "Unnamed: 2": "I feel that there are good and bad numbers.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 17,
+            "Unnamed: 1": "Washing",
+            "Unnamed: 2": "I wash my hands more often and longer than necessary.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": 18,
+            "Unnamed: 1": "Obsessing",
+            "Unnamed: 2": "I frequently get nasty thoughts and have difficulty in getting rid of them.",
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": "Scoring Summary",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": "Metric",
+            "Unnamed: 1": "Result",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": "Total Score (items 1-18, range 0-72)",
+            "Unnamed: 1": 0,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": "Hoarding subscale mean (of 3 items)",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": "Checking subscale mean (of 3 items)",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": "Ordering subscale mean (of 3 items)",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": "Neutralizing subscale mean (of 3 items)",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": "Washing subscale mean (of 3 items)",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": "Obsessing subscale mean (of 3 items)",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": "Screen flag",
+            "Unnamed: 1": "Negative screen",
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": NaN,
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        },
+        {
+            "OCI-R \u2014 Obsessive-Compulsive Inventory-Revised (Obsessions/Compulsions)": "Source: Foa, Huppert, Leiberg, Langner, Kichic, Hajcak, Salkovskis (2002). Two cutoffs appear in the literature: the scale's own manual states total >=18 (or subscale mean >=2.5) suggests OCD; other validation work cites >=21 as the clinical cutoff. Both transcribed here rather than picking one \u2014 flag for Clinical to confirm which Attrangi should use.",
+            "Unnamed: 1": NaN,
+            "Unnamed: 2": NaN,
+            "Unnamed: 3": NaN
+        }
+    ]
+}
