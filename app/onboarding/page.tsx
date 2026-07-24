@@ -53,15 +53,6 @@ function OnboardingContent() {
 
   return (
     <div className="min-h-screen relative font-sans">
-      {/* Small top bar to change role if selected by mistake */}
-      <div className="absolute top-4 right-4 z-50">
-        <button
-          onClick={() => setSelectedRole(null)}
-          className="text-xs font-bold text-gray-500 hover:text-[#ff6b00] bg-white px-3 py-1.5 rounded-full border border-gray-200 shadow-sm transition-colors cursor-pointer"
-        >
-          Change Role ({selectedRole === "PATIENT" ? "Patient" : "Therapist"})
-        </button>
-      </div>
 
       {selectedRole === "PATIENT" ? (
         <PatientOnboarding />

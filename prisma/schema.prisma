@@ -153,6 +153,7 @@ model Patient {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   userId          String   @unique @db.ObjectId
   age             Int?
+  dob             String?
   gender          String?
   healthConcerns  String[] @default([])
   emergencyContact String?

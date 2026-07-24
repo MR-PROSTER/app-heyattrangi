@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 
 type OnboardingData = {
+    dob: string
     age: string
     orgId: string
     mood: string
@@ -25,6 +26,7 @@ export default function PatientOnboarding() {
 
     const [step, setStep] = useState(0)
     const [data, setData] = useState<OnboardingData>({
+        dob: "",
         age: "",
         orgId: "",
         mood: "",
@@ -166,6 +168,7 @@ export default function PatientOnboarding() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     age: data.age,
+                    dob: data.dob,
                     orgId: data.orgId === "none" ? undefined : data.orgId,
                     gender: "Not specified",
                     healthConcerns: data.reasons,
@@ -197,7 +200,9 @@ export default function PatientOnboarding() {
         }))
     }
 
-    const isContinueDisabled = (step === 0 && (!data.emergencyContact || !data.emergencyPhone || !data.consentAgreed)) || isProcessingPayment
+    const isContinueDisabled =
+        (step === 0 && (!data.emergencyContact || !data.emergencyPhone || !data.consentAgreed)) ||
+        (step === 1 && !data.dob)
 
     return (
         <div className="relative min-h-screen w-full flex items-center justify-center bg-[#f0f7f8] overflow-hidden font-sans">
@@ -243,44 +248,52 @@ export default function PatientOnboarding() {
                                     onOpenTrustSafety={() => setShowTrustSafetyModal(true)}
                                 />
                             )}
-                            {step === 1 && <AgeScreen selected={data.age} onSelect={(a) => setData({ ...data, age: a })} />}
+                            {step === 1 && (
+                                <AgeScreen
+                                    dob={data.dob}
+                                    onSelectDob={(dobValue) => {
+                                        if (dobValue) {
+                                            const birthDate = new Date(dobValue)
+                                            const today = new Date()
+                                            let calculatedAge = today.getFullYear() - birthDate.getFullYear()
+                                            const m = today.getMonth() - birthDate.getMonth()
+                                            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                                                calculatedAge--
+                                            }
+                                            setData({
+                                                ...data,
+                                                dob: dobValue,
+                                                age: calculatedAge.toString()
+                                            })
+                                        } else {
+                                            setData({ ...data, dob: "", age: "" })
+                                        }
+                                    }}
+                                />
+                            )}
                             {step === 2 && <OrganizationScreen selected={data.orgId} onSelect={(o) => setData({ ...data, orgId: o })} />}
                             {step === 3 && <MoodScreen selected={data.mood} onSelect={(m) => setData({ ...data, mood: m })} />}
                             {step === 4 && <ExperienceScreen selected={data.experience} onSelect={(e) => setData({ ...data, experience: e })} />}
                             {step === 5 && <ReasonScreen selected={data.reasons} onToggle={toggleReason} />}
-                            {step === 6 && (
-                                <PricingScreen
-                                    selectedPlan={selectedPlan}
-                                    onSelectPlan={setSelectedPlan}
-                                    onOpenTerms={() => setShowTermsModal(true)}
-                                    onOpenPrivacy={() => setShowPrivacyModal(true)}
-                                    onSkip={() => setStep(7)}
-                                />
-                            )}
-                            {step === 7 && <FinalScreen userName={userName} />}
+                            {step === 6 && <FinalScreen userName={userName} />}
                         </div>
 
                         {/* Navigation Buttons */}
                         <div className="mt-12 flex flex-col items-center gap-6 z-10">
                             <div className="flex items-center gap-4">
-                                {step === 0 && (
-                                    <button onClick={() => setStep(7)} className="px-10 py-3.5 rounded-2xl bg-[#f0f7f8]/80 hover:bg-[#e0f2f3] text-[#666] font-bold text-sm transition-all">
-                                        Skip
-                                    </button>
-                                )}
-                                {step > 0 && step < 7 && (
+                                {step > 0 && step < 6 && (
                                     <button onClick={handleBack} className="px-10 py-3.5 rounded-2xl bg-[#f0f7f8]/80 hover:bg-[#e0f2f3] text-[#666] font-bold text-sm transition-all">
                                         Back
                                     </button>
                                 )}
 
-                                {step < 7 ? (
+                                {step < 6 ? (
                                     <button
                                         onClick={handleNext}
                                         disabled={isContinueDisabled}
                                         className="px-12 py-3.5 rounded-2xl bg-[#3d838c] hover:bg-[#2c656d] text-white font-black text-sm shadow-xl shadow-teal-200 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        {step === 6 ? (isProcessingPayment ? "Processing..." : "Pay & Continue") : "Continue"} <span className="text-lg">→</span>
+                                        {step === 5 ? "Finish" : "Continue"} <span className="text-lg">→</span>
                                     </button>
                                 ) : (
                                     <button
@@ -307,22 +320,7 @@ export default function PatientOnboarding() {
                             )}
                         </div>
 
-                        {/* Absolute Illustrations */}
-                        {step === 0 && (
-                            <motion.div
-                                initial={{ opacity: 0, x: -40 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                className="absolute bottom-4 left-6 pointer-events-none hidden md:block"
-                            >
-                                <Image
-                                    src="/onboarding_images/2.png"
-                                    alt="Onboarding Illustration"
-                                    width={220}
-                                    height={150}
-                                    className="object-contain"
-                                />
-                            </motion.div>
-                        )}
+
 
                         {step === 7 && (
                             <motion.div
@@ -1633,7 +1631,7 @@ function ConsentScreen({
                             value={data.emergencyContact}
                             onChange={(e) => onChange({ emergencyContact: e.target.value })}
                             className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-1 focus:ring-[#3d838c] focus:border-[#3d838c] outline-none text-[14px] text-gray-800 bg-white"
-                            placeholder="e.g. Jane Doe (Mother)"
+                            placeholder="e.g. Bharath (Brother)"
                             required
                         />
                     </div>
@@ -1725,32 +1723,36 @@ function ConsentScreen({
     )
 }
 
-function AgeScreen({ selected, onSelect }: { selected: string; onSelect: (a: string) => void }) {
+function AgeScreen({
+    dob,
+    onSelectDob
+}: {
+    dob: string;
+    onSelectDob: (dob: string) => void
+}) {
     return (
-        <div className="w-full max-w-2xl">
-            <h2 className="text-3xl font-black text-gray-900 mb-12 tracking-tight">Are you 18 or older?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <button
-                    onClick={() => onSelect("18")}
-                    className={`p-7 rounded-[32px] text-left transition-all duration-300 ${selected === "18"
-                            ? "bg-[#3d838c] text-white shadow-xl shadow-teal-200 scale-105"
-                            : "bg-gray-50 text-gray-600 hover:bg-teal-50"
-                        }`}
-                >
-                    <h4 className="font-black text-lg mb-2 leading-tight">Yes, I am 18+</h4>
-                    <p className={`text-xs font-medium ${selected === "18" ? "text-white/80" : "text-gray-400"}`}>Student Account</p>
-                </button>
+        <div className="w-full max-w-xl text-left space-y-6">
+            <h2 className="text-3xl font-black text-gray-900 tracking-tight text-center">
+                What is your date of birth?
+            </h2>
+            <p className="text-gray-500 text-sm font-medium text-center mb-6">
+                Please enter your date of birth to help us personalize your experience.
+            </p>
 
-                <button
-                    onClick={() => onSelect("17")}
-                    className={`p-7 rounded-[32px] text-left transition-all duration-300 ${selected === "17"
-                            ? "bg-[#3d838c] text-white shadow-xl shadow-teal-200 scale-105"
-                            : "bg-gray-50 text-gray-600 hover:bg-teal-50"
-                        }`}
-                >
-                    <h4 className="font-black text-lg mb-2 leading-tight">No, I am under 18</h4>
-                    <p className={`text-xs font-medium ${selected === "17" ? "text-white/80" : "text-gray-400"}`}>Caregiver Account</p>
-                </button>
+            <div className="bg-teal-50/30 p-8 rounded-3xl border border-teal-100/50 flex flex-col items-center justify-center space-y-4 max-w-md mx-auto">
+                <div className="w-full">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 text-center">
+                        Date of Birth
+                    </label>
+                    <input
+                        type="date"
+                        value={dob}
+                        onChange={(e) => onSelectDob(e.target.value)}
+                        max={new Date().toISOString().split("T")[0]}
+                        className="w-full px-4 py-3.5 rounded-2xl border border-gray-200 focus:ring-1 focus:ring-[#3d838c] focus:border-[#3d838c] outline-none text-[15px] font-semibold text-gray-800 bg-white text-center cursor-pointer"
+                        required
+                    />
+                </div>
             </div>
         </div>
     )
@@ -1818,8 +1820,8 @@ function MoodScreen({ selected, onSelect }: { selected: string; onSelect: (m: st
                         key={m.label}
                         onClick={() => onSelect(m.label)}
                         className={`w-24 h-24 rounded-[32px] flex flex-col items-center justify-center transition-all duration-300 ${selected === m.label
-                                ? "bg-[#3d838c] text-white shadow-xl shadow-teal-200 scale-110"
-                                : "bg-gray-50 text-gray-400 hover:bg-white hover:text-gray-900"
+                            ? "bg-[#3d838c] text-white shadow-xl shadow-teal-200 scale-110"
+                            : "bg-gray-50 text-gray-400 hover:bg-white hover:text-gray-900"
                             }`}
                     >
                         <span className="text-4xl mb-2">{m.icon}</span>
@@ -1849,8 +1851,8 @@ function ExperienceScreen({ selected, onSelect }: { selected: string; onSelect: 
                         key={opt.id}
                         onClick={() => onSelect(opt.id)}
                         className={`p-7 rounded-[32px] text-left transition-all duration-300 ${selected === opt.id
-                                ? "bg-[#3d838c] text-white shadow-xl shadow-teal-200 scale-105"
-                                : "bg-gray-50 text-gray-600 hover:bg-teal-50"
+                            ? "bg-[#3d838c] text-white shadow-xl shadow-teal-200 scale-105"
+                            : "bg-gray-50 text-gray-600 hover:bg-teal-50"
                             }`}
                     >
                         <h4 className="font-black text-lg mb-2 leading-tight">{opt.title}</h4>
@@ -1882,8 +1884,8 @@ function ReasonScreen({ selected, onToggle }: { selected: string[]; onToggle: (r
                         key={r.label}
                         onClick={() => onToggle(r.label)}
                         className={`w-full p-5 rounded-2xl flex justify-between items-center transition-all duration-300 font-black ${selected.includes(r.label)
-                                ? `${r.card} text-white shadow-lg -translate-y-1`
-                                : `${r.bg} ${r.text} hover:scale-[1.02]`
+                            ? `${r.card} text-white shadow-lg -translate-y-1`
+                            : `${r.bg} ${r.text} hover:scale-[1.02]`
                             }`}
                     >
                         <span>{r.label}</span>
@@ -1945,15 +1947,15 @@ function PricingScreen({
                 <div
                     onClick={() => onSelectPlan("PREMIUM")}
                     className={`relative border-2 rounded-3xl p-5 md:p-6 cursor-pointer flex items-center justify-between transition-all duration-300 select-none ${selectedPlan === "PREMIUM"
-                            ? "border-[#ff7a3d] bg-[#fffbf7] shadow-xl shadow-orange-500/5 scale-[1.02]"
-                            : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/30"
+                        ? "border-[#ff7a3d] bg-[#fffbf7] shadow-xl shadow-orange-500/5 scale-[1.02]"
+                        : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/30"
                         }`}
                 >
                     <div className="flex flex-col gap-2.5 flex-1 pr-4">
                         <span
                             className={`inline-block text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full w-max ${selectedPlan === "PREMIUM"
-                                    ? "bg-[#ff7a3d] text-white"
-                                    : "bg-gray-100 text-gray-500"
+                                ? "bg-[#ff7a3d] text-white"
+                                : "bg-gray-100 text-gray-500"
                                 }`}
                         >
                             Best Offer
@@ -1974,8 +1976,8 @@ function PricingScreen({
 
                         <div
                             className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${selectedPlan === "PREMIUM"
-                                    ? "bg-gray-900 border-gray-900"
-                                    : "border-gray-200"
+                                ? "bg-gray-900 border-gray-900"
+                                : "border-gray-200"
                                 }`}
                         >
                             {selectedPlan === "PREMIUM" && (
@@ -1991,15 +1993,15 @@ function PricingScreen({
                 <div
                     onClick={() => onSelectPlan("ESSENTIAL")}
                     className={`relative border-2 rounded-3xl p-5 md:p-6 cursor-pointer flex items-center justify-between transition-all duration-300 select-none ${selectedPlan === "ESSENTIAL"
-                            ? "border-[#ff7a3d] bg-[#fffbf7] shadow-xl shadow-orange-500/5 scale-[1.02]"
-                            : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/30"
+                        ? "border-[#ff7a3d] bg-[#fffbf7] shadow-xl shadow-orange-500/5 scale-[1.02]"
+                        : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/30"
                         }`}
                 >
                     <div className="flex flex-col gap-2.5 flex-1 pr-4">
                         <span
                             className={`inline-block text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full w-max ${selectedPlan === "ESSENTIAL"
-                                    ? "bg-[#ff7a3d] text-white"
-                                    : "bg-gray-100 text-gray-500"
+                                ? "bg-[#ff7a3d] text-white"
+                                : "bg-gray-100 text-gray-500"
                                 }`}
                         >
                             Easy Start
@@ -2020,8 +2022,8 @@ function PricingScreen({
 
                         <div
                             className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${selectedPlan === "ESSENTIAL"
-                                    ? "bg-gray-900 border-gray-900"
-                                    : "border-gray-200"
+                                ? "bg-gray-900 border-gray-900"
+                                : "border-gray-200"
                                 }`}
                         >
                             {selectedPlan === "ESSENTIAL" && (

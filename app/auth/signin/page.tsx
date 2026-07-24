@@ -122,15 +122,28 @@ export default function SignInPage() {
 
   const handleEmailContinue = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email) return
-    setIsLoading(true)
     setError("")
+
+    const trimmedEmail = email.trim()
+    if (!trimmedEmail) {
+      setError("Email address is required")
+      return
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(trimmedEmail)) {
+      setError("Please enter a valid email address")
+      return
+    }
+
+    setEmail(trimmedEmail)
+    setIsLoading(true)
 
     try {
       const response = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: trimmedEmail }),
       })
       const data = await response.json()
 
@@ -440,15 +453,28 @@ export default function SignInPage() {
               {/* STEP 1: EMAIL ENTRY */}
               {step === "EMAIL" && (
                 <div className="space-y-4">
-                  <form onSubmit={handleEmailContinue} className="space-y-4">
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-4 py-3.5 rounded-[8px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-gray-800 placeholder-gray-400"
-                      placeholder="Email address"
-                      required
-                    />
+                  <form onSubmit={handleEmailContinue} className="space-y-4" noValidate>
+                    <div className="space-y-1">
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value)
+                          setError("")
+                        }}
+                        className={`w-full px-4 py-3.5 rounded-[8px] border outline-none transition-all text-[15px] text-gray-800 placeholder-gray-400 ${
+                          error
+                            ? "border-red-500 focus:ring-1 focus:ring-red-500 focus:border-red-500"
+                            : "border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843]"
+                        }`}
+                        placeholder="Email address"
+                      />
+                      {error && (
+                        <p className="text-red-500 text-sm font-medium mt-1">
+                          {error}
+                        </p>
+                      )}
+                    </div>
                     <button
                       type="submit"
                       disabled={actionsDisabled}

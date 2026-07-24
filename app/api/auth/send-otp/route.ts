@@ -21,11 +21,38 @@ export async function POST(request: NextRequest) {
 
     // Check for common domain typos
     const domain = sanitizedEmail.split("@")[1];
-    const commonTypos = ["gamil.com", "gamil.co", "gmaill.com", "gmaill.co", "gmail.co"];
-    if (commonTypos.includes(domain)) {
+    const gmailTypos = [
+      "gamil.com", "gamil.co", "gmaill.com", "gmaill.co", "gmail.co",
+      "giali.com", "giali.co", "gimal.com", "gimal.co", "gmal.com",
+      "gmal.co", "gml.com", "gml.co", "gmail.cm", "gmail.om",
+      "gmaile.com", "gmeil.com", "gmial.com", "gail.com", "gmai.com"
+    ];
+    const yahooTypos = ["yaho.com", "yhoo.com", "yhaoo.com", "yahoo.co"];
+    const hotmailTypos = ["hotmal.com", "hotmial.com", "hotmail.co"];
+    const outlookTypos = ["outlok.com", "outlook.co"];
+
+    if (gmailTypos.includes(domain)) {
       return NextResponse.json({ 
         success: false, 
         message: `Did you mean gmail.com? Please correct "${domain}" and try again.` 
+      }, { status: 400 });
+    }
+    if (yahooTypos.includes(domain)) {
+      return NextResponse.json({ 
+        success: false, 
+        message: `Did you mean yahoo.com? Please correct "${domain}" and try again.` 
+      }, { status: 400 });
+    }
+    if (hotmailTypos.includes(domain)) {
+      return NextResponse.json({ 
+        success: false, 
+        message: `Did you mean hotmail.com? Please correct "${domain}" and try again.` 
+      }, { status: 400 });
+    }
+    if (outlookTypos.includes(domain)) {
+      return NextResponse.json({ 
+        success: false, 
+        message: `Did you mean outlook.com? Please correct "${domain}" and try again.` 
       }, { status: 400 });
     }
 

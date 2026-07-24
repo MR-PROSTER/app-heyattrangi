@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await req.json()
-    const { age, gender, healthConcerns, emergencyContact, emergencyPhone, orgId } = data
+    const { age, dob, gender, healthConcerns, emergencyContact, emergencyPhone, orgId } = data
 
     // Update user role and orgId if provided
     await prisma.user.update({
@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
       data: {
         userId: session.user.id,
         age: parseInt(age),
+        dob,
         gender,
         healthConcerns: Array.isArray(healthConcerns) ? healthConcerns : [],
         emergencyContact,
