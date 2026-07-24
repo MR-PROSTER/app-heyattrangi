@@ -162,7 +162,8 @@ const toolItems: SidebarItem[] = [
         href: "/patient/library",
         icon: <LibraryIcon />
     },
-    { label: "Therapist", href: "/patient/therapists", icon: <UsersIcon /> },
+    // Therapist hidden
+    // { label: "Therapist", href: "/patient/therapists", icon: <UsersIcon /> },
 ]
 
 
@@ -170,7 +171,7 @@ export default function Sidebar() {
     const pathname = usePathname()
     const [isCollapsed, setIsCollapsed] = useState(true) // Always closed
     const { data: session } = useSession()
-    
+
     const [isNotifOpen, setIsNotifOpen] = useState(false)
     const [unreadCount, setUnreadCount] = useState(0)
 
@@ -192,7 +193,7 @@ export default function Sidebar() {
     }, [isNotifOpen]) // Re-fetch when panel closes
 
     return (
-        <div 
+        <div
             className={`relative h-full transition-all duration-300 ${isCollapsed ? "w-[90px]" : "w-[260px]"} shrink-0 z-40`}
             style={{ backgroundImage: 'linear-gradient(to bottom, #4A3020, #26150C)' }}
         >
@@ -392,9 +393,9 @@ export default function Sidebar() {
             </aside>
 
             {/* Slide-over Notifications Panel */}
-            <NotificationsPanel 
-                isOpen={isNotifOpen} 
-                onClose={() => setIsNotifOpen(false)} 
+            <NotificationsPanel
+                isOpen={isNotifOpen}
+                onClose={() => setIsNotifOpen(false)}
             />
         </div>
     )
