@@ -168,6 +168,7 @@ model Patient {
   // AI Onboarding fields
   aiNickname      String?
   heardAboutUs    String?
+  preferredLanguage String? @default("English")
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

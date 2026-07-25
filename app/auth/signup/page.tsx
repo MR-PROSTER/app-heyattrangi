@@ -430,7 +430,7 @@ export default function SignUpPage() {
           {/* Header section - Hidden in SSO Step */}
           {step !== "SSO" && (
             <div className="mb-8 text-left">
-              <h2 className="text-[22px] font-semibold text-gray-800 tracking-tight mb-2">
+              <h2 className="text-[32px] font-bold text-gray-900 tracking-tight leading-[1.2] mb-2">
                 {step === "ROLE_SELECTION" ? "Choose Profile Type" : "Login or Signup to Hey Attrangi"}
               </h2>
               <p className="text-gray-500 text-sm font-normal leading-relaxed">

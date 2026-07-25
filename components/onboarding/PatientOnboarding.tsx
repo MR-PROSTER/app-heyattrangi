@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -16,9 +16,10 @@ type OnboardingData = {
     emergencyContact: string
     emergencyPhone: string
     consentAgreed: boolean
+    name?: string
+    preferredLanguage?: string
+    heardAboutUs?: string
 }
-
-const STEPS_COUNT = 7
 
 export default function PatientOnboarding() {
     const router = useRouter()
@@ -35,7 +36,19 @@ export default function PatientOnboarding() {
         emergencyContact: "",
         emergencyPhone: "",
         consentAgreed: false,
+        name: "",
+        preferredLanguage: "English",
+        heardAboutUs: "",
     })
+
+    useEffect(() => {
+        if (session?.user?.name) {
+            setData((prev) => ({
+                ...prev,
+                name: prev.name || session.user.name || ""
+            }))
+        }
+    }, [session])
     const [isLoading, setIsLoading] = useState(false)
     const [showTermsModal, setShowTermsModal] = useState(false)
     const [showPrivacyModal, setShowPrivacyModal] = useState(false)
@@ -103,7 +116,7 @@ export default function PatientOnboarding() {
                         const verifyData = await verifyRes.json()
                         if (verifyData.success) {
                             alert(`Successfully subscribed to ${selectedPlan === "PREMIUM" ? "Companion" : "Listener"} plan!`)
-                            setStep(7)
+                            setStep(4)
                         } else {
                             alert(verifyData.error || "Payment verification failed.")
                         }
@@ -117,7 +130,7 @@ export default function PatientOnboarding() {
                     email: session?.user?.email || "",
                 },
                 theme: {
-                    color: "#3d838c",
+                    color: "#e26843",
                 },
             }
 
@@ -135,13 +148,7 @@ export default function PatientOnboarding() {
     }
 
     const handleNext = () => {
-        if (step === 5) {
-            if (data.orgId && data.orgId !== "none") {
-                setStep(7) // Skip pricing screen
-            } else {
-                setStep(6)
-            }
-        } else if (step === 6) {
+        if (step === 2) {
             handlePayment()
         } else {
             setStep((s) => s + 1)
@@ -149,15 +156,7 @@ export default function PatientOnboarding() {
     }
 
     const handleBack = () => {
-        if (step === 7) {
-            if (data.orgId && data.orgId !== "none") {
-                setStep(5) // Skip pricing screen
-            } else {
-                setStep(6)
-            }
-        } else {
-            setStep((s) => s - 1)
-        }
+        setStep((s) => s - 1)
     }
 
     const handleFinish = async () => {
@@ -167,6 +166,7 @@ export default function PatientOnboarding() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
+                    name: data.name,
                     age: data.age,
                     dob: data.dob,
                     orgId: data.orgId === "none" ? undefined : data.orgId,
@@ -174,6 +174,8 @@ export default function PatientOnboarding() {
                     healthConcerns: data.reasons,
                     emergencyContact: data.emergencyContact,
                     emergencyPhone: data.emergencyPhone,
+                    preferredLanguage: data.preferredLanguage,
+                    heardAboutUs: data.heardAboutUs,
                 }),
             })
 
@@ -189,157 +191,173 @@ export default function PatientOnboarding() {
         }
     }
 
-    const userName = session?.user?.name?.split(" ")[0] || "Sam" // Fallback to Sam for demo
-
-    const toggleReason = (reason: string) => {
-        setData((prev) => ({
-            ...prev,
-            reasons: prev.reasons.includes(reason)
-                ? prev.reasons.filter((r) => r !== reason)
-                : [...prev.reasons, reason],
-        }))
-    }
+    const userName = data.name?.split(" ")[0] || session?.user?.name?.split(" ")[0] || "Sam"
 
     const isContinueDisabled =
-        (step === 0 && (!data.emergencyContact || !data.emergencyPhone || !data.consentAgreed)) ||
-        (step === 1 && !data.dob)
+        (step === 0 && (!data.name?.trim() || !data.dob)) ||
+        (step === 1 && (!data.emergencyContact || !data.emergencyPhone || data.emergencyPhone.length !== 10 || !data.consentAgreed))
 
     return (
-        <div className="relative min-h-screen w-full flex items-center justify-center bg-[#f0f7f8] overflow-hidden font-sans">
+        <div className="min-h-screen w-full flex bg-white font-sans relative overflow-hidden">
+            {/* Left Branding Panel */}
+            <div className="hidden lg:flex lg:w-[60%] xl:w-[65%] relative overflow-hidden flex-col justify-between p-12 xl:p-16 bg-[#fafafa]">
+                {/* Animated glowing background lines - Attrangi style */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                    <style dangerouslySetInnerHTML={{__html: `
+                        @keyframes shine-sweep {
+                            0% { transform: translateX(-100vw) rotate(-15deg); }
+                            100% { transform: translateX(100vw) rotate(-15deg); }
+                        }
+                    `}} />
+                    {/* Base gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-white via-[#fff4ec] to-[#ffe8d6] opacity-80"></div>
+                    
+                    {/* Animated floating blobs (shine effect) */}
+                    <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-gradient-to-br from-[#ff6b00]/20 to-transparent rounded-full blur-[80px] animate-[pulse_4s_ease-in-out_infinite]"></div>
+                    <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-gradient-to-tr from-[#ff9800]/20 to-transparent rounded-full blur-[80px] animate-[pulse_5s_ease-in-out_infinite] [animation-delay:2s]"></div>
+                    <div className="absolute top-[30%] left-[20%] w-[40%] h-[40%] bg-[#ff5252]/10 rounded-full blur-[100px] animate-[pulse_6s_ease-in-out_infinite] [animation-delay:1s]"></div>
+                    
+                    {/* Static Diagonal bands for structure */}
+                    <div className="absolute top-[-50%] left-[0%] w-[15%] h-[200%] bg-white/30 -rotate-[15deg] mix-blend-overlay"></div>
+                    <div className="absolute top-[-50%] left-[25%] w-[8%] h-[200%] bg-white/40 -rotate-[15deg] mix-blend-overlay"></div>
+                    <div className="absolute top-[-50%] left-[45%] w-[12%] h-[200%] bg-white/20 -rotate-[15deg] mix-blend-overlay"></div>
+                    <div className="absolute top-[-50%] left-[70%] w-[20%] h-[200%] bg-white/30 -rotate-[15deg] mix-blend-overlay"></div>
 
-            {/* Background Abstract Shapes */}
-            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#4f9da6]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute top-10 right-20 w-32 h-32 bg-[#c9e4e7] rounded-full opacity-60" />
-            <div className="absolute top-5 right-5 w-12 h-32 bg-[#8bc4c9] rounded-full opacity-40 rotate-12" />
+                    {/* Sweeping shining lights perfectly matching the band tilt */}
+                    <div className="absolute top-[-50%] bottom-[-50%] w-[40%] h-[200%] bg-gradient-to-r from-transparent via-white/50 to-transparent mix-blend-overlay animate-[shine-sweep_7s_infinite_linear]"></div>
+                    <div className="absolute top-[-50%] bottom-[-50%] w-[20%] h-[200%] bg-gradient-to-r from-transparent via-white/70 to-transparent mix-blend-overlay animate-[shine-sweep_11s_infinite_linear_3s]"></div>
+                </div>
 
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={step}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.4 }}
-                    className="relative w-full max-w-4xl px-4 flex flex-col items-center"
-                >
-                    {/* Main Content Card */}
-                    <div className="relative w-full bg-white rounded-[48px] p-10 md:p-16 flex flex-col items-center shadow-2xl shadow-teal-900/10 min-h-[480px]">
+                <div className="relative z-10 w-fit flex items-center gap-3">
+                    <div className="w-8 h-8 grid grid-cols-2 grid-rows-2 gap-[2px]">
+                        <div className="bg-[#FFC107] rounded-tl-[4px]"></div>
+                        <div className="bg-[#FF5252] rounded-tr-[4px]"></div>
+                        <div className="bg-[#FF9800] rounded-bl-[4px]"></div>
+                        <div className="bg-[#E64A19] rounded-br-[4px]"></div>
+                    </div>
+                    <span className="font-extrabold text-2xl tracking-tighter text-gray-900">Hey Attrangi!</span>
+                </div>
 
-                        {/* Progress Bar */}
-                        {step >= 1 && step <= 6 && (
-                            <div className="absolute top-8 right-12 w-32 h-1.5 bg-[#e0f2f3] rounded-full overflow-hidden">
-                                <motion.div
-                                    className="h-full bg-[#3d838c]"
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${(step / STEPS_COUNT) * 100}%` }}
-                                />
-                            </div>
+                <div className="relative z-10 mt-auto">
+                    <h2 className="text-2xl xl:text-[28px] font-bold text-[#14293f] leading-snug tracking-tight mb-6 max-w-2xl">
+                        Join the community with thousands of people already trusting the website
+                    </h2>
+                    <div className="flex flex-wrap items-center gap-8 text-[15px] font-semibold text-[#14293f]">
+                         <div className="flex items-center gap-2">
+                            <span className="text-xl leading-none font-light text-[#ff6b00]">✧</span> 24/7 AI Companion
+                         </div>
+                         <div className="flex items-center gap-2">
+                            <span className="text-xl leading-none font-light text-[#ff6b00]">✧</span> Verified Therapists
+                         </div>
+                         <div className="flex items-center gap-2">
+                            <span className="text-xl leading-none font-light text-[#ff6b00]">✧</span> Personalized Care
+                         </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Right Form Panel */}
+            <div className="w-full lg:w-[40%] xl:w-[35%] flex items-start lg:items-center justify-center px-5 pt-4 pb-6 sm:px-10 sm:py-10 md:p-12 bg-white relative overflow-y-auto min-h-screen">
+                <div className={`w-full max-w-[450px] flex flex-col min-h-[calc(100dvh-2rem)] lg:min-h-[550px] ${step === 2 ? "gap-0" : "gap-8"}`}>
+                    <div className={`w-full ${step === 2 ? "flex-1 flex flex-col" : "flex-1"}`}>
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={step}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                transition={{ duration: 0.3 }}
+                                className={`w-full ${step === 2 ? "flex-1 flex flex-col" : ""}`}
+                            >
+                                <div className={`w-full z-10 text-left ${step === 2 ? "flex-1 flex flex-col" : ""}`}>
+                                    {step === 0 && (
+                                        <PersonalizationScreen
+                                            data={data}
+                                            onChange={(fields) => setData({ ...data, ...fields })}
+                                            onBack={() => router.back()}
+                                        />
+                                    )}
+                                    {step === 1 && (
+                                        <ConsentScreen
+                                            data={data}
+                                            onChange={(fields) => setData({ ...data, ...fields })}
+                                            onOpenTerms={() => setShowTermsModal(true)}
+                                            onOpenPrivacy={() => setShowPrivacyModal(true)}
+                                            onOpenAi={() => setShowAiModal(true)}
+                                            onOpenDataConsent={() => setShowDataConsentModal(true)}
+                                            onOpenTrustSafety={() => setShowTrustSafetyModal(true)}
+                                        />
+                                    )}
+                                    {step === 2 && (
+                                        <PricingScreen
+                                            selectedPlan={selectedPlan}
+                                            onSelectPlan={setSelectedPlan}
+                                            onOpenTerms={() => setShowTermsModal(true)}
+                                            onOpenPrivacy={() => setShowPrivacyModal(true)}
+                                            onSkip={() => setStep(3)}
+                                        />
+                                    )}
+                                    {step === 3 && <FinalScreen userName={userName} />}
+                                </div>
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+
+                    {/* Navigation Buttons and Dots Indicator */}
+                    <div className={`z-10 w-full shrink-0 ${step === 2 ? "pt-5" : ""}`}>
+                        <div className="flex w-full gap-3">
+                            {step > 0 && step < 3 && (
+                                <button
+                                    onClick={handleBack}
+                                    className="flex-1 flex items-center justify-center border border-gray-300 hover:bg-gray-50 text-gray-700 transition-all rounded-full py-3.5 font-semibold text-[15px] lg:font-bold lg:text-sm lg:uppercase lg:tracking-wider cursor-pointer"
+                                >
+                                    Back
+                                </button>
+                            )}
+
+                            {step < 3 ? (
+                                <button
+                                    onClick={handleNext}
+                                    disabled={isContinueDisabled}
+                                    className={`${step > 0 ? "flex-1" : "w-full"} flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-full py-3.5 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-[16px] lg:font-bold lg:text-sm lg:uppercase lg:tracking-wider cursor-pointer`}
+                                >
+                                    {step === 2 ? "Subscribe & Pay" : "Continue"}
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleFinish}
+                                    disabled={isLoading}
+                                    className="w-full flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-full py-3.5 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-[16px] lg:font-bold lg:text-sm lg:uppercase lg:tracking-wider cursor-pointer"
+                                >
+                                    {isLoading ? "Starting..." : "Welcome to Attrangi!"}
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Skip sits under CTA like Figma "Restore" link */}
+                        {step === 2 && (
+                            <button
+                                onClick={() => setStep(3)}
+                                className="mt-4 w-full text-center text-sm font-semibold text-[#e26843] hover:text-[#d05732] underline transition-all bg-transparent border-none cursor-pointer"
+                            >
+                                Skip, continue with Free Plan
+                            </button>
                         )}
 
-                        {/* Content Switcher */}
-                        <div className="flex-1 w-full flex flex-col items-center justify-center text-center z-10">
-                            {step === 0 && (
-                                <ConsentScreen
-                                    data={data}
-                                    onChange={(fields) => setData({ ...data, ...fields })}
-                                    onOpenTerms={() => setShowTermsModal(true)}
-                                    onOpenPrivacy={() => setShowPrivacyModal(true)}
-                                    onOpenAi={() => setShowAiModal(true)}
-                                    onOpenDataConsent={() => setShowDataConsentModal(true)}
-                                    onOpenTrustSafety={() => setShowTrustSafetyModal(true)}
-                                />
-                            )}
-                            {step === 1 && (
-                                <AgeScreen
-                                    dob={data.dob}
-                                    onSelectDob={(dobValue) => {
-                                        if (dobValue) {
-                                            const birthDate = new Date(dobValue)
-                                            const today = new Date()
-                                            let calculatedAge = today.getFullYear() - birthDate.getFullYear()
-                                            const m = today.getMonth() - birthDate.getMonth()
-                                            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                                                calculatedAge--
-                                            }
-                                            setData({
-                                                ...data,
-                                                dob: dobValue,
-                                                age: calculatedAge.toString()
-                                            })
-                                        } else {
-                                            setData({ ...data, dob: "", age: "" })
-                                        }
-                                    }}
-                                />
-                            )}
-                            {step === 2 && <OrganizationScreen selected={data.orgId} onSelect={(o) => setData({ ...data, orgId: o })} />}
-                            {step === 3 && <MoodScreen selected={data.mood} onSelect={(m) => setData({ ...data, mood: m })} />}
-                            {step === 4 && <ExperienceScreen selected={data.experience} onSelect={(e) => setData({ ...data, experience: e })} />}
-                            {step === 5 && <ReasonScreen selected={data.reasons} onToggle={toggleReason} />}
-                            {step === 6 && <FinalScreen userName={userName} />}
-                        </div>
-
-                        {/* Navigation Buttons */}
-                        <div className="mt-12 flex flex-col items-center gap-6 z-10">
-                            <div className="flex items-center gap-4">
-                                {step > 0 && step < 6 && (
-                                    <button onClick={handleBack} className="px-10 py-3.5 rounded-2xl bg-[#f0f7f8]/80 hover:bg-[#e0f2f3] text-[#666] font-bold text-sm transition-all">
-                                        Back
-                                    </button>
-                                )}
-
-                                {step < 6 ? (
-                                    <button
-                                        onClick={handleNext}
-                                        disabled={isContinueDisabled}
-                                        className="px-12 py-3.5 rounded-2xl bg-[#3d838c] hover:bg-[#2c656d] text-white font-black text-sm shadow-xl shadow-teal-200 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {step === 5 ? "Finish" : "Continue"} <span className="text-lg">→</span>
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={handleFinish}
-                                        disabled={isLoading}
-                                        className="px-14 py-4 rounded-2xl bg-[#3d838c] hover:bg-[#2c656d] text-white font-black text-base shadow-xl shadow-teal-200 transition-all flex items-center gap-2"
-                                    >
-                                        {isLoading ? "Starting..." : "Welcome to Attrangi!"} <span className="text-xl">→</span>
-                                    </button>
-                                )}
+                        {/* Progress Dots — desktop only; mobile matches Figma without dots */}
+                        {step < 4 && (
+                            <div className="hidden lg:flex gap-2.5 justify-center mt-6">
+                                {[...Array(4)].map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className={`h-2 w-2 rounded-full transition-all duration-300 ${i === step ? "bg-[#e26843] w-4" : "bg-[#ffe8d6]"}`}
+                                    />
+                                ))}
                             </div>
-
-                            {/* Progress Dots Indicator */}
-                            {step < 7 && (
-                                <div className="flex gap-2.5">
-                                    {[...Array(7)].map((_, i) => (
-                                        <div
-                                            key={i}
-                                            className={`h-2 w-2 rounded-full transition-all duration-300 ${i === step ? "bg-[#3d838c] w-4" : "bg-[#e0f2f3]"
-                                                }`}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-
-
-                        {step === 7 && (
-                            <motion.div
-                                initial={{ opacity: 0, x: -40 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                className="absolute bottom-4 left-6 pointer-events-none hidden md:block"
-                            >
-                                <Image
-                                    src="/onboarding_images/5.png"
-                                    alt="Final Illustration"
-                                    width={180}
-                                    height={180}
-                                    className="object-contain"
-                                />
-                            </motion.div>
                         )}
                     </div>
-                </motion.div>
-            </AnimatePresence>
+                </div>
+            </div>
 
             {/* Terms & Conditions Modal Overlay */}
             {showTermsModal && (
@@ -813,7 +831,7 @@ export default function PatientOnboarding() {
                         <div className="p-4 bg-gray-50/80 border-t border-gray-100 flex justify-end">
                             <button
                                 onClick={() => setShowTermsModal(false)}
-                                className="px-6 py-2.5 bg-[#3d838c] hover:bg-[#2c656d] text-white rounded-xl font-bold text-sm transition-all"
+                                className="px-6 py-2.5 bg-[#e26843] hover:bg-[#d05732] text-white rounded-[30px] font-bold text-sm transition-all cursor-pointer"
                             >
                                 I Understand
                             </button>
@@ -1060,7 +1078,7 @@ export default function PatientOnboarding() {
                         <div className="p-4 bg-gray-50/80 border-t border-gray-100 flex justify-end">
                             <button
                                 onClick={() => setShowPrivacyModal(false)}
-                                className="px-6 py-2.5 bg-[#3d838c] hover:bg-[#2c656d] text-white rounded-xl font-bold text-sm transition-all"
+                                className="px-6 py-2.5 bg-[#e26843] hover:bg-[#d05732] text-white rounded-[30px] font-bold text-sm transition-all cursor-pointer"
                             >
                                 I Understand
                             </button>
@@ -1232,7 +1250,7 @@ export default function PatientOnboarding() {
                         <div className="p-4 bg-gray-50/80 border-t border-gray-100 flex justify-end">
                             <button
                                 onClick={() => setShowAiModal(false)}
-                                className="px-6 py-2.5 bg-[#3d838c] hover:bg-[#2c656d] text-white rounded-xl font-bold text-sm transition-all"
+                                className="px-6 py-2.5 bg-[#e26843] hover:bg-[#d05732] text-white rounded-[30px] font-bold text-sm transition-all cursor-pointer"
                             >
                                 I Understand
                             </button>
@@ -1405,7 +1423,7 @@ export default function PatientOnboarding() {
                         <div className="p-4 bg-gray-50/80 border-t border-gray-100 flex justify-end">
                             <button
                                 onClick={() => setShowDataConsentModal(false)}
-                                className="px-6 py-2.5 bg-[#3d838c] hover:bg-[#2c656d] text-white rounded-xl font-bold text-sm transition-all"
+                                className="px-6 py-2.5 bg-[#e26843] hover:bg-[#d05732] text-white rounded-[30px] font-bold text-sm transition-all cursor-pointer"
                             >
                                 I Understand
                             </button>
@@ -1576,7 +1594,7 @@ export default function PatientOnboarding() {
                         <div className="p-4 bg-gray-50/80 border-t border-gray-100 flex justify-end">
                             <button
                                 onClick={() => setShowTrustSafetyModal(false)}
-                                className="px-6 py-2.5 bg-[#3d838c] hover:bg-[#2c656d] text-white rounded-xl font-bold text-sm transition-all"
+                                className="px-6 py-2.5 bg-[#e26843] hover:bg-[#d05732] text-white rounded-[30px] font-bold text-sm transition-all cursor-pointer"
                             >
                                 I Understand
                             </button>
@@ -1609,19 +1627,19 @@ function ConsentScreen({
 }) {
     return (
         <div className="w-full max-w-xl text-left space-y-6">
-            <h2 className="text-3xl font-black text-gray-900 tracking-tight text-center">
+            <h2 className="text-[32px] font-bold text-gray-900 tracking-tight leading-[1.2] mb-2 text-left">
                 Consent &amp; Emergency Contact
             </h2>
-            <p className="text-gray-500 text-sm font-medium text-center mb-6">
+            <p className="text-gray-500 text-sm font-normal leading-relaxed text-left mb-6">
                 Your safety is our top priority. Please provide your emergency contact details and review our documents.
             </p>
 
             {/* Emergency Contact Fields */}
-            <div className="bg-teal-50/30 p-6 rounded-3xl border border-teal-100/50 space-y-4">
+            <div className="bg-gray-50/50 p-5 rounded-[16px] border border-gray-100 space-y-4">
                 <h3 className="font-bold text-gray-800 text-[15px] uppercase tracking-wider">
                     Emergency Contact Details
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                     <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                             Contact Name &amp; Relationship
@@ -1630,7 +1648,7 @@ function ConsentScreen({
                             type="text"
                             value={data.emergencyContact}
                             onChange={(e) => onChange({ emergencyContact: e.target.value })}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-1 focus:ring-[#3d838c] focus:border-[#3d838c] outline-none text-[14px] text-gray-800 bg-white"
+                            className="w-full px-4 py-3.5 rounded-[8px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-gray-800 placeholder-gray-400"
                             placeholder="e.g. Bharath (Brother)"
                             required
                         />
@@ -1639,20 +1657,26 @@ function ConsentScreen({
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                             Phone Number
                         </label>
-                        <input
-                            type="tel"
-                            value={data.emergencyPhone}
-                            onChange={(e) => onChange({ emergencyPhone: e.target.value })}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-1 focus:ring-[#3d838c] focus:border-[#3d838c] outline-none text-[14px] text-gray-800 bg-white"
-                            placeholder="e.g. 1234567890"
-                            required
-                        />
+                        <div className="flex rounded-[8px] border border-gray-300 focus-within:ring-1 focus-within:ring-[#e26843] focus-within:border-[#e26843] overflow-hidden transition-all bg-white">
+                            <span className="flex items-center justify-center bg-gray-50 px-4 text-gray-500 text-[15px] font-semibold border-r border-gray-200 select-none">
+                                +91
+                            </span>
+                            <input
+                                type="tel"
+                                maxLength={10}
+                                value={data.emergencyPhone}
+                                onChange={(e) => onChange({ emergencyPhone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                                className="flex-1 px-4 py-3.5 outline-none text-[15px] text-gray-800 placeholder-gray-400 bg-transparent"
+                                placeholder="e.g. 7995736278"
+                                required
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Consent Checkbox */}
-            <div className="bg-gray-50/50 p-6 rounded-3xl border border-gray-200/50 space-y-4">
+            <div className="bg-gray-50/50 p-5 rounded-[16px] border border-gray-100 space-y-4">
                 <h3 className="font-bold text-gray-800 text-[15px] uppercase tracking-wider">
                     Consent &amp; Agreements
                 </h3>
@@ -1663,7 +1687,7 @@ function ConsentScreen({
                             <button
                                 type="button"
                                 onClick={onOpenTerms}
-                                className="text-[#3d838c] hover:underline font-bold text-left cursor-pointer outline-none bg-transparent animate-pulse"
+                                className="text-[#e26843] hover:underline font-semibold text-left cursor-pointer outline-none bg-transparent"
                             >
                                 Terms &amp; Conditions
                             </button>
@@ -1672,7 +1696,7 @@ function ConsentScreen({
                             <button
                                 type="button"
                                 onClick={onOpenPrivacy}
-                                className="text-[#3d838c] hover:underline font-bold text-left cursor-pointer outline-none bg-transparent animate-pulse"
+                                className="text-[#e26843] hover:underline font-semibold text-left cursor-pointer outline-none bg-transparent"
                             >
                                 Privacy Policy
                             </button>
@@ -1681,7 +1705,7 @@ function ConsentScreen({
                             <button
                                 type="button"
                                 onClick={onOpenAi}
-                                className="text-[#3d838c] hover:underline font-bold text-left cursor-pointer outline-none bg-transparent animate-pulse"
+                                className="text-[#e26843] hover:underline font-semibold text-left cursor-pointer outline-none bg-transparent"
                             >
                                 AI Transparency Statement
                             </button>
@@ -1690,7 +1714,7 @@ function ConsentScreen({
                             <button
                                 type="button"
                                 onClick={onOpenTrustSafety}
-                                className="text-[#3d838c] hover:underline font-bold text-left cursor-pointer outline-none bg-transparent animate-pulse"
+                                className="text-[#e26843] hover:underline font-semibold text-left cursor-pointer outline-none bg-transparent"
                             >
                                 Trust, Safety &amp; Acceptable Use Policy
                             </button>
@@ -1699,7 +1723,7 @@ function ConsentScreen({
                             <button
                                 type="button"
                                 onClick={onOpenDataConsent}
-                                className="text-[#3d838c] hover:underline font-bold text-left cursor-pointer outline-none bg-transparent animate-pulse"
+                                className="text-[#e26843] hover:underline font-semibold text-left cursor-pointer outline-none bg-transparent"
                             >
                                 Data Processing Consent
                             </button>
@@ -1712,7 +1736,7 @@ function ConsentScreen({
                         type="checkbox"
                         checked={data.consentAgreed}
                         onChange={(e) => onChange({ consentAgreed: e.target.checked })}
-                        className="w-5 h-5 mt-0.5 rounded text-[#3d838c] focus:ring-[#3d838c] border-gray-300"
+                        className="w-5 h-5 mt-0.5 rounded text-[#e26843] focus:ring-[#e26843] border-gray-300 cursor-pointer"
                     />
                     <span className="text-[13px] text-gray-600 font-semibold leading-relaxed">
                         I have read and agree to all the documents mentioned above.
@@ -1723,34 +1747,142 @@ function ConsentScreen({
     )
 }
 
-function AgeScreen({
-    dob,
-    onSelectDob
+function PersonalizationScreen({
+    data,
+    onChange,
+    onBack,
 }: {
-    dob: string;
-    onSelectDob: (dob: string) => void
+    data: OnboardingData
+    onChange: (fields: Partial<OnboardingData>) => void
+    onBack?: () => void
 }) {
+    const handleDobChange = (dobValue: string) => {
+        if (dobValue) {
+            const birthDate = new Date(dobValue)
+            const today = new Date()
+            let calculatedAge = today.getFullYear() - birthDate.getFullYear()
+            const m = today.getMonth() - birthDate.getMonth()
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                calculatedAge--
+            }
+            onChange({
+                dob: dobValue,
+                age: calculatedAge.toString()
+            })
+        } else {
+            onChange({ dob: "", age: "" })
+        }
+    }
+
+    const languages = [
+        { code: "English", name: "English" },
+        { code: "Hindi", name: "Hindi" },
+        { code: "Telugu", name: "Telugu" },
+        { code: "Tamil", name: "Tamil" },
+        { code: "Kannada", name: "Kannada" },
+        { code: "Malayalam", name: "Malayalam" },
+        { code: "Marathi", name: "Marathi" },
+        { code: "Bengali", name: "Bengali" },
+    ]
+
+    const fieldClass =
+        "w-full px-4 py-3.5 rounded-[10px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-gray-900 placeholder:text-gray-400 bg-white appearance-none"
+
     return (
-        <div className="w-full max-w-xl text-left space-y-6">
-            <h2 className="text-3xl font-black text-gray-900 tracking-tight text-center">
-                What is your date of birth?
+        <div className="w-full max-w-xl text-left">
+            {/* Mobile back chevron — matches Figma */}
+            {onBack && (
+                <button
+                    type="button"
+                    onClick={onBack}
+                    aria-label="Go back"
+                    className="lg:hidden mb-5 -ml-1 p-1 text-gray-900 hover:text-gray-600 transition-colors bg-transparent border-none cursor-pointer"
+                >
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+            )}
+
+            <h2 className="text-[32px] font-bold text-gray-900 tracking-tight leading-[1.2] text-left mb-2">
+                Help us personalize your experience
             </h2>
-            <p className="text-gray-500 text-sm font-medium text-center mb-6">
-                Please enter your date of birth to help us personalize your experience.
+            <p className="text-gray-500 text-[15px] font-normal leading-relaxed text-left mb-8">
+                Please provide a few details to help us customize the platform for you.
             </p>
 
-            <div className="bg-teal-50/30 p-8 rounded-3xl border border-teal-100/50 flex flex-col items-center justify-center space-y-4 max-w-md mx-auto">
-                <div className="w-full">
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 text-center">
-                        Date of Birth
+            <div className="space-y-6">
+                {/* 1. Name */}
+                <div>
+                    <label className="block text-[15px] font-bold text-gray-900 mb-2">
+                        What&apos;s your name?
+                    </label>
+                    <input
+                        type="text"
+                        value={data.name || ""}
+                        onChange={(e) => onChange({ name: e.target.value })}
+                        className={fieldClass}
+                        placeholder="Enter your name"
+                        required
+                    />
+                </div>
+
+                {/* 2. Birthday */}
+                <div>
+                    <label className="block text-[15px] font-bold text-gray-900 mb-2">
+                        Birthday
                     </label>
                     <input
                         type="date"
-                        value={dob}
-                        onChange={(e) => onSelectDob(e.target.value)}
+                        value={data.dob || ""}
+                        onChange={(e) => handleDobChange(e.target.value)}
                         max={new Date().toISOString().split("T")[0]}
-                        className="w-full px-4 py-3.5 rounded-2xl border border-gray-200 focus:ring-1 focus:ring-[#3d838c] focus:border-[#3d838c] outline-none text-[15px] font-semibold text-gray-800 bg-white text-center cursor-pointer"
+                        className={`${fieldClass} cursor-pointer`}
                         required
+                    />
+                </div>
+
+                {/* 3. Language */}
+                <div>
+                    <label className="block text-[15px] font-bold text-gray-900 mb-2">
+                        What&apos;s your preferred language?
+                    </label>
+                    <div className="relative">
+                        <select
+                            value={data.preferredLanguage || "English"}
+                            onChange={(e) => onChange({ preferredLanguage: e.target.value })}
+                            className={`${fieldClass} cursor-pointer pr-10`}
+                        >
+                            {languages.map((lang) => (
+                                <option key={lang.code} value={lang.code}>
+                                    {lang.name}
+                                </option>
+                            ))}
+                        </select>
+                        <svg
+                            className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2.2}
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
+
+                {/* 4. Heard About Us */}
+                <div>
+                    <label className="block text-[15px] font-bold text-gray-900 mb-2">
+                        How did you hear about us?{" "}
+                        <span className="text-gray-400 font-normal">(optional)</span>
+                    </label>
+                    <input
+                        type="text"
+                        value={data.heardAboutUs || ""}
+                        onChange={(e) => onChange({ heardAboutUs: e.target.value })}
+                        className={fieldClass}
+                        placeholder="A podcast, workplace, Twitter..."
                     />
                 </div>
             </div>
@@ -1758,10 +1890,9 @@ function AgeScreen({
     )
 }
 
-import { useEffect, useState as useReactState } from "react"
 function OrganizationScreen({ selected, onSelect }: { selected: string; onSelect: (o: string) => void }) {
-    const [orgs, setOrgs] = useReactState<{ id: string, name: string }[]>([])
-    const [loading, setLoading] = useReactState(true)
+    const [orgs, setOrgs] = useState<{ id: string, name: string }[]>([])
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         fetch("/api/public/organizations")
@@ -1774,16 +1905,16 @@ function OrganizationScreen({ selected, onSelect }: { selected: string; onSelect
     }, [])
 
     return (
-        <div className="w-full max-w-lg">
-            <h2 className="text-3xl font-black text-gray-900 mb-4 tracking-tight">Are you joining from an institution?</h2>
-            <p className="text-gray-500 font-medium mb-10">Select your organization to access premium benefits.</p>
+        <div className="w-full max-w-lg text-left">
+            <h2 className="text-[22px] font-semibold text-gray-800 tracking-tight text-left mb-2">Are you joining from an institution?</h2>
+            <p className="text-gray-500 text-sm font-normal leading-relaxed text-left mb-6">Select your organization to access premium benefits.</p>
 
             {loading ? (
                 <p className="text-gray-400 animate-pulse">Loading organizations...</p>
             ) : (
                 <div className="space-y-4 text-left">
                     <select
-                        className="w-full px-5 py-4 rounded-2xl border-2 border-gray-100 focus:border-[#3d838c] focus:outline-none focus:ring-4 focus:ring-teal-50 transition-all font-medium text-gray-700 bg-white"
+                        className="w-full px-4 py-3.5 rounded-[8px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-gray-800 bg-white font-medium cursor-pointer"
                         value={selected}
                         onChange={(e) => onSelect(e.target.value)}
                     >
@@ -1812,20 +1943,20 @@ function MoodScreen({ selected, onSelect }: { selected: string; onSelect: (m: st
     ]
 
     return (
-        <div className="w-full">
-            <h2 className="text-3xl font-black text-gray-900 mb-12 tracking-tight">How are you feeling today?</h2>
-            <div className="flex flex-wrap justify-center gap-5">
+        <div className="w-full text-left">
+            <h2 className="text-[22px] font-semibold text-gray-800 tracking-tight text-left mb-6">How are you feeling today?</h2>
+            <div className="flex flex-wrap justify-center gap-3">
                 {moods.map((m) => (
                     <button
                         key={m.label}
                         onClick={() => onSelect(m.label)}
-                        className={`w-24 h-24 rounded-[32px] flex flex-col items-center justify-center transition-all duration-300 ${selected === m.label
-                            ? "bg-[#3d838c] text-white shadow-xl shadow-teal-200 scale-110"
-                            : "bg-gray-50 text-gray-400 hover:bg-white hover:text-gray-900"
+                        className={`w-20 h-20 rounded-[20px] flex flex-col items-center justify-center transition-all duration-300 cursor-pointer ${selected === m.label
+                            ? "bg-[#e26843] text-white shadow-[0_8px_30px_rgb(226,104,67,0.15)] scale-105"
+                            : "bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-900"
                             }`}
                     >
-                        <span className="text-4xl mb-2">{m.icon}</span>
-                        <span className={`text-[10px] font-black uppercase tracking-widest ${selected === m.label ? "text-white" : "text-gray-400"}`}>
+                        <span className="text-3xl mb-1">{m.icon}</span>
+                        <span className={`text-[9px] font-black uppercase tracking-widest ${selected === m.label ? "text-white" : "text-gray-400"}`}>
                             {m.label}
                         </span>
                     </button>
@@ -1843,55 +1974,20 @@ function ExperienceScreen({ selected, onSelect }: { selected: string; onSelect: 
     ]
 
     return (
-        <div className="w-full max-w-2xl">
-            <h2 className="text-3xl font-black text-gray-900 mb-12 tracking-tight">What is your experience level with therapy?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="w-full max-w-2xl text-left">
+            <h2 className="text-[22px] font-semibold text-gray-800 tracking-tight text-left mb-6">What is your experience level with therapy?</h2>
+            <div className="grid grid-cols-1 gap-3.5">
                 {options.map((opt) => (
                     <button
                         key={opt.id}
                         onClick={() => onSelect(opt.id)}
-                        className={`p-7 rounded-[32px] text-left transition-all duration-300 ${selected === opt.id
-                            ? "bg-[#3d838c] text-white shadow-xl shadow-teal-200 scale-105"
-                            : "bg-gray-50 text-gray-600 hover:bg-teal-50"
+                        className={`w-full p-5 rounded-[16px] text-left transition-all duration-300 border-2 cursor-pointer ${selected === opt.id
+                            ? "bg-white border-[#e26843] text-[#e26843] shadow-[0_8px_30px_rgb(226,104,67,0.08)] scale-[1.02]"
+                            : "bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100 hover:border-gray-200"
                             }`}
                     >
-                        <h4 className="font-black text-lg mb-2 leading-tight">{opt.title}</h4>
-                        <p className={`text-xs font-medium ${selected === opt.id ? "text-white/80" : "text-gray-400"}`}>{opt.sub}</p>
-                    </button>
-                ))}
-            </div>
-        </div>
-    )
-}
-
-function ReasonScreen({ selected, onToggle }: { selected: string[]; onToggle: (r: string) => void }) {
-    const reasons = [
-        { label: "Stress & anxiety", bg: "bg-[#7196cb]/20", text: "text-[#7196cb]", card: "bg-[#7196cb]" },
-        { label: "Falling asleep", bg: "bg-[#545a7d]/20", text: "text-[#545a7d]", card: "bg-[#545a7d]" },
-        { label: "Personal growth", bg: "bg-[#a686b2]/20", text: "text-[#a686b2]", card: "bg-[#a686b2]" },
-        { label: "Work & productivity", bg: "bg-[#587c6b]/20", text: "text-[#587c6b]", card: "bg-[#587c6b]" },
-        { label: "Revise & repeat", bg: "bg-[#dc7a6b]/20", text: "text-[#dc7a6b]", card: "bg-[#dc7a6b]" },
-        { label: "Physical health", bg: "bg-[#e8b38a]/20", text: "text-[#e8b38a]", card: "bg-[#e8b38a]" },
-    ]
-
-    return (
-        <div className="w-full max-w-lg">
-            <h2 className="text-3xl font-black text-gray-900 mb-4 tracking-tight">What brings you to Attrangi?</h2>
-            <p className="text-gray-500 font-medium mb-10">We&apos;ll tailor the experience for you.</p>
-            <div className="grid grid-cols-1 gap-3.5">
-                {reasons.map((r) => (
-                    <button
-                        key={r.label}
-                        onClick={() => onToggle(r.label)}
-                        className={`w-full p-5 rounded-2xl flex justify-between items-center transition-all duration-300 font-black ${selected.includes(r.label)
-                            ? `${r.card} text-white shadow-lg -translate-y-1`
-                            : `${r.bg} ${r.text} hover:scale-[1.02]`
-                            }`}
-                    >
-                        <span>{r.label}</span>
-                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selected.includes(r.label) ? "border-white" : "border-current opacity-40"}`}>
-                            {selected.includes(r.label) && <div className="w-2 h-2 bg-white rounded-full" />}
-                        </div>
+                        <h4 className={`font-bold text-base mb-1 ${selected === opt.id ? "text-[#e26843]" : "text-gray-800"}`}>{opt.title}</h4>
+                        <p className={`text-xs ${selected === opt.id ? "text-[#e26843]/80" : "text-gray-400"}`}>{opt.sub}</p>
                     </button>
                 ))}
             </div>
@@ -1912,76 +2008,142 @@ function PricingScreen({
     onOpenPrivacy: () => void
     onSkip: () => void
 }) {
+    const unlockFeatures = [
+        {
+            title: "Personalised Wellbeing Plan",
+            subtitle: "5-min a day to rewire your mindset",
+            bg: "bg-[#f3a69a]",
+            icon: (
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l1.4 4.3h4.5l-3.6 2.7 1.4 4.3L12 10.6 8.3 13.3l1.4-4.3-3.6-2.7h4.5L12 2zm7 12l.9 2.7h2.8l-2.3 1.7.9 2.7-2.3-1.7-2.3 1.7.9-2.7-2.3-1.7h2.8L19 14zm-14 0l.9 2.7h2.8l-2.3 1.7.9 2.7-2.3-1.7-2.3 1.7.9-2.7-2.3-1.7h2.8L5 14z" />
+                </svg>
+            ),
+        },
+        {
+            title: "AI Insights",
+            subtitle: "Uncover surprising patterns about you",
+            bg: "bg-[#c4b0d8]",
+            icon: (
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12h3l2-5 3 10 3-7 2 2h5" />
+                </svg>
+            ),
+        },
+        {
+            title: "Mood Dashboard",
+            subtitle: "Keep track of your progress",
+            bg: "bg-[#e8c96a]",
+            icon: (
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4-5 3 3 5-7 4 4" />
+                </svg>
+            ),
+        },
+        {
+            title: "Longer Conversations",
+            subtitle: "Record up to 20 minutes per entry",
+            bg: "bg-[#8eb8d8]",
+            icon: (
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3zm5-3a5 5 0 01-10 0M12 19v3m-4 0h8" />
+                </svg>
+            ),
+        },
+        {
+            title: "Evolving Coaching",
+            subtitle: "Enjoy your unique self-growth path",
+            bg: "bg-[#e8a0b0]",
+            icon: (
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+            ),
+        },
+    ]
+
     return (
-        <div className="w-full max-w-xl mx-auto flex flex-col items-center">
-            {/* Testimonial Header */}
-            <div className="flex flex-col items-center text-center mb-6">
+        <div className="w-full max-w-xl text-left flex flex-col flex-1 min-h-0">
+            {/* Unlock more ways to feel better */}
+            <div className="mb-7">
+                <h2 className="text-[32px] font-bold text-gray-900 tracking-tight leading-[1.2] text-left mb-5">
+                    Unlock more ways to feel better
+                </h2>
+                <div className="flex flex-col gap-4">
+                    {unlockFeatures.map((feature) => (
+                        <div key={feature.title} className="flex items-center gap-3.5">
+                            <div className={`w-11 h-11 rounded-[12px] ${feature.bg} flex items-center justify-center shrink-0`}>
+                                {feature.icon}
+                            </div>
+                            <div className="min-w-0">
+                                <h4 className="font-bold text-[15px] text-gray-900 leading-tight">{feature.title}</h4>
+                                <p className="text-[13px] text-gray-500 mt-0.5 leading-snug">{feature.subtitle}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Testimonial */}
+            <div className="flex flex-col items-start text-left mb-6">
                 <div className="flex gap-1 mb-2">
                     {[...Array(5)].map((_, i) => (
-                        <svg key={i} className="w-5 h-5 text-amber-400 fill-current" viewBox="0 0 20 20">
+                        <svg key={i} className="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20">
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
                     ))}
                 </div>
-                <p className="text-gray-900 font-extrabold text-lg md:text-xl leading-relaxed max-w-md">
+                <p className="text-gray-900 font-extrabold text-base leading-relaxed max-w-md">
                     &ldquo;Like a mini therapist in my pocket&rdquo;
                 </p>
                 <span className="text-gray-400 text-xs font-semibold mt-1">Ally</span>
-
-                {/* Mock Pagination Indicator */}
-                <div className="flex gap-1.5 justify-center mt-3">
-                    <div className="h-1.5 w-1.5 rounded-full bg-gray-200" />
-                    <div className="h-1.5 w-1.5 rounded-full bg-gray-200" />
-                    <div className="h-1.5 w-1.5 rounded-full bg-gray-900" />
-                </div>
             </div>
 
             {/* Main Title */}
-            <h2 className="text-3xl font-black text-gray-900 mb-8 tracking-tight">
+            <h2 className="text-[32px] font-bold text-gray-900 tracking-tight leading-[1.2] text-left mb-5">
                 Start your journey
             </h2>
 
             {/* Plans List */}
-            <div className="w-full space-y-4 text-left">
+            <div className="w-full space-y-3.5 text-left">
                 {/* Card 1: Companion (Premium) */}
                 <div
                     onClick={() => onSelectPlan("PREMIUM")}
-                    className={`relative border-2 rounded-3xl p-5 md:p-6 cursor-pointer flex items-center justify-between transition-all duration-300 select-none ${selectedPlan === "PREMIUM"
-                        ? "border-[#ff7a3d] bg-[#fffbf7] shadow-xl shadow-orange-500/5 scale-[1.02]"
+                    className={`relative border-2 rounded-[20px] p-5 cursor-pointer flex items-center justify-between transition-all duration-300 select-none ${selectedPlan === "PREMIUM"
+                        ? "border-[#e26843] bg-[#fffbf7] shadow-xl shadow-orange-500/5 scale-[1.01]"
                         : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/30"
                         }`}
                 >
-                    <div className="flex flex-col gap-2.5 flex-1 pr-4">
+                    <div className="flex flex-col gap-2 flex-1 pr-4">
                         <span
-                            className={`inline-block text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full w-max ${selectedPlan === "PREMIUM"
-                                ? "bg-[#ff7a3d] text-white"
+                            className={`inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full w-max ${selectedPlan === "PREMIUM"
+                                ? "bg-[#e26843] text-white"
                                 : "bg-gray-100 text-gray-500"
                                 }`}
                         >
                             Best Offer
                         </span>
                         <div>
-                            <h4 className="font-black text-xl text-gray-900 leading-tight">Companion</h4>
+                            <h4 className="font-bold text-lg text-gray-900 leading-tight">Companion</h4>
                             <p className="text-xs font-medium text-gray-500 mt-1 leading-snug">
                                 Unlimited AI support &amp; long-term memory
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4 text-right">
+                    <div className="flex items-center gap-3 text-right">
                         <div>
-                            <span className="block font-black text-2xl text-gray-900">₹149.00</span>
-                            <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">per month</span>
+                            <span className="block font-black text-xl text-gray-900">₹149.00</span>
+                            <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">per month</span>
                         </div>
 
                         <div
-                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${selectedPlan === "PREMIUM"
-                                ? "bg-gray-900 border-gray-900"
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedPlan === "PREMIUM"
+                                ? "bg-[#e26843] border-[#e26843]"
                                 : "border-gray-200"
                                 }`}
                         >
                             {selectedPlan === "PREMIUM" && (
-                                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                 </svg>
                             )}
@@ -1992,42 +2154,42 @@ function PricingScreen({
                 {/* Card 2: Listener (Essential) */}
                 <div
                     onClick={() => onSelectPlan("ESSENTIAL")}
-                    className={`relative border-2 rounded-3xl p-5 md:p-6 cursor-pointer flex items-center justify-between transition-all duration-300 select-none ${selectedPlan === "ESSENTIAL"
-                        ? "border-[#ff7a3d] bg-[#fffbf7] shadow-xl shadow-orange-500/5 scale-[1.02]"
+                    className={`relative border-2 rounded-[20px] p-5 cursor-pointer flex items-center justify-between transition-all duration-300 select-none ${selectedPlan === "ESSENTIAL"
+                        ? "border-[#e26843] bg-[#fffbf7] shadow-xl shadow-orange-500/5 scale-[1.01]"
                         : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/30"
                         }`}
                 >
-                    <div className="flex flex-col gap-2.5 flex-1 pr-4">
+                    <div className="flex flex-col gap-2 flex-1 pr-4">
                         <span
-                            className={`inline-block text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full w-max ${selectedPlan === "ESSENTIAL"
-                                ? "bg-[#ff7a3d] text-white"
+                            className={`inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full w-max ${selectedPlan === "ESSENTIAL"
+                                ? "bg-[#e26843] text-white"
                                 : "bg-gray-100 text-gray-500"
                                 }`}
                         >
                             Easy Start
                         </span>
                         <div>
-                            <h4 className="font-black text-xl text-gray-900 leading-tight">Listener</h4>
+                            <h4 className="font-bold text-lg text-gray-900 leading-tight">Listener</h4>
                             <p className="text-xs font-medium text-gray-500 mt-1 leading-snug">
                                 Daily check-ins &amp; basic mood tracking
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4 text-right">
+                    <div className="flex items-center gap-3 text-right">
                         <div>
-                            <span className="block font-black text-2xl text-gray-900">₹49.00</span>
-                            <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">per month</span>
+                            <span className="block font-black text-xl text-gray-900">₹49.00</span>
+                            <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">per month</span>
                         </div>
 
                         <div
-                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${selectedPlan === "ESSENTIAL"
-                                ? "bg-gray-900 border-gray-900"
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedPlan === "ESSENTIAL"
+                                ? "bg-[#e26843] border-[#e26843]"
                                 : "border-gray-200"
                                 }`}
                         >
                             {selectedPlan === "ESSENTIAL" && (
-                                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                 </svg>
                             )}
@@ -2036,40 +2198,36 @@ function PricingScreen({
                 </div>
             </div>
 
-            {/* Cancel Anytime Notice */}
-            <div className="flex items-center gap-2.5 mt-8 text-gray-500 text-xs font-bold uppercase tracking-wider">
-                <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-                <span>Cancel anytime</span>
-            </div>
+            {/* Large Figma-style gap above Cancel anytime */}
+            <div className="h-[160px] sm:h-[200px] lg:h-[240px] shrink-0" aria-hidden="true" />
 
-            {/* Terms & Privacy Links */}
-            <div className="flex gap-4 mt-4 text-xs font-semibold text-gray-400">
-                <button onClick={onOpenTerms} className="underline hover:text-gray-600 transition-colors">
-                    Terms
-                </button>
-                <button onClick={onOpenPrivacy} className="underline hover:text-gray-600 transition-colors">
-                    Privacy Policy
-                </button>
-            </div>
+            {/* Footer cluster (tight spacing like Figma) */}
+            <div className="flex flex-col items-center lg:items-start">
+                <div className="flex items-center gap-2 text-gray-500 text-xs font-semibold tracking-wide">
+                    <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <span>Cancel anytime</span>
+                </div>
 
-            {/* Skip Button */}
-            <button
-                onClick={onSkip}
-                className="mt-6 text-sm font-bold text-gray-500 hover:text-gray-800 underline transition-all"
-            >
-                Skip, continue with Free Plan
-            </button>
+                <div className="flex gap-5 mt-3 text-xs font-semibold text-gray-400">
+                    <button onClick={onOpenTerms} className="underline hover:text-gray-600 transition-colors bg-transparent border-none cursor-pointer">
+                        Terms
+                    </button>
+                    <button onClick={onOpenPrivacy} className="underline hover:text-gray-600 transition-colors bg-transparent border-none cursor-pointer">
+                        Privacy Policy
+                    </button>
+                </div>
+            </div>
         </div>
     )
 }
 
 function FinalScreen({ userName }: { userName: string }) {
     return (
-        <div className="max-w-md">
-            <h2 className="text-3xl italic font-black text-gray-900 leading-[1.2] mb-12">
-                Thanks for sharing {userName}.<br />We&apos;re here with you.
+        <div className="w-full text-left">
+            <h2 className="text-[22px] font-bold text-gray-800 text-left leading-[1.3] mb-6">
+                Thanks for sharing, {userName}.<br />We&apos;re here with you.
             </h2>
         </div>
     )

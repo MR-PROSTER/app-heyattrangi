@@ -11,13 +11,14 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await req.json()
-    const { age, dob, gender, healthConcerns, emergencyContact, emergencyPhone, orgId } = data
+    const { name, age, dob, gender, healthConcerns, emergencyContact, emergencyPhone, orgId, preferredLanguage, heardAboutUs } = data
 
-    // Update user role and orgId if provided
+    // Update user role, name, and orgId if provided
     await prisma.user.update({
       where: { id: session.user.id },
       data: { 
         role: "PATIENT",
+        ...(name && { name }),
         ...(orgId && { orgId })
       },
     })
@@ -26,12 +27,14 @@ export async function POST(req: NextRequest) {
     await prisma.patient.create({
       data: {
         userId: session.user.id,
-        age: parseInt(age),
+        age: parseInt(age) || 0,
         dob,
         gender,
         healthConcerns: Array.isArray(healthConcerns) ? healthConcerns : [],
         emergencyContact,
         emergencyPhone,
+        preferredLanguage: preferredLanguage || "English",
+        heardAboutUs: heardAboutUs || undefined,
       },
     })
 
