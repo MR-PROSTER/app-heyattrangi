@@ -19,6 +19,6 @@ export default async function Home() {
     }
   }
 
-  // Redirect unauthenticated users to the signin page
+  // Signed-out users should land on sign-in, not the guest chatbot flow.
   redirect("/auth/signin")
 }

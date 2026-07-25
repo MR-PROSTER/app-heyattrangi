@@ -1,21 +1,39 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth.config"
-import { prisma } from "@/lib/prisma"
+import {
+  PRAGYA_GUEST_TOKEN_COOKIE,
+  getGuestChatMessages,
+  getUserChatMessages,
+  resolveChatContext,
+} from "@/lib/pragya/persistence"
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await auth()
-  
+
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const guestToken = req.cookies.get(PRAGYA_GUEST_TOKEN_COOKIE)?.value ?? null
+    const context = await resolveChatContext({ guestToken })
+    const messages = await getGuestChatMessages(context.kind === "guest" ? context.guest.guestToken : "")
+
+    const response = NextResponse.json({
+      messages,
+    })
+
+    if (context.kind === "guest") {
+      response.cookies.set(PRAGYA_GUEST_TOKEN_COOKIE, context.guest.guestToken, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+      })
+    }
+
+    return response
   }
 
   try {
-    // Fetch the last 100 messages for the user, ordered by creation time
-    const messages = await prisma.pragyaChatMessage.findMany({
-      where: { userId: session.user.id },
-      orderBy: { createdAt: "asc" },
-      take: 100 // We can adjust this limit as needed
-    })
+    const messages = await getUserChatMessages(session.user.id, 100)
 
     return NextResponse.json({ messages })
   } catch (error) {

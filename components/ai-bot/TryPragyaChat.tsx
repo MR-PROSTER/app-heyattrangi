@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo, type FormEvent } from "react"
 import Image from "next/image"
+import { useSession } from "next-auth/react"
 
 interface ChatMessage {
   role: "user" | "assistant"
@@ -115,6 +116,10 @@ const LOADING_MESSAGES = [
   "Typing..."
 ]
 
+const GUEST_TRIAL_LIMIT = 5
+const GUEST_TRIAL_COUNT_KEY = "heyattrangi_guest_trial_count"
+const GUEST_TRIAL_EXHAUSTED_KEY = "heyattrangi_guest_trial_exhausted"
+
 const ChatLoadingIndicator = () => {
   const [msgIndex, setMsgIndex] = useState(0)
 
@@ -152,6 +157,51 @@ export default function TryPragyaChat({
   initialChatCount?: number;
   userName?: string;
 }) {
+  const { status } = useSession()
+  const isAuthenticated = status === "authenticated"
+  const isGuestSession = !sessionId
+  const [guestTrialCount, setGuestTrialCount] = useState(0)
+  const [guestTrialHydrated, setGuestTrialHydrated] = useState(false)
+  const [guestTrialExhausted, setGuestTrialExhausted] = useState(false)
+
+  useEffect(() => {
+    if (!isGuestSession || guestBootstrapAttemptedRef.current) {
+      return
+    }
+    guestBootstrapAttemptedRef.current = true
+
+    fetch("/api/pragya/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    }).catch(() => {
+      // Cookie bootstrap is best-effort; chat requests can still initialize it.
+    })
+  }, [isGuestSession])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    if (!isGuestSession) {
+      setGuestTrialHydrated(true)
+      setGuestTrialExhausted(false)
+      return
+    }
+
+    const storedCount = Number(localStorage.getItem(GUEST_TRIAL_COUNT_KEY) || "0")
+    const normalizedCount = Number.isFinite(storedCount) ? Math.max(0, storedCount) : 0
+    const storedExhausted = localStorage.getItem(GUEST_TRIAL_EXHAUSTED_KEY) === "true"
+    const exhausted = storedExhausted || normalizedCount >= GUEST_TRIAL_LIMIT
+
+    setGuestTrialCount(normalizedCount)
+    setGuestTrialExhausted(exhausted)
+    setGuestTrialHydrated(true)
+
+    if (exhausted) {
+      localStorage.setItem(GUEST_TRIAL_EXHAUSTED_KEY, "true")
+    }
+  }, [isGuestSession])
+
   const [hasStarted, setHasStarted] = useState(false)
   const [preferredName, setPreferredName] = useState("")
   const [selectedMode, setSelectedMode] = useState<string | null>("direct")
@@ -179,6 +229,7 @@ export default function TryPragyaChat({
   const [showMemoryPolicy, setShowMemoryPolicy] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const guestBootstrapAttemptedRef = useRef(false)
 
   useEffect(() => {
     if (initialPlan) setPlan(initialPlan)
@@ -191,13 +242,21 @@ export default function TryPragyaChat({
   const hasUserMessages = useMemo(() => messages.some((m) => m.role === "user"), [messages])
 
   const limitData = useMemo(() => {
-    const isFree = plan === "FREE"
-    const isEssential = plan === "ESSENTIAL"
-    const maxChats = isFree ? 10 : isEssential ? 25 : Infinity
-    const remaining = Math.max(0, maxChats - chatCount)
-    const isLimitReached = maxChats !== Infinity && remaining <= 0
-    return { isLimitReached, maxChats, remaining }
-  }, [plan, chatCount])
+    if (isGuestSession) {
+      const remaining = Math.max(0, GUEST_TRIAL_LIMIT - guestTrialCount)
+      return {
+        isLimitReached: guestTrialExhausted,
+        maxChats: GUEST_TRIAL_LIMIT,
+        remaining,
+      }
+    }
+
+    return {
+      isLimitReached: false,
+      maxChats: Infinity,
+      remaining: Infinity,
+    }
+  }, [guestTrialCount, guestTrialExhausted, isGuestSession])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -224,7 +283,9 @@ export default function TryPragyaChat({
       const res = await fetch("/api/pragya/suggestions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId }),
+        body: JSON.stringify({
+          session_id: isAuthenticated ? sessionId : undefined,
+        }),
       })
       if (res.ok) {
         const data = await res.json()
@@ -250,7 +311,7 @@ export default function TryPragyaChat({
 
   const sendMessage = async (e?: FormEvent, retryMsg?: string) => {
     e?.preventDefault()
-    if ((!inputMessage.trim() && !retryMsg) || isLoading || limitData.isLimitReached) return
+    if ((!inputMessage.trim() && !retryMsg) || isLoading || !guestTrialHydrated || limitData.isLimitReached) return
 
     if (!hasStarted) {
       setHasStarted(true)
@@ -272,7 +333,7 @@ export default function TryPragyaChat({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          session_id: sessionId,
+          session_id: isAuthenticated ? sessionId : undefined,
           message: userMsg,
           generate_suggestions: false
         }),
@@ -290,6 +351,17 @@ export default function TryPragyaChat({
         if (typeof data.plan === "string") setPlan(data.plan)
       }
 
+      if (isGuestSession && !retryMsg) {
+        const nextCount = guestTrialCount + 1
+        const exhausted = nextCount >= GUEST_TRIAL_LIMIT
+        setGuestTrialCount(nextCount)
+        setGuestTrialExhausted(exhausted)
+        localStorage.setItem(GUEST_TRIAL_COUNT_KEY, String(nextCount))
+        if (exhausted) {
+          localStorage.setItem(GUEST_TRIAL_EXHAUSTED_KEY, "true")
+        }
+      }
+
       const reply = typeof data.reply === "string" ? data.reply : "Sorry, I didn't quite get that. Could you please rephrase?"
 
       setIsTyping(true)
@@ -299,9 +371,12 @@ export default function TryPragyaChat({
         setSuggestions(data.suggestions)
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Chat error:", error)
-      const errorMessage = error.message || "Sorry, I'm having trouble connecting to the backend right now."
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Sorry, I'm having trouble connecting to the backend right now."
       setMessages((prev) => [
         ...prev,
         {
@@ -340,7 +415,9 @@ export default function TryPragyaChat({
       const res = await fetch("/api/pragya/summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId }),
+        body: JSON.stringify({
+          session_id: isAuthenticated ? sessionId : undefined,
+        }),
       })
       const data = (await res.json().catch(() => ({}))) as { report?: string; error?: string }
       if (!res.ok) {
@@ -389,6 +466,17 @@ export default function TryPragyaChat({
           {/* Mobile Header (Visible only on small screens) */}
           <div className="md:hidden w-full relative shrink-0 z-20 overflow-hidden bg-transparent">
             <div className="absolute top-4 right-4 z-30 flex items-center gap-2">
+              {!isAuthenticated && (
+                <a
+                  href="/auth/signin"
+                  title="Sign In"
+                  className="p-2 text-gray-500 hover:text-orange-500 rounded-full bg-white/40 backdrop-blur-md hover:bg-white transition-colors border border-white/40 shadow-sm flex items-center justify-center"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                  </svg>
+                </a>
+              )}
               <button
                 onClick={resetChat}
                 title="Reset Chat"
@@ -464,30 +552,42 @@ export default function TryPragyaChat({
 
               {/* Action Buttons (Added back from previous version) */}
               <div className="w-full max-w-[280px] space-y-3">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setHistoryOpen(true)
-                    setIsHistoryLoading(true)
-                    try {
-                      const res = await fetch("/api/pragya/history")
-                      const data = await res.json()
-                      if (res.ok && data.messages) {
-                        setPastMessages(data.messages)
+                {isAuthenticated ? (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setHistoryOpen(true)
+                      setIsHistoryLoading(true)
+                      try {
+                        const res = await fetch("/api/pragya/history")
+                        const data = await res.json()
+                        if (res.ok && data.messages) {
+                          setPastMessages(data.messages)
+                        }
+                      } catch (e) {
+                        console.error("Error fetching history:", e)
+                      } finally {
+                        setIsHistoryLoading(false)
                       }
-                    } catch (e) {
-                      console.error("Error fetching history:", e)
-                    } finally {
-                      setIsHistoryLoading(false)
-                    }
-                  }}
-                  className="flex w-full items-center justify-center gap-2 rounded-[16px] border border-gray-200 bg-white px-4 py-4 text-[15px] font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50"
-                >
-                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Chat History
-                </button>
+                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-[16px] border border-gray-200 bg-white px-4 py-4 text-[15px] font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50"
+                  >
+                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Chat History
+                  </button>
+                ) : (
+                  <a
+                    href="/auth/signin"
+                    className="flex w-full items-center justify-center gap-2 rounded-[16px] border border-orange-500 bg-gradient-to-r from-orange-600 to-orange-500 px-4 py-4 text-[15px] font-bold text-white shadow-md transition-colors hover:from-orange-700 hover:to-orange-600"
+                  >
+                    <svg className="h-5 w-5 text-orange-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                    </svg>
+                    Sign In to Save Chats
+                  </a>
+                )}
                 <button
                   type="button"
                   onClick={resetChat}
@@ -539,15 +639,17 @@ export default function TryPragyaChat({
                   </div>
                   <h2 className="text-2xl font-bold text-gray-800 mb-3">Limit Reached</h2>
                   <p className="text-gray-500 mb-8 font-medium">
-                    You've used all {limitData.maxChats} chats for your current plan today. Upgrade to continue chatting!
+                    {isGuestSession
+                      ? `You've exhausted the free trial on this device. Sign in to continue chatting with Pragya.`
+                      : "Chat limit reached."}
                   </p>
 
                   <div className="space-y-4">
                     <a
-                      href="/patient/billing"
+                      href={isGuestSession ? "/auth/signin" : "/patient/billing"}
                       className="block w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-orange-500/30 transition-all hover:-translate-y-1 active:scale-[0.98]"
                     >
-                      Upgrade Plan
+                      {isGuestSession ? "Sign In to Continue" : "Upgrade Plan"}
                     </a>
                   </div>
                 </div>
@@ -563,11 +665,9 @@ export default function TryPragyaChat({
                 <div className="flex flex-col items-start leading-tight">
                   <span className="text-[9px] text-gray-400 uppercase tracking-widest font-black">Available</span>
                   <span className="text-sm font-bold text-gray-800">
-                    {plan === "FREE"
-                      ? `${limitData.remaining} / 10 Chats`
-                      : plan === "ESSENTIAL"
-                        ? `${limitData.remaining} / 25 Chats`
-                        : "Unlimited Chats"}
+                    {isGuestSession
+                      ? `${limitData.remaining} / ${GUEST_TRIAL_LIMIT} Free Trials`
+                      : "Unlimited Chats"}
                   </span>
                 </div>
               </div>
@@ -596,6 +696,14 @@ export default function TryPragyaChat({
                   <h1 className="text-[28px] md:text-[40px] font-bold text-gray-900 leading-tight">
                     I'm here to listen and support you between sessions.
                   </h1>
+                  {!isAuthenticated && (
+                    <p className="mt-4 text-sm text-gray-500">
+                      {guestTrialExhausted ? "Free trial exhausted on this device. " : "Already have an account? "}
+                      <a href="/auth/signin" className="text-orange-500 font-bold hover:underline">
+                        Sign In
+                      </a>
+                    </p>
+                  )}
                 </div>
 
                 {/* Mode Buttons */}
@@ -734,7 +842,9 @@ export default function TryPragyaChat({
 
                   <div className={`transition-all duration-700 ${!hasStarted ? 'opacity-0 h-0 overflow-hidden mb-0' : 'flex justify-between items-center mb-2 px-2 md:hidden opacity-100 h-auto'}`}>
                     <span className="text-[12px] text-gray-400 font-bold">
-                      {plan !== "PRO" ? `${limitData.remaining} chats remaining today` : ""}
+                      {isGuestSession
+                        ? `${limitData.remaining} free trial chats remaining`
+                        : "Unlimited chats"}
                     </span>
                   </div>
 

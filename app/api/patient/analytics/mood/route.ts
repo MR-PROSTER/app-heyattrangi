@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth.config"
 import { prisma } from "@/lib/prisma"
+import { getUserMessagesByRoleSince } from "@/lib/pragya/persistence"
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,20 +13,17 @@ export async function GET(req: NextRequest) {
 
     const filter = req.nextUrl.searchParams.get("filter") || "All"
     
-    let dateFilter = {}
     const now = new Date()
+    let createdAtGte: Date | undefined
     if (filter === "Today") {
-      const today = new Date(now.setHours(0, 0, 0, 0))
-      dateFilter = { gte: today }
+      createdAtGte = new Date(now.setHours(0, 0, 0, 0))
     } else if (filter === "Week") {
-      const lastWeek = new Date(now.setDate(now.getDate() - 7))
-      dateFilter = { gte: lastWeek }
+      createdAtGte = new Date(now.setDate(now.getDate() - 7))
     }
 
-    const whereClause: any = { userId: session.user.id }
-    if (filter !== "All") {
-      whereClause.createdAt = dateFilter
-    }
+    const whereClause: { userId: string; createdAt?: { gte: Date } } = createdAtGte
+      ? { userId: session.user.id, createdAt: { gte: createdAtGte } }
+      : { userId: session.user.id }
 
     // Fetch the last 30 journal entries
     const journals = await prisma.journalEntry.findMany({
@@ -35,11 +33,7 @@ export async function GET(req: NextRequest) {
     })
 
     // Fetch the last 30 AI chat messages from the user
-    const chats = await prisma.pragyaChatMessage.findMany({
-      where: { ...whereClause, role: "user" },
-      orderBy: { createdAt: "desc" },
-      take: 30
-    })
+    const chats = await getUserMessagesByRoleSince(session.user.id, "user", createdAtGte, 30)
 
     // Default mock data if NO data exists
     if (journals.length === 0 && chats.length === 0) {
@@ -54,7 +48,6 @@ export async function GET(req: NextRequest) {
 
     let happyCount = 0
     let calmCount = 0
-    let sadCount = 0
     let totalScore = 0
     let totalItems = 0
 
@@ -81,8 +74,6 @@ export async function GET(req: NextRequest) {
         happyCount++
       } else if (score === 3) {
         calmCount++
-      } else {
-        sadCount++
       }
     })
 
@@ -103,8 +94,6 @@ export async function GET(req: NextRequest) {
         happyCount++
       } else if (score === 3) {
         calmCount++
-      } else {
-        sadCount++
       }
     })
 

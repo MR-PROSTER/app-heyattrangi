@@ -8,19 +8,37 @@ import { prisma } from "@/lib/prisma"
 async function AIBotContent() {
   const session = await auth()
   
-  if (!session?.user?.id) return null
+  if (!session?.user?.id) {
+    return (
+      <div className="flex-1 min-w-0 h-full flex flex-col relative w-full overflow-hidden bg-[var(--color-bg)]">
+        <TryPragyaChat 
+          sessionId="" 
+          initialPlan="FREE" 
+          initialChatCount={0}
+          userName="Guest"
+        />
+      </div>
+    )
+  }
 
   const user = await prisma.user.findUnique({ 
     where: { id: session.user.id },
     include: { patient: true }
   })
-  if (!user) return null
+  if (!user) {
+    return (
+      <div className="flex-1 min-w-0 h-full flex flex-col relative w-full overflow-hidden bg-[var(--color-bg)]">
+        <TryPragyaChat 
+          sessionId="" 
+          initialPlan="FREE" 
+          initialChatCount={0}
+          userName="Guest"
+        />
+      </div>
+    )
+  }
 
   const sessionId = `patient_${session.user.id}`
-  
-  const today = new Date().toISOString().split("T")[0]
-  const isSameDay = user.lastAiChatDate === today
-  const dailyAiChatCount = isSameDay ? user.dailyAiChatCount : 0
 
   const hasOnboarded = !!user.patient?.aiNickname
 
@@ -30,7 +48,7 @@ async function AIBotContent() {
         <TryPragyaChat 
           sessionId={sessionId} 
           initialPlan={user.plan} 
-          initialChatCount={dailyAiChatCount}
+          initialChatCount={0}
           userName={user.patient?.aiNickname || user.name || "User"}
         />
       ) : (

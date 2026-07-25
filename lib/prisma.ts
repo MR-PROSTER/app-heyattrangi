@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { ensurePragyaMongoMaintenance } from '@/lib/pragya/mongo-init'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -51,3 +52,8 @@ if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma
 }
 
+if (process.env.NEXT_PHASE !== 'phase-production-build') {
+  void ensurePragyaMongoMaintenance().catch((error) => {
+    console.error('Failed to run Pragya Mongo maintenance:', error)
+  })
+}

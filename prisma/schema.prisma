@@ -22,8 +22,6 @@ model User {
   role          UserRole  @default(PATIENT)
   plan          PlanType   @default(FREE)
   orgId         String?    @db.ObjectId
-  dailyAiChatCount Int       @default(0)
-  lastAiChatDate   String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
@@ -35,9 +33,9 @@ model User {
   admin         Admin?
   organization  Organization? @relation(fields: [orgId], references: [id])
   transactions  Transaction[]
-  pragyaMessages PragyaChatMessage[]
   journalEntries JournalEntry[]
   notifications  Notification[]
+  conversations  Conversation[]
   
   @@map("users")
 }
@@ -156,8 +154,10 @@ model Patient {
   dob             String?
   gender          String?
   healthConcerns  String[] @default([])
-  emergencyContact String?
-  emergencyPhone  String?
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  emergencyRelationship String?
+  preferredLanguage     String?
   
   // Institution fields
   batchId         String?  @db.ObjectId
@@ -417,6 +417,85 @@ enum SettlementStatus {
   FAILED
 }
 
+enum Platform {
+  WEB
+  IOS
+  ANDROID
+}
+
+enum GuestStatus {
+  ACTIVE
+  CLAIMED
+  EXPIRED
+  LOCKED
+  DELETED
+}
+
+enum ConversationStatus {
+  ACTIVE
+  EXPIRED
+  DELETED
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+model GuestSession {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String        @unique
+  platform     Platform      @default(WEB)
+  status       GuestStatus   @default(ACTIVE)
+  trialConsumed Boolean      @default(false)
+  expiresAt    DateTime
+  consumedAt   DateTime?
+  claimedAt    DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  conversations Conversation[]
+  @@map("guest_sessions")
+}
+
+model Conversation {
+  id             String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String?            @db.ObjectId
+  guestSessionId String?            @db.ObjectId
+  title          String?
+  platform       Platform           @default(WEB)
+  status         ConversationStatus @default(ACTIVE)
+  expiresAt      DateTime?
+  claimedAt      DateTime?
+  lastMessageAt  DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  user           User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guestSession   GuestSession?      @relation(fields: [guestSessionId], references: [id], onDelete: SetNull)
+  messages       Message[]
+
+  @@index([userId])
+  @@index([guestSessionId])
+  @@index([userId, status, updatedAt])
+  @@index([guestSessionId, status, updatedAt])
+  @@map("conversations")
+}
+
+model Message {
+  id             String      @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String      @db.ObjectId
+  role           MessageRole
+  content        String      @db.String
+  createdAt      DateTime    @default(now())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
 // Session Recording (Video/Chat)
 model SessionRecording {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -451,19 +530,6 @@ model Transaction {
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("transactions")
-}
-
-// AI Bot Chat Message
-model PragyaChatMessage {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String   @db.ObjectId
-  role      String   // "user" or "assistant"
-  content   String   @db.String
-  createdAt DateTime @default(now())
-  
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@map("pragya_chat_messages")
 }
 
 // Journal Entry
@@ -505,4 +571,3 @@ model LoginOtp {
 
   @@map("login_otps")
 }
-
