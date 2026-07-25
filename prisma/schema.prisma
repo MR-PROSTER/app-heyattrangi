@@ -20,74 +20,74 @@ model User {
   emailVerified DateTime?
   image         String?
   role          UserRole  @default(PATIENT)
-  plan          PlanType   @default(FREE)
-  orgId         String?    @db.ObjectId
+  plan          PlanType  @default(FREE)
+  orgId         String?   @db.ObjectId
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
+
   // Relations
-  accounts      Account[]
-  sessions      Session[]
-  patient       Patient?
-  doctor        Doctor?
-  admin         Admin?
-  organization  Organization? @relation(fields: [orgId], references: [id])
-  transactions  Transaction[]
+  accounts       Account[]
+  sessions       Session[]
+  patient        Patient?
+  doctor         Doctor?
+  admin          Admin?
+  organization   Organization?  @relation(fields: [orgId], references: [id])
+  transactions   Transaction[]
   journalEntries JournalEntry[]
   notifications  Notification[]
   conversations  Conversation[]
-  
+
   @@map("users")
 }
 
 model Organization {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  domains       String[]
-  planType      PlanType  @default(ORGANIZATION)
-  aiLimit       Int?
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  domains        String[]
+  planType       PlanType @default(ORGANIZATION)
+  aiLimit        Int?
   journalingType String?
-  goalType      String?
-  status        String    @default("ACTIVE") // ACTIVE, INACTIVE
-  sessionLimit  Int?      // Global limit on sessions for the institution
-  studentLimit  Int?      // Global limit on students for the institution
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  users         User[]
-  batches       Batch[]
-  departments   Department[]
+  goalType       String?
+  status         String   @default("ACTIVE") // ACTIVE, INACTIVE
+  sessionLimit   Int? // Global limit on sessions for the institution
+  studentLimit   Int? // Global limit on students for the institution
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  users           User[]
+  batches         Batch[]
+  departments     Department[]
   assignedDoctors OrganizationDoctor[]
 
   @@map("organizations")
 }
 
 model Batch {
-  id              String       @id @default(auto()) @map("_id") @db.ObjectId
-  organizationId  String       @db.ObjectId
-  name            String       // e.g., "2025 B.Tech CSE"
-  graduationYear  Int?
-  startDate       DateTime?
-  endDate         DateTime?
-  status          String       @default("ACTIVE") // ACTIVE, ARCHIVED
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  organizationId String    @db.ObjectId
+  name           String // e.g., "2025 B.Tech CSE"
+  graduationYear Int?
+  startDate      DateTime?
+  endDate        DateTime?
+  status         String    @default("ACTIVE") // ACTIVE, ARCHIVED
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  patients        Patient[]
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  patients     Patient[]
 
   @@map("batches")
 }
 
 model Department {
-  id              String       @id @default(auto()) @map("_id") @db.ObjectId
-  organizationId  String       @db.ObjectId
-  name            String       // e.g., "CSE", "ECE"
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  organizationId String   @db.ObjectId
+  name           String // e.g., "CSE", "ECE"
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  patients        Patient[]
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  patients     Patient[]
 
   @@map("departments")
 }
@@ -105,9 +105,9 @@ model Account {
   scope             String?
   id_token          String? @db.String
   session_state     String?
-  
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([provider, providerAccountId])
   @@map("accounts")
 }
@@ -118,7 +118,7 @@ model Session {
   userId       String   @db.ObjectId
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@map("sessions")
 }
 
@@ -127,7 +127,7 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
-  
+
   @@unique([identifier, token])
   @@map("verification_tokens")
 }
@@ -148,142 +148,139 @@ enum PlanType {
 
 // Patient Model
 model Patient {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId          String   @unique @db.ObjectId
-  age             Int?
-  dob             String?
-  gender          String?
-  healthConcerns  String[] @default([])
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId                String   @unique @db.ObjectId
+  age                   Int?
+  dob                   String?
+  gender                String?
+  healthConcerns        String[] @default([])
   emergencyContactName  String?
   emergencyContactPhone String?
   emergencyRelationship String?
-  preferredLanguage     String?
-  
+  preferredLanguage     String?  @default("English")
+
   // Institution fields
-  batchId         String?  @db.ObjectId
-  departmentId    String?  @db.ObjectId
-  rollNumber      String?
-  studentStatus   String   @default("ACTIVE") // ACTIVE, SUSPENDED, GRADUATED
-  
+  batchId       String? @db.ObjectId
+  departmentId  String? @db.ObjectId
+  rollNumber    String?
+  studentStatus String  @default("ACTIVE") // ACTIVE, SUSPENDED, GRADUATED
+
   // AI Onboarding fields
-  aiNickname      String?
-  heardAboutUs    String?
-  preferredLanguage String? @default("English")
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  aiNickname   String?
+  heardAboutUs String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   appointments Appointment[]
-  batch       Batch?       @relation(fields: [batchId], references: [id])
-  department  Department?  @relation(fields: [departmentId], references: [id])
-  
+  batch        Batch?        @relation(fields: [batchId], references: [id])
+  department   Department?   @relation(fields: [departmentId], references: [id])
+
   // Gamification
-  currentStreak   Int               @default(0)
-  lastLoginDate   DateTime?
-  totalCredits    Int               @default(0)
-  
+  currentStreak Int       @default(0)
+  lastLoginDate DateTime?
+  totalCredits  Int       @default(0)
+
   @@map("patients")
 }
 
-
-
 // Doctor Model
 model Doctor {
-  id                String          @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String          @unique @db.ObjectId
-  
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @unique @db.ObjectId
+
   // Personal Information (Section 1)
-  fullName          String?         // Full name as per license
-  profilePhoto      String?         // URL to uploaded photo
-  gender            String?
-  dateOfBirth       DateTime?
-  mobileNumber      String?
-  mobileVerified    Boolean         @default(false)
-  mobileOTP         String?
-  emailAddress      String?         // Already in User model, but keeping for reference
-  currentAddress    String?         @db.String
-  city              String?
-  state             String?
-  country           String?         @default("India")
-  
+  fullName       String? // Full name as per license
+  profilePhoto   String? // URL to uploaded photo
+  gender         String?
+  dateOfBirth    DateTime?
+  mobileNumber   String?
+  mobileVerified Boolean   @default(false)
+  mobileOTP      String?
+  emailAddress   String? // Already in User model, but keeping for reference
+  currentAddress String?   @db.String
+  city           String?
+  state          String?
+  country        String?   @default("India")
+
   // Professional Verification (Section 2)
-  licenseNumber     String?
-  issuingCouncil    String?         // MCI/NMC, State Medical Council
-  licenseDocument   String?         // URL to uploaded license document
-  digiLockerId      String?
-  digiLockerVerified Boolean        @default(false)
-  yearsOfExperience Int?
-  primarySpecialization String?
+  licenseNumber            String?
+  issuingCouncil           String? // MCI/NMC, State Medical Council
+  licenseDocument          String? // URL to uploaded license document
+  digiLockerId             String?
+  digiLockerVerified       Boolean  @default(false)
+  yearsOfExperience        Int?
+  primarySpecialization    String?
   secondarySpecializations String[] @default([]) // Array of specializations
-  highestQualification String?
-  degreeCertificates String[]       @default([]) // URLs to uploaded certificates
-  bio               String?         @db.String   // Professional bio (150-500 words)
-  
+  highestQualification     String?
+  degreeCertificates       String[] @default([]) // URLs to uploaded certificates
+  bio                      String?  @db.String // Professional bio (150-500 words)
+
   // Practice Details (Section 3)
-  languagesSpoken   String[]        @default([])
-  preferredAgeGroups String[]       @default([]) // Kids, Teens, Adults, Seniors
-  consultationTypes String[]        @default([]) // Video, Chat, Voice, In-person
-  notAcceptingCases String[]        @default([]) // Emergency/crisis, controlled substances, etc.
-  
+  languagesSpoken    String[] @default([])
+  preferredAgeGroups String[] @default([]) // Kids, Teens, Adults, Seniors
+  consultationTypes  String[] @default([]) // Video, Chat, Voice, In-person
+  notAcceptingCases  String[] @default([]) // Emergency/crisis, controlled substances, etc.
+
   // Availability & Scheduling (Section 4) - Handled by DoctorAvailability model
-  appointmentDuration Int?          @default(45) // in minutes
-  slotBuffer          Int?          @default(15) // in minutes
-  
+  appointmentDuration Int? @default(45) // in minutes
+  slotBuffer          Int? @default(15) // in minutes
+
   // Payment Details (Section 5)
-  consultationFee   Float           @default(0)
-  payoutMode        String?         // UPI or BANK
+  consultationFee   Float   @default(0)
+  payoutMode        String? // UPI or BANK
   paymentUPI        String?
   bankAccountName   String?
   bankAccountNumber String?
   bankIFSC          String?
   bankName          String?
-  
-  // Compliance & Legal (Section 6)
-  telemedicineConsent Boolean       @default(false)
-  privacyAgreement   Boolean        @default(false)
-  dataSharingPolicy  Boolean        @default(false)
-  platformTerms      Boolean        @default(false)
-  declarationSigned  Boolean        @default(false)
-  digitalSignature   String?        // Full name typed for digital signature
-  
-  // Status and Relations
-  specialization    String?         // Keeping for backward compatibility
-  experience        Int?            // Keeping for backward compatibility
-  licenseVerified   Boolean         @default(false)
-  status            DoctorStatus    @default(PENDING_PROFILE)
-  
-  // KYC & Documents
-  aadhaarDocument   String?
-  panDocument       String?
-  panNumber         String?
-  cancelledChequeDocument String?
-  razorpayAccountId String?
-  paymentsEnabled   Boolean         @default(false)
-  payoutStatus      String          @default("PENDING")
 
-  availability      DoctorAvailability?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  
-  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  appointments      Appointment[]
-  timeSlots         TimeSlot[]
-  organizations     OrganizationDoctor[]
-  
+  // Compliance & Legal (Section 6)
+  telemedicineConsent Boolean @default(false)
+  privacyAgreement    Boolean @default(false)
+  dataSharingPolicy   Boolean @default(false)
+  platformTerms       Boolean @default(false)
+  declarationSigned   Boolean @default(false)
+  digitalSignature    String? // Full name typed for digital signature
+
+  // Status and Relations
+  specialization  String? // Keeping for backward compatibility
+  experience      Int? // Keeping for backward compatibility
+  licenseVerified Boolean      @default(false)
+  status          DoctorStatus @default(PENDING_PROFILE)
+
+  // KYC & Documents
+  aadhaarDocument         String?
+  panDocument             String?
+  panNumber               String?
+  cancelledChequeDocument String?
+  razorpayAccountId       String?
+  paymentsEnabled         Boolean @default(false)
+  payoutStatus            String  @default("PENDING")
+
+  availability DoctorAvailability?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments  Appointment[]
+  timeSlots     TimeSlot[]
+  organizations OrganizationDoctor[]
+
   @@map("doctors")
 }
 
 // Join table for Doctors and Organizations
 model OrganizationDoctor {
-  id              String       @id @default(auto()) @map("_id") @db.ObjectId
-  organizationId  String       @db.ObjectId
-  doctorId        String       @db.ObjectId
-  assignedByAdmin Boolean      @default(false)
-  createdAt       DateTime     @default(now())
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  organizationId  String   @db.ObjectId
+  doctorId        String   @db.ObjectId
+  assignedByAdmin Boolean  @default(false)
+  createdAt       DateTime @default(now())
 
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  doctor          Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  doctor       Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, doctorId])
   @@map("organization_doctors")
@@ -300,49 +297,49 @@ enum DoctorStatus {
 
 // Doctor Availability
 model DoctorAvailability {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  doctorId    String   @unique @db.ObjectId
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  doctorId      String   @unique @db.ObjectId
   availableDays String[] // ["MONDAY", "TUESDAY", etc.]
-  startTime   String?  // "09:00"
-  endTime     String?  // "17:00"
-  breaks      Json?    // Array of break times
-  isAvailable Boolean  @default(true) // Toggle to stop accepting appointments
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  doctor      Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  
+  startTime     String? // "09:00"
+  endTime       String? // "17:00"
+  breaks        Json? // Array of break times
+  isAvailable   Boolean  @default(true) // Toggle to stop accepting appointments
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
   @@map("doctor_availability")
 }
 
 // Time Slots for appointments
 model TimeSlot {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  doctorId    String   @db.ObjectId
-  date        DateTime
-  startTime   DateTime
-  endTime     DateTime
-  isBooked    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  
-  doctor      Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  doctorId  String   @db.ObjectId
+  date      DateTime
+  startTime DateTime
+  endTime   DateTime
+  isBooked  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  doctor      Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   appointment Appointment?
-  
+
   @@map("time_slots")
 }
 
 // Admin Model
 model Admin {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String   @unique @db.ObjectId
-  phoneNumber   String?
-  otpEnabled    Boolean  @default(false)
-  permissions   String[] @default([])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @unique @db.ObjectId
+  phoneNumber String?
+  otpEnabled  Boolean  @default(false)
+  permissions String[] @default([])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("admins")
 }
 
@@ -358,18 +355,18 @@ model Appointment {
   meetingLink     String?
   chatChannelId   String?
   doctorNotes     String?           @db.String
-  patientRating   Int?              // 1 to 5 stars
+  patientRating   Int? // 1 to 5 stars
   patientFeedback String?           @db.String
-  actualDuration  Int?              // in minutes
+  actualDuration  Int? // in minutes
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  
-  patient         Patient?          @relation(fields: [patientId], references: [id])
-  doctor          Doctor            @relation(fields: [doctorId], references: [id])
-  timeSlot        TimeSlot?         @relation(fields: [timeSlotId], references: [id])
-  payment         Payment?
-  session         SessionRecording?
-  
+
+  patient  Patient?          @relation(fields: [patientId], references: [id])
+  doctor   Doctor            @relation(fields: [doctorId], references: [id])
+  timeSlot TimeSlot?         @relation(fields: [timeSlotId], references: [id])
+  payment  Payment?
+  session  SessionRecording?
+
   @@map("appointments")
 }
 
@@ -390,23 +387,23 @@ enum PaymentStatus {
 
 // Payment Model
 model Payment {
-  id                String        @id @default(auto()) @map("_id") @db.ObjectId
-  appointmentId     String        @unique @db.ObjectId
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  appointmentId     String           @unique @db.ObjectId
   amount            Float
   platformFee       Float
   doctorAmount      Float
   razorpayOrderId   String?
   razorpayPaymentId String?
   razorpaySignature String?
-  status            PaymentStatus @default(PENDING)
+  status            PaymentStatus    @default(PENDING)
   paymentMethod     String?
   settlementStatus  SettlementStatus @default(PENDING)
   settledAt         DateTime?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  
-  appointment       Appointment   @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
   @@map("payments")
 }
 
@@ -444,18 +441,19 @@ enum MessageRole {
 }
 
 model GuestSession {
-  id           String        @id @default(auto()) @map("_id") @db.ObjectId
-  sessionToken String        @unique
-  platform     Platform      @default(WEB)
-  status       GuestStatus   @default(ACTIVE)
-  trialConsumed Boolean      @default(false)
-  expiresAt    DateTime
-  consumedAt   DateTime?
-  claimedAt    DateTime?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken  String      @unique
+  platform      Platform    @default(WEB)
+  status        GuestStatus @default(ACTIVE)
+  trialConsumed Boolean     @default(false)
+  expiresAt     DateTime
+  consumedAt    DateTime?
+  claimedAt     DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   conversations Conversation[]
+
   @@map("guest_sessions")
 }
 
@@ -472,9 +470,9 @@ model Conversation {
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
 
-  user           User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  guestSession   GuestSession?      @relation(fields: [guestSessionId], references: [id], onDelete: SetNull)
-  messages       Message[]
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guestSession GuestSession? @relation(fields: [guestSessionId], references: [id], onDelete: SetNull)
+  messages     Message[]
 
   @@index([userId])
   @@index([guestSessionId])
@@ -490,7 +488,7 @@ model Message {
   content        String      @db.String
   createdAt      DateTime    @default(now())
 
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@index([conversationId, createdAt])
   @@map("messages")
@@ -498,36 +496,34 @@ model Message {
 
 // Session Recording (Video/Chat)
 model SessionRecording {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  appointmentId String   @unique @db.ObjectId
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  appointmentId String    @unique @db.ObjectId
   recordingUrl  String?
   transcriptUrl String?
-  transcript    String?  @db.String
-  duration      Int?     // in seconds
+  transcript    String?   @db.String
+  duration      Int? // in seconds
   startedAt     DateTime?
   endedAt       DateTime?
-  createdAt     DateTime @default(now())
-  
-  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  
+  createdAt     DateTime  @default(now())
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
   @@map("session_recordings")
 }
-
-
 
 // Transaction Model for Top-ups and generalized payments
 model Transaction {
   id                String   @id @default(auto()) @map("_id") @db.ObjectId
   userId            String   @db.ObjectId
-  type              String   // e.g., "CREDIT_TOPUP", "SUBSCRIPTION"
+  type              String // e.g., "CREDIT_TOPUP", "SUBSCRIPTION"
   amount            Float
-  status            String   // e.g., "SUCCESS", "FAILED"
+  status            String // e.g., "SUCCESS", "FAILED"
   description       String
   razorpayOrderId   String?
   razorpayPaymentId String?
   createdAt         DateTime @default(now())
-  
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("transactions")
 }
@@ -536,15 +532,15 @@ model Transaction {
 model JournalEntry {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String   @db.ObjectId
-  title     String?  // Optional title for the journal entry
+  title     String? // Optional title for the journal entry
   content   String   @db.String
-  moodScore Int?     // e.g., 1-5 or 1-10 scale
+  moodScore Int? // e.g., 1-5 or 1-10 scale
   tags      String[] @default([]) // Keywords or themes
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("journal_entries")
 }
 
@@ -557,9 +553,9 @@ model Notification {
   type      String   @default("ADMIN_NOTE") // e.g., ADMIN_NOTE, APPOINTMENT, SYSTEM
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-  
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("notifications")
 }
 
