@@ -27,12 +27,12 @@ export default function SignOutButton({
         document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;domain=${window.location.hostname};`
       })
 
-      await signOut({ callbackUrl: "/", redirect: false })
+      await signOut({ callbackUrl: "/auth/signin", redirect: false })
       await new Promise(resolve => setTimeout(resolve, 100))
-      window.location.href = "/"
+      window.location.href = "/auth/signin"
     } catch (error) {
       console.error("Sign out error:", error)
-      window.location.href = "/"
+      window.location.href = "/auth/signin"
     }
   }
 
