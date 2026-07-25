@@ -3,13 +3,19 @@ import type { NextRequest } from "next/server"
 
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname
+  const requestHeaders = new Headers(req.headers)
+  requestHeaders.set("x-pathname", path)
 
   // Allow public routes
-  const publicRoutes = ["/", "/auth", "/api/auth"]
+  const publicRoutes = ["/", "/auth", "/api/auth", "/patient/ai-bot"]
   const isPublicRoute = publicRoutes.some(route => path.startsWith(route))
   
   if (isPublicRoute) {
-    return NextResponse.next()
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      }
+    })
   }
 
   // Check for session cookie (without Prisma - just cookie check)
@@ -26,7 +32,11 @@ export async function middleware(req: NextRequest) {
   // For role-based access, we'll let the page handle it
   // Middleware just checks authentication, pages will check roles
   // This avoids Prisma edge runtime issues
-  return NextResponse.next()
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    }
+  })
 }
 
 export const config = {
@@ -37,3 +47,4 @@ export const config = {
     "/dashboard/:path*",
   ],
 }
+
