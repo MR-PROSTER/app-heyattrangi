@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
             batchId: batchId || null,
             departmentId: departmentId || null,
             rollNumber: rollNumber || null,
-            emergencyPhone: phone || null, // Using emergencyPhone as phone for now, or could add phone field to Patient
+            emergencyContactPhone: phone || null,
             studentStatus: "ACTIVE"
           }
         }

@@ -136,14 +136,14 @@ export default function SignUpPage() {
       return
     }
 
-    setEmail(trimmedEmail)
+    setEmail(trimmedEmail.toLowerCase())
     setIsLoading(true)
 
     try {
       const response = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: trimmedEmail }),
+        body: JSON.stringify({ email: trimmedEmail.toLowerCase() }),
       })
       const data = await response.json()
 
@@ -170,8 +170,8 @@ export default function SignUpPage() {
 
     try {
       const result = await signIn("credentials", {
-        email,
-        otp: otpCode,
+        email: email.trim().toLowerCase(),
+        otp: otpCode.replace(/\D/g, ""),
         role: selectedRole || "PATIENT",
         redirect: false,
       })

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth.config"
 import { prisma } from "@/lib/prisma"
 import { verifyRazorpaySignature } from "@/lib/payments"
+import { queuePaymentStatusEmail } from "@/lib/email"
 
 export async function POST(
   req: NextRequest,
@@ -13,6 +14,11 @@ export async function POST(
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { email: true, name: true },
+    })
 
     // Handle params (Next.js 16 compatibility)
     const resolvedParams = await (params instanceof Promise ? params : Promise.resolve(params))
@@ -49,6 +55,18 @@ export async function POST(
     }
 
     if (payment.razorpayOrderId !== razorpay_order_id) {
+      if (user?.email) {
+        queuePaymentStatusEmail({
+          email: user.email,
+          name: user.name,
+          status: "FAILED",
+          amount: payment.amount,
+          description: "Appointment session payment",
+          paymentId: razorpay_payment_id,
+          orderId: razorpay_order_id,
+          reason: "Invalid order ID",
+        })
+      }
       return NextResponse.json({ error: "Invalid order ID" }, { status: 400 })
     }
 
@@ -60,6 +78,18 @@ export async function POST(
     )
 
     if (!isValid) {
+      if (user?.email) {
+        queuePaymentStatusEmail({
+          email: user.email,
+          name: user.name,
+          status: "FAILED",
+          amount: payment.amount,
+          description: "Appointment session payment",
+          paymentId: razorpay_payment_id,
+          orderId: razorpay_order_id,
+          reason: "Invalid payment signature",
+        })
+      }
       return NextResponse.json({ error: "Invalid payment signature" }, { status: 400 })
     }
 
@@ -88,6 +118,18 @@ export async function POST(
       })
     ])
 
+    if (user?.email) {
+      queuePaymentStatusEmail({
+        email: user.email,
+        name: user.name,
+        status: "SUCCESS",
+        amount: payment.amount,
+        description: "Appointment session payment",
+        paymentId: razorpay_payment_id,
+        orderId: razorpay_order_id,
+      })
+    }
+
     return NextResponse.json({
       success: true,
       message: "Payment verified successfully",
@@ -101,6 +143,26 @@ export async function POST(
 
   } catch (error: any) {
     console.error("Error verifying appointment payment:", error)
+    try {
+      const session = await auth()
+      if (session?.user?.id) {
+        const user = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { email: true, name: true },
+        })
+        if (user?.email) {
+          queuePaymentStatusEmail({
+            email: user.email,
+            name: user.name,
+            status: "FAILED",
+            description: "Appointment session payment",
+            reason: error.message || "Failed to verify payment",
+          })
+        }
+      }
+    } catch (notifyError) {
+      console.error("Failed to notify payment failure:", notifyError)
+    }
     return NextResponse.json(
       { error: error.message || "Failed to verify payment" },
       { status: 500 }

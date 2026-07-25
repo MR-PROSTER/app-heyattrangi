@@ -127,7 +127,20 @@ export default function PaymentPanel({ appointment }: PaymentPanelProps) {
 
       const rzp = new (window as any).Razorpay(options)
       rzp.on('payment.failed', function (response: any) {
-        alert(`Payment Failed: ${response.error.description}`)
+        const reason = response?.error?.description || "Payment was declined"
+        void fetch("/api/payments/notify-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: "FAILED",
+            amount: appointment.payment?.amount || null,
+            description: "Appointment session payment",
+            paymentId: response?.error?.metadata?.payment_id || null,
+            orderId: orderData.orderId || null,
+            reason,
+          }),
+        }).catch(() => {})
+        alert(`Payment Failed: ${reason}`)
       })
       rzp.open()
       

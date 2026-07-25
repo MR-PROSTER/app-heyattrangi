@@ -44,7 +44,7 @@ export default function DailyCheckinCards() {
                         </div>
                     </div>
                     <h4 className="text-[18px] font-black leading-tight mb-1 text-gray-800 relative z-10">Talk to AI</h4>
-                    <p className="text-xs text-gray-500 leading-relaxed mb-4 relative z-10">Talk to Pragya AI about what happened today.</p>
+                    <p className="text-xs text-gray-500 leading-relaxed mb-4 relative z-10">Talk to Hey Attrangi Ai about what happened today.</p>
                     <Link href="/patient/ai-bot" className="w-full inline-flex items-center justify-center rounded-[14px] bg-white border border-orange-200 text-orange-600 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] shadow-sm transition hover:bg-orange-50 hover:border-orange-300 relative z-10">
                         Start Chat
                     </Link>

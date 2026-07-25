@@ -5,6 +5,39 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
 import type { Adapter } from "next-auth/adapters"
 import bcrypt from "bcryptjs"
+import { sendWelcomeBackEmail } from "@/lib/email"
+
+/** Legacy DB rows may still have role "ADULT", which breaks Prisma UserRole enum reads. */
+async function findUserToleratingLegacyRoles(email: string) {
+  try {
+    return await prisma.user.findUnique({ where: { email } })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    if (!message.includes("not found in enum 'UserRole'")) {
+      throw error
+    }
+
+    // Migrate obsolete roles (e.g. ADULT) to PATIENT, then re-read
+    await prisma.$runCommandRaw({
+      update: "users",
+      updates: [
+        {
+          q: { email, role: { $nin: ["PATIENT", "DOCTOR", "ADMIN", "INSTITUTION_ADMIN"] } },
+          u: { $set: { role: "PATIENT" } },
+        },
+      ],
+    })
+
+    return await prisma.user.findUnique({ where: { email } })
+  }
+}
+
+function queueWelcomeBackEmail(email?: string | null, name?: string | null) {
+  if (!email) return
+  void sendWelcomeBackEmail(email, name).catch((err) => {
+    console.error("Failed to send welcome-back email:", err)
+  })
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
@@ -29,14 +62,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         const sanitizedEmail = (credentials.email as string).trim().toLowerCase();
+        const sanitizedOtp = credentials.otp
+          ? String(credentials.otp).replace(/\D/g, "").trim()
+          : "";
 
         // 1. If OTP is provided, verify it
-        if (credentials.otp) {
+        if (sanitizedOtp) {
           const otpEntry = await prisma.loginOtp.findUnique({
             where: { email: sanitizedEmail },
           });
 
-          if (!otpEntry || otpEntry.otp !== credentials.otp) {
+          if (!otpEntry || otpEntry.otp !== sanitizedOtp) {
             return null;
           }
 
@@ -49,13 +85,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             return null;
           }
 
-          // Clean up OTP to prevent replay attacks
-          await prisma.loginOtp.deleteMany({ where: { email: sanitizedEmail } });
-
-          // Find or create user
-          let user = await prisma.user.findUnique({
-            where: { email: sanitizedEmail }
-          });
+          // Find or create user BEFORE deleting OTP so a failed lookup can still be retried
+          let user = await findUserToleratingLegacyRoles(sanitizedEmail);
+          const isReturningUser = Boolean(user);
 
           if (!user) {
             const userRole = (credentials.role === "DOCTOR" || credentials.role === "PATIENT")
@@ -70,7 +102,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             });
           }
 
-          return user;
+          // Clean up OTP only after successful user resolution
+          await prisma.loginOtp.deleteMany({ where: { email: sanitizedEmail } });
+
+          if (isReturningUser) {
+            queueWelcomeBackEmail(user.email, user.name);
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            role: user.role,
+            plan: user.plan,
+            orgId: user.orgId,
+          };
         }
 
         // 2. Fallback to password-based sign-in
@@ -78,11 +125,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null
         }
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: sanitizedEmail
-          }
-        })
+        const user = await findUserToleratingLegacyRoles(sanitizedEmail);
 
         if (!user || !(user as any).password) {
           return null
@@ -97,7 +140,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null
         }
 
-        return user
+        queueWelcomeBackEmail(user.email, user.name);
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+          role: user.role,
+          plan: user.plan,
+          orgId: user.orgId,
+        }
       }
     }),
   ],

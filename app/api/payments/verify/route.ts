@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth.config"
 import { prisma } from "@/lib/prisma"
 import { verifyRazorpaySignature } from "@/lib/payments"
+import { queuePaymentStatusEmail } from "@/lib/email"
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,6 +11,11 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { email: true, name: true },
+    })
 
     const data = await req.json()
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, appointmentId } = data
@@ -44,6 +50,18 @@ export async function POST(req: NextRequest) {
     )
 
     if (!isValid) {
+      if (user?.email) {
+        queuePaymentStatusEmail({
+          email: user.email,
+          name: user.name,
+          status: "FAILED",
+          amount: payment.amount,
+          description: "Appointment session payment",
+          paymentId: razorpay_payment_id,
+          orderId: razorpay_order_id,
+          reason: "Invalid payment signature",
+        })
+      }
       return NextResponse.json(
         { error: "Invalid payment signature" },
         { status: 400 }
@@ -84,6 +102,18 @@ export async function POST(req: NextRequest) {
     // TODO: Settle payment to doctor (via Razorpay Payouts or Routes)
     // For now, settlement can be done manually or scheduled
 
+    if (user?.email) {
+      queuePaymentStatusEmail({
+        email: user.email,
+        name: user.name,
+        status: "SUCCESS",
+        amount: payment.amount,
+        description: "Appointment session payment",
+        paymentId: razorpay_payment_id,
+        orderId: razorpay_order_id,
+      })
+    }
+
     return NextResponse.json({
       success: true,
       appointmentId,
@@ -98,4 +128,3 @@ export async function POST(req: NextRequest) {
     )
   }
 }
-

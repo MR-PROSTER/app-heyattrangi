@@ -29,15 +29,15 @@ export async function PATCH(req: NextRequest) {
         age: age || null,
         gender: gender || null,
         healthConcerns: healthConcerns || [],
-        emergencyContact: emergencyContact || null,
-        emergencyPhone: emergencyPhone || null,
+        emergencyContactName: emergencyContact || null,
+        emergencyContactPhone: emergencyPhone || null,
       },
       update: {
         age: age || null,
         gender: gender || null,
         healthConcerns: healthConcerns || [],
-        emergencyContact: emergencyContact || null,
-        emergencyPhone: emergencyPhone || null,
+        emergencyContactName: emergencyContact || null,
+        emergencyContactPhone: emergencyPhone || null,
       },
     })
 

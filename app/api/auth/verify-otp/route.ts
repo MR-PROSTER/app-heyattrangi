@@ -10,6 +10,7 @@ export async function POST(request: NextRequest) {
     }
 
     const sanitizedEmail = email.trim().toLowerCase();
+    const sanitizedOtp = String(otp).replace(/\D/g, "").trim();
 
     // 1. Retrieve the OTP entry from DB
     const otpEntry = await prisma.loginOtp.findUnique({
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
     });
 
     // 2. Verify existence and match
-    if (!otpEntry || otpEntry.otp !== otp) {
+    if (!otpEntry || otpEntry.otp !== sanitizedOtp) {
       return NextResponse.json({ success: false, message: "Invalid OTP code" }, { status: 400 });
     }
 
@@ -31,11 +32,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: "OTP has expired" }, { status: 400 });
     }
 
-    // 4. Delete the OTP entry from DB (prevents replay attacks / multi-use)
-    await prisma.loginOtp.deleteMany({ where: { email: sanitizedEmail } });
+    // 4. Resolve user before deleting OTP (retry-safe)
+    let user;
+    try {
+      user = await prisma.user.findUnique({ where: { email: sanitizedEmail } });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.includes("not found in enum 'UserRole'")) {
+        await prisma.$runCommandRaw({
+          update: "users",
+          updates: [
+            {
+              q: { email: sanitizedEmail, role: { $nin: ["PATIENT", "DOCTOR", "ADMIN", "INSTITUTION_ADMIN"] } },
+              u: { $set: { role: "PATIENT" } },
+            },
+          ],
+        });
+        user = await prisma.user.findUnique({ where: { email: sanitizedEmail } });
+      } else {
+        throw error;
+      }
+    }
 
-    // 5. If user does not exist yet, create a default patient profile for registration
-    let user = await prisma.user.findUnique({ where: { email: sanitizedEmail } });
     if (!user) {
       user = await prisma.user.create({
         data: {
@@ -44,6 +62,9 @@ export async function POST(request: NextRequest) {
         },
       });
     }
+
+    // 5. Delete the OTP entry from DB (prevents replay attacks / multi-use)
+    await prisma.loginOtp.deleteMany({ where: { email: sanitizedEmail } });
 
     return NextResponse.json({ success: true, message: "OTP verified successfully!", user }, { status: 200 });
 

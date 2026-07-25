@@ -6,7 +6,6 @@ import { prisma } from "@/lib/prisma"
 import CenterColumn from "@/components/patient/dashboard/CenterColumn"
 import RightColumn from "@/components/patient/dashboard/RightColumn"
 import BotPopup from "@/components/patient/dashboard/BotPopup"
-import DailyRewardPopup from "@/components/patient/dashboard/DailyRewardPopup"
 import DashboardSkeleton from "@/components/patient/dashboard/DashboardSkeleton"
 
 async function DashboardContent() {
@@ -55,7 +54,6 @@ async function DashboardContent() {
     <div className="flex flex-1 w-full relative h-full">
       <CenterColumn displayName={displayName} plan={plan} upcomingAppointments={upcomingAppointments} dailyTasks={dailyTasks} />
       <RightColumn upcomingAppointments={upcomingAppointments} />
-      <DailyRewardPopup />
     </div>
   )
 }

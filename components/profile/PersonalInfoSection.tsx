@@ -24,8 +24,8 @@ export default function PersonalInfoSection({ user, onSavingChange }: PersonalIn
         age: user.patient?.age?.toString() || "",
         gender: user.patient?.gender || "",
         healthConcerns: user.patient?.healthConcerns?.join(", ") || "",
-        emergencyContact: user.patient?.emergencyContact || "",
-        emergencyPhone: user.patient?.emergencyPhone || "",
+        emergencyContact: user.patient?.emergencyContactName || "",
+        emergencyPhone: user.patient?.emergencyContactPhone || "",
     })
 
     const saveChanges = useCallback(async (data: typeof formData) => {
@@ -61,8 +61,8 @@ export default function PersonalInfoSection({ user, onSavingChange }: PersonalIn
                 formData.age !== (user.patient?.age?.toString() || "") ||
                 formData.gender !== (user.patient?.gender || "") ||
                 formData.healthConcerns !== (user.patient?.healthConcerns?.join(", ") || "") ||
-                formData.emergencyContact !== (user.patient?.emergencyContact || "") ||
-                formData.emergencyPhone !== (user.patient?.emergencyPhone || "")
+                formData.emergencyContact !== (user.patient?.emergencyContactName || "") ||
+                formData.emergencyPhone !== (user.patient?.emergencyContactPhone || "")
 
             if (hasChanged) {
                 saveChanges(formData)

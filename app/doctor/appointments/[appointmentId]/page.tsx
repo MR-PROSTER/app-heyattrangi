@@ -71,7 +71,7 @@ async function AppointmentDetailContent({ appointmentId }: { appointmentId: stri
       age: appointment.patient?.age || null,
       gender: appointment.patient?.gender || null,
       healthConcerns: appointment.patient?.healthConcerns || [],
-      emergencyPhone: appointment.patient?.emergencyPhone || null,
+      emergencyPhone: appointment.patient?.emergencyContactPhone || null,
     },
     payment: appointment.payment ? {
       id: appointment.payment.id,

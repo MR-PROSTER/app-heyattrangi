@@ -254,7 +254,7 @@ export async function transferGuestConversationToUser(params: {
 
   const transferResult = await conversations.updateOne(
     {
-      _id: conversation.id,
+      _id: new ObjectId(conversation.id),
       guestSessionId: guestSession.id,
       userId: null,
       status: ConversationStatus.ACTIVE,
@@ -338,6 +338,27 @@ export async function startFreshAuthenticatedConversation(params: {
   }
 
   return createAuthenticatedConversation(params.userId)
+}
+
+async function createAuthenticatedConversation(userId: string) {
+  await prisma.conversation.updateMany({
+    where: {
+      userId,
+      status: ConversationStatus.ACTIVE,
+    },
+    data: {
+      status: ConversationStatus.DELETED,
+    },
+  })
+
+  return prisma.conversation.create({
+    data: {
+      userId,
+      status: ConversationStatus.ACTIVE,
+      platform: Platform.WEB,
+      lastMessageAt: new Date(),
+    },
+  })
 }
 
 export async function resolveChatContext(params: {

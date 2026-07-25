@@ -31,7 +31,7 @@ export default function UpgradeOffersBanner() {
                     Unlock unlimited AI chats <br className="hidden md:block" />& priority sessions.
                 </h2>
                 <p className="text-white/80 font-medium text-[13px] max-w-md leading-relaxed">
-                    Elevate your mental health journey. Get unlimited access to Pragya AI, deeper emotional insights, and priority booking with top therapists.
+                    Elevate your mental health journey. Get unlimited access to Hey Attrangi Ai, deeper emotional insights, and priority booking with top therapists.
                 </p>
             </div>
 

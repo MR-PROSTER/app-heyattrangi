@@ -136,7 +136,20 @@ export default function PatientOnboarding() {
 
             const rzp = new (window as any).Razorpay(options)
             rzp.on("payment.failed", function (response: any) {
-                alert(`Payment Failed: ${response.error.description}`)
+                const reason = response?.error?.description || "Payment was declined"
+                void fetch("/api/payments/notify-status", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        status: "FAILED",
+                        amount,
+                        description: `${selectedPlan === "PREMIUM" ? "Companion" : "Listener"} plan subscription`,
+                        paymentId: response?.error?.metadata?.payment_id || null,
+                        orderId: orderData.orderId,
+                        reason,
+                    }),
+                }).catch(() => {})
+                alert(`Payment Failed: ${reason}`)
             })
             rzp.open()
         } catch (error: any) {
@@ -257,9 +270,9 @@ export default function PatientOnboarding() {
             </div>
 
             {/* Right Form Panel */}
-            <div className="w-full lg:w-[40%] xl:w-[35%] flex items-start lg:items-center justify-center px-5 pt-4 pb-6 sm:px-10 sm:py-10 md:p-12 bg-white relative overflow-y-auto min-h-screen">
-                <div className={`w-full max-w-[450px] flex flex-col min-h-[calc(100dvh-2rem)] lg:min-h-[550px] ${step === 2 ? "gap-0" : "gap-8"}`}>
-                    <div className={`w-full ${step === 2 ? "flex-1 flex flex-col" : "flex-1"}`}>
+            <div className={`w-full lg:w-[40%] xl:w-[35%] flex items-start lg:items-center justify-center px-5 pt-4 pb-6 sm:px-10 sm:py-10 md:p-12 bg-white relative overflow-y-auto min-h-screen ${step === 2 ? "lg:overflow-hidden" : ""}`}>
+                <div className={`w-full max-w-[450px] flex flex-col ${step === 2 ? "min-h-0 lg:min-h-0 gap-3" : "min-h-[calc(100dvh-2rem)] lg:min-h-[550px] gap-8"}`}>
+                    <div className={`w-full ${step === 2 ? "flex flex-col" : "flex-1"}`}>
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={step}
@@ -267,9 +280,9 @@ export default function PatientOnboarding() {
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
                                 transition={{ duration: 0.3 }}
-                                className={`w-full ${step === 2 ? "flex-1 flex flex-col" : ""}`}
+                                className="w-full"
                             >
-                                <div className={`w-full z-10 text-left ${step === 2 ? "flex-1 flex flex-col" : ""}`}>
+                                <div className="w-full z-10 text-left">
                                     {step === 0 && (
                                         <PersonalizationScreen
                                             data={data}
@@ -304,9 +317,9 @@ export default function PatientOnboarding() {
                     </div>
 
                     {/* Navigation Buttons and Dots Indicator */}
-                    <div className={`z-10 w-full shrink-0 ${step === 2 ? "pt-5" : ""}`}>
+                    <div className={`z-10 w-full shrink-0 ${step === 2 ? "pt-2" : ""}`}>
                         <div className="flex w-full gap-3">
-                            {step > 0 && step < 3 && (
+                            {step > 0 && step < 2 && (
                                 <button
                                     onClick={handleBack}
                                     className="flex-1 flex items-center justify-center border border-gray-300 hover:bg-gray-50 text-gray-700 transition-all rounded-full py-3.5 font-semibold text-[15px] lg:font-bold lg:text-sm lg:uppercase lg:tracking-wider cursor-pointer"
@@ -319,7 +332,7 @@ export default function PatientOnboarding() {
                                 <button
                                     onClick={handleNext}
                                     disabled={isContinueDisabled}
-                                    className={`${step > 0 ? "flex-1" : "w-full"} flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-full py-3.5 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-[16px] lg:font-bold lg:text-sm lg:uppercase lg:tracking-wider cursor-pointer`}
+                                    className={`${step > 0 && step !== 2 ? "flex-1" : "w-full"} flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-full py-3.5 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-[16px] lg:font-bold lg:text-sm lg:uppercase lg:tracking-wider cursor-pointer`}
                                 >
                                     {step === 2 ? "Subscribe & Pay" : "Continue"}
                                 </button>
@@ -334,7 +347,7 @@ export default function PatientOnboarding() {
                             )}
                         </div>
 
-                        {/* Skip sits under CTA like Figma "Restore" link */}
+                        {/* Skip under full-width Subscribe CTA */}
                         {step === 2 && (
                             <button
                                 onClick={() => setStep(3)}
@@ -1785,6 +1798,16 @@ function PersonalizationScreen({
         { code: "Bengali", name: "Bengali" },
     ]
 
+    const heardAboutOptions = [
+        "Instagram",
+        "LinkedIn",
+        "WhatsApp",
+        "Google Search",
+        "Friend / Family",
+        "Workplace",
+        "Other",
+    ]
+
     const fieldClass =
         "w-full px-4 py-3.5 rounded-[10px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-gray-900 placeholder:text-gray-400 bg-white appearance-none"
 
@@ -1877,13 +1900,31 @@ function PersonalizationScreen({
                         How did you hear about us?{" "}
                         <span className="text-gray-400 font-normal">(optional)</span>
                     </label>
-                    <input
-                        type="text"
-                        value={data.heardAboutUs || ""}
-                        onChange={(e) => onChange({ heardAboutUs: e.target.value })}
-                        className={fieldClass}
-                        placeholder="A podcast, workplace, Twitter..."
-                    />
+                    <div className="relative">
+                        <select
+                            value={data.heardAboutUs || ""}
+                            onChange={(e) => onChange({ heardAboutUs: e.target.value })}
+                            className={`${fieldClass} cursor-pointer pr-10`}
+                        >
+                            <option value="" disabled>
+                                Select an option
+                            </option>
+                            {heardAboutOptions.map((option) => (
+                                <option key={option} value={option}>
+                                    {option}
+                                </option>
+                            ))}
+                        </select>
+                        <svg
+                            className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2.2}
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2049,71 +2090,46 @@ function PricingScreen({
                 </svg>
             ),
         },
-        {
-            title: "Evolving Coaching",
-            subtitle: "Enjoy your unique self-growth path",
-            bg: "bg-[#e8a0b0]",
-            icon: (
-                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-            ),
-        },
     ]
 
     return (
-        <div className="w-full max-w-xl text-left flex flex-col flex-1 min-h-0">
+        <div className="w-full max-w-xl text-left flex flex-col">
             {/* Unlock more ways to feel better */}
-            <div className="mb-7">
-                <h2 className="text-[32px] font-bold text-gray-900 tracking-tight leading-[1.2] text-left mb-5">
+            <div className="mb-4">
+                <h2 className="text-[24px] lg:text-[26px] font-bold text-gray-900 tracking-tight leading-[1.2] text-left mb-3">
                     Unlock more ways to feel better
                 </h2>
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3">
                     {unlockFeatures.map((feature) => (
-                        <div key={feature.title} className="flex items-center gap-3.5">
-                            <div className={`w-11 h-11 rounded-[12px] ${feature.bg} flex items-center justify-center shrink-0`}>
+                        <div key={feature.title} className="flex items-center gap-3 min-w-0">
+                            <div className={`w-9 h-9 rounded-[10px] ${feature.bg} flex items-center justify-center shrink-0`}>
                                 {feature.icon}
                             </div>
                             <div className="min-w-0">
-                                <h4 className="font-bold text-[15px] text-gray-900 leading-tight">{feature.title}</h4>
-                                <p className="text-[13px] text-gray-500 mt-0.5 leading-snug">{feature.subtitle}</p>
+                                <h4 className="font-bold text-[14px] text-gray-900 leading-snug">{feature.title}</h4>
+                                <p className="text-[12px] text-gray-500 mt-0.5 leading-snug">{feature.subtitle}</p>
                             </div>
                         </div>
                     ))}
                 </div>
             </div>
 
-            {/* Testimonial */}
-            <div className="flex flex-col items-start text-left mb-6">
-                <div className="flex gap-1 mb-2">
-                    {[...Array(5)].map((_, i) => (
-                        <svg key={i} className="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                    ))}
-                </div>
-                <p className="text-gray-900 font-extrabold text-base leading-relaxed max-w-md">
-                    &ldquo;Like a mini therapist in my pocket&rdquo;
-                </p>
-                <span className="text-gray-400 text-xs font-semibold mt-1">Ally</span>
-            </div>
-
             {/* Main Title */}
-            <h2 className="text-[32px] font-bold text-gray-900 tracking-tight leading-[1.2] text-left mb-5">
+            <h2 className="text-[24px] lg:text-[26px] font-bold text-gray-900 tracking-tight leading-[1.2] text-left mb-3">
                 Start your journey
             </h2>
 
             {/* Plans List */}
-            <div className="w-full space-y-3.5 text-left">
+            <div className="w-full space-y-2.5 text-left">
                 {/* Card 1: Companion (Premium) */}
                 <div
                     onClick={() => onSelectPlan("PREMIUM")}
-                    className={`relative border-2 rounded-[20px] p-5 cursor-pointer flex items-center justify-between transition-all duration-300 select-none ${selectedPlan === "PREMIUM"
-                        ? "border-[#e26843] bg-[#fffbf7] shadow-xl shadow-orange-500/5 scale-[1.01]"
+                    className={`relative border-2 rounded-[16px] p-3.5 cursor-pointer flex items-center justify-between transition-all duration-300 select-none ${selectedPlan === "PREMIUM"
+                        ? "border-[#e26843] bg-[#fffbf7] shadow-lg shadow-orange-500/5"
                         : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/30"
                         }`}
                 >
-                    <div className="flex flex-col gap-2 flex-1 pr-4">
+                    <div className="flex flex-col gap-1.5 flex-1 pr-3">
                         <span
                             className={`inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full w-max ${selectedPlan === "PREMIUM"
                                 ? "bg-[#e26843] text-white"
@@ -2123,16 +2139,16 @@ function PricingScreen({
                             Best Offer
                         </span>
                         <div>
-                            <h4 className="font-bold text-lg text-gray-900 leading-tight">Companion</h4>
-                            <p className="text-xs font-medium text-gray-500 mt-1 leading-snug">
+                            <h4 className="font-bold text-base text-gray-900 leading-tight">Companion</h4>
+                            <p className="text-[11px] font-medium text-gray-500 mt-0.5 leading-snug">
                                 Unlimited AI support &amp; long-term memory
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3 text-right">
+                    <div className="flex items-center gap-2.5 text-right">
                         <div>
-                            <span className="block font-black text-xl text-gray-900">₹149.00</span>
+                            <span className="block font-black text-lg text-gray-900">₹149.00</span>
                             <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">per month</span>
                         </div>
 
@@ -2154,12 +2170,12 @@ function PricingScreen({
                 {/* Card 2: Listener (Essential) */}
                 <div
                     onClick={() => onSelectPlan("ESSENTIAL")}
-                    className={`relative border-2 rounded-[20px] p-5 cursor-pointer flex items-center justify-between transition-all duration-300 select-none ${selectedPlan === "ESSENTIAL"
-                        ? "border-[#e26843] bg-[#fffbf7] shadow-xl shadow-orange-500/5 scale-[1.01]"
+                    className={`relative border-2 rounded-[16px] p-3.5 cursor-pointer flex items-center justify-between transition-all duration-300 select-none ${selectedPlan === "ESSENTIAL"
+                        ? "border-[#e26843] bg-[#fffbf7] shadow-lg shadow-orange-500/5"
                         : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/30"
                         }`}
                 >
-                    <div className="flex flex-col gap-2 flex-1 pr-4">
+                    <div className="flex flex-col gap-1.5 flex-1 pr-3">
                         <span
                             className={`inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full w-max ${selectedPlan === "ESSENTIAL"
                                 ? "bg-[#e26843] text-white"
@@ -2169,16 +2185,16 @@ function PricingScreen({
                             Easy Start
                         </span>
                         <div>
-                            <h4 className="font-bold text-lg text-gray-900 leading-tight">Listener</h4>
-                            <p className="text-xs font-medium text-gray-500 mt-1 leading-snug">
+                            <h4 className="font-bold text-base text-gray-900 leading-tight">Listener</h4>
+                            <p className="text-[11px] font-medium text-gray-500 mt-0.5 leading-snug">
                                 Daily check-ins &amp; basic mood tracking
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3 text-right">
+                    <div className="flex items-center gap-2.5 text-right">
                         <div>
-                            <span className="block font-black text-xl text-gray-900">₹49.00</span>
+                            <span className="block font-black text-lg text-gray-900">₹49.00</span>
                             <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">per month</span>
                         </div>
 
@@ -2198,11 +2214,8 @@ function PricingScreen({
                 </div>
             </div>
 
-            {/* Large Figma-style gap above Cancel anytime */}
-            <div className="h-[160px] sm:h-[200px] lg:h-[240px] shrink-0" aria-hidden="true" />
-
-            {/* Footer cluster (tight spacing like Figma) */}
-            <div className="flex flex-col items-center lg:items-start">
+            {/* Footer cluster — tight under plans, no large empty gap */}
+            <div className="mt-4 flex flex-col items-center lg:items-start">
                 <div className="flex items-center gap-2 text-gray-500 text-xs font-semibold tracking-wide">
                     <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -2210,7 +2223,7 @@ function PricingScreen({
                     <span>Cancel anytime</span>
                 </div>
 
-                <div className="flex gap-5 mt-3 text-xs font-semibold text-gray-400">
+                <div className="flex gap-5 mt-2 text-xs font-semibold text-gray-400">
                     <button onClick={onOpenTerms} className="underline hover:text-gray-600 transition-colors bg-transparent border-none cursor-pointer">
                         Terms
                     </button>

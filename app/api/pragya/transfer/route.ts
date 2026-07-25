@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "action must be continue or start_fresh" }, { status: 400 })
   }
 
-  let conversationId: string | null = null
+  let resolvedConversationId: string | null = null
 
   if (normalizedAction === "continue") {
     if (!token) {
@@ -61,20 +61,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Guest conversation not found" }, { status: 404 })
     }
 
-    conversationId = transferred.id
+    resolvedConversationId = transferred.id
   } else {
     const freshConversation = await startFreshAuthenticatedConversation({
       userId: session.user.id,
       guestToken: token,
     })
 
-    conversationId = freshConversation.id
+    resolvedConversationId = freshConversation.id
   }
 
   const response = NextResponse.json({
     success: true,
     action: normalizedAction,
-    conversationId,
+    conversationId: resolvedConversationId,
   })
 
   if (token) {

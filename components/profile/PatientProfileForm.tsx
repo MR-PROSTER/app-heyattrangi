@@ -13,8 +13,8 @@ interface User {
     age: number | null
     gender: string | null
     healthConcerns: string[]
-    emergencyContact: string | null
-    emergencyPhone: string | null
+    emergencyContactName: string | null
+    emergencyContactPhone: string | null
   }
 }
 
@@ -33,8 +33,8 @@ export default function ProfileForm({ user, role }: PatientProfileFormProps) {
     age: user.patient?.age?.toString() || "",
     gender: user.patient?.gender || "",
     healthConcerns: user.patient?.healthConcerns || [],
-    emergencyContact: user.patient?.emergencyContact || "",
-    emergencyPhone: user.patient?.emergencyPhone || "",
+    emergencyContact: user.patient?.emergencyContactName || "",
+    emergencyPhone: user.patient?.emergencyContactPhone || "",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
