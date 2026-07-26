@@ -81,7 +81,7 @@ export default function AiOnboarding() {
                     <Image src="/new_bot/Ai icon.png" alt="Bot Bear Mascot" fill className="object-contain" />
                   </div>
                 </div>
-                <h1 className="text-3xl font-black text-[#1a2f4c] mb-4 text-center">Hey! I'm Pragya</h1>
+                <h1 className="text-3xl font-black text-[#1a2f4c] mb-4 text-center">Hey Attrangi</h1>
                 <p className="text-[#64748b] text-center mb-12 max-w-[280px] leading-relaxed font-medium">
                   Our conversations are private & anonymous. Just choose a nickname and we're good to go.
                 </p>
