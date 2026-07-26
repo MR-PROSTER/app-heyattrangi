@@ -170,6 +170,7 @@ const toolItems: SidebarItem[] = [
 export default function Sidebar() {
     const pathname = usePathname()
     const [isCollapsed, setIsCollapsed] = useState(true) // Always closed
+    const [isMobileOpen, setIsMobileOpen] = useState(false)
     const { data: session } = useSession()
 
     const [isNotifOpen, setIsNotifOpen] = useState(false)
@@ -192,9 +193,168 @@ export default function Sidebar() {
         fetchUnread()
     }, [isNotifOpen]) // Re-fetch when panel closes
 
+    // Close mobile drawer on route change
+    useEffect(() => {
+        setIsMobileOpen(false)
+    }, [pathname])
+
+    // Lock body scroll while mobile drawer is open
+    useEffect(() => {
+        if (!isMobileOpen) return
+        const prev = document.body.style.overflow
+        document.body.style.overflow = "hidden"
+        return () => {
+            document.body.style.overflow = prev
+        }
+    }, [isMobileOpen])
+
+    const drawerItems: SidebarItem[] = [
+        { label: "Home", href: "/patient/dashboard", icon: <GridIcon /> },
+        {
+            label: "Chat bot",
+            href: "/patient/ai-bot",
+            icon: toolItems[0]?.icon ?? <ChatIcon />,
+        },
+        { label: "Library", href: "/patient/library", icon: <LibraryIcon /> },
+    ]
+
+    const renderNavLink = (item: SidebarItem, opts?: { expanded?: boolean; onNavigate?: () => void }) => {
+        const expanded = opts?.expanded ?? !isCollapsed
+        const isActive =
+            pathname === item.href ||
+            (item.href !== "/patient/dashboard" && pathname.startsWith(item.href))
+
+        return (
+            <Link
+                key={item.label}
+                href={item.href}
+                onClick={opts?.onNavigate}
+                title={!expanded ? item.label : undefined}
+                className={`flex items-center rounded-2xl transition-all duration-300 font-bold relative
+                    ${expanded ? "px-4 py-3 justify-between" : "w-12 h-12 mx-auto justify-center"}
+                    ${isActive
+                        ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20"
+                        : "text-orange-100/60 hover:text-white hover:bg-white/10"
+                    }
+                `}
+            >
+                <div className={`flex items-center ${expanded ? "gap-3" : "justify-center w-full"}`}>
+                    <div className="flex items-center justify-center [&_svg]:h-6 [&_svg]:w-6">
+                        {item.icon}
+                    </div>
+                    {expanded && <span className="text-sm whitespace-nowrap">{item.label}</span>}
+                </div>
+                {item.badge ? (
+                    <div className={`bg-[#0066ff] text-white text-[10px] flex items-center justify-center rounded-full shadow-sm ${expanded ? "w-5 h-5 ml-auto" : "absolute top-1 right-1 w-4 h-4"}`}>
+                        {item.badge}
+                    </div>
+                ) : null}
+            </Link>
+        )
+    }
+
     return (
+        <>
+        {/* Mobile hamburger — top left */}
+        <button
+            type="button"
+            onClick={() => setIsMobileOpen(true)}
+            className="md:hidden fixed top-3 left-3 z-50 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#4A3020] text-white shadow-lg shadow-black/20 border border-white/10"
+            aria-label="Open menu"
+        >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="h-5 w-5" aria-hidden="true">
+                <line x1="4" y1="7" x2="20" y2="7" />
+                <line x1="4" y1="12" x2="20" y2="12" />
+                <line x1="4" y1="17" x2="20" y2="17" />
+            </svg>
+        </button>
+
+        {/* Mobile drawer overlay */}
         <div
-            className={`relative h-full transition-all duration-300 ${isCollapsed ? "w-[90px]" : "w-[260px]"} shrink-0 z-40`}
+            className={`md:hidden fixed inset-0 z-[60] transition-opacity duration-300 ${
+                isMobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            }`}
+        >
+            <button
+                type="button"
+                className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
+                aria-label="Close menu"
+                onClick={() => setIsMobileOpen(false)}
+            />
+            <aside
+                className={`absolute top-0 left-0 h-full w-[min(82vw,300px)] flex flex-col py-6 px-4 shadow-2xl transition-transform duration-300 ease-out ${
+                    isMobileOpen ? "translate-x-0" : "-translate-x-full"
+                }`}
+                style={{ backgroundImage: "linear-gradient(to bottom, #4A3020, #26150C)" }}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Navigation menu"
+            >
+                <div className="flex items-center justify-between mb-10">
+                    <Link href="/patient/dashboard" onClick={() => setIsMobileOpen(false)} className="flex items-center gap-3 min-w-0">
+                        <Image
+                            src="/images/logo_light.png"
+                            alt="Logo"
+                            width={40}
+                            height={40}
+                            className="object-contain shrink-0"
+                        />
+                        <div className="flex items-center gap-0.5 tracking-tighter">
+                            <span className="text-xl font-black text-white">hey</span>
+                            <span className="text-xl font-black text-[var(--color-brand)]">attrangi</span>
+                        </div>
+                    </Link>
+                    <button
+                        type="button"
+                        onClick={() => setIsMobileOpen(false)}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-orange-100/70 hover:text-white hover:bg-white/10 transition-colors"
+                        aria-label="Close menu"
+                    >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="h-5 w-5">
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                            <line x1="6" y1="18" x2="18" y2="6" />
+                        </svg>
+                    </button>
+                </div>
+
+                <nav className="flex flex-col gap-2 flex-1">
+                    {drawerItems.map((item) => renderNavLink(item, { expanded: true, onNavigate: () => setIsMobileOpen(false) }))}
+                </nav>
+
+                <Link
+                    href="/patient/profile"
+                    onClick={() => setIsMobileOpen(false)}
+                    className="mt-auto flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all"
+                >
+                    <div className="w-10 h-10 rounded-xl overflow-hidden relative bg-black/20 shrink-0 border border-white/10 flex items-center justify-center">
+                        {session?.user?.image ? (
+                            <Image
+                                src={session.user.image}
+                                alt={session.user.name || "User"}
+                                fill
+                                className="object-cover"
+                            />
+                        ) : (
+                            <span className="text-sm font-bold text-orange-100/60">
+                                {session?.user?.name ? session.user.name[0].toUpperCase() : "U"}
+                            </span>
+                        )}
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-black text-white truncate">
+                            {session?.user?.name || "Patient"}
+                        </span>
+                        <span className="text-[11px] font-bold text-orange-300 mt-1 uppercase tracking-wider">
+                            View Profile
+                        </span>
+                    </div>
+                </Link>
+            </aside>
+        </div>
+
+        {/* Desktop left rail */}
+        <div
+            className={`relative hidden md:block h-full transition-all duration-300 ${isCollapsed ? "w-[90px]" : "w-[260px]"} shrink-0 z-40`}
             style={{ backgroundImage: 'linear-gradient(to bottom, #4A3020, #26150C)' }}
         >
 
@@ -391,12 +551,13 @@ export default function Sidebar() {
                 )} */}
 
             </aside>
+        </div>
 
             {/* Slide-over Notifications Panel */}
             <NotificationsPanel
                 isOpen={isNotifOpen}
                 onClose={() => setIsNotifOpen(false)}
             />
-        </div>
+        </>
     )
 }

@@ -9,7 +9,6 @@ import VideoSettingsSection from "./VideoSettingsSection"
 import SignOutButton from "@/components/auth/SignOutButton"
 
 interface ProfileSettingsProps {
-
     user: User & {
         patient?: Patient | null
     }
@@ -23,7 +22,7 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
 
     const allSidebarItems = [
         {
-            id: "personal",
+            id: "personal" as const,
             label: "Personal Info",
             icon: (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
@@ -32,9 +31,8 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
                 </svg>
             )
         },
-
         {
-            id: "billing",
+            id: "billing" as const,
             label: "Billing & Payment",
             icon: (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
@@ -44,7 +42,7 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
             )
         },
         {
-            id: "dev_billing",
+            id: "dev_billing" as const,
             label: "Dev Billing (Test)",
             icon: (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
@@ -53,7 +51,7 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
             )
         },
         {
-            id: "credits",
+            id: "credits" as const,
             label: "Care Credits",
             icon: (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
@@ -63,7 +61,7 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
             )
         },
         {
-            id: "video",
+            id: "video" as const,
             label: "Video Settings",
             icon: (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
@@ -81,10 +79,17 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
         ? allSidebarItems.filter(item => !hiddenInProd.includes(item.id))
         : allSidebarItems
 
+    const sectionTitle =
+        activeSection === "personal" ? "Personal information"
+            : activeSection === "billing" ? "Billing & Payment"
+                : activeSection === "dev_billing" ? "Dev Billing (Test Mode)"
+                    : activeSection === "credits" ? "Care Credits"
+                        : "Video Settings"
+
     return (
         <div className="flex h-full w-full bg-white overflow-hidden">
-            {/* Inner Sidebar */}
-            <div className="w-[280px] border-r border-gray-100 p-6 flex flex-col gap-6">
+            {/* Desktop: User profile management sidebar */}
+            <div className="hidden md:flex w-[280px] shrink-0 border-r border-gray-100 p-6 flex-col gap-6">
                 <h2 className="text-xl font-bold text-gray-900 leading-tight">
                     User profile<br />management
                 </h2>
@@ -93,7 +98,8 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
                     {sidebarItems.map((item) => (
                         <button
                             key={item.id}
-                            onClick={() => setActiveSection(item.id as Section)}
+                            type="button"
+                            onClick={() => setActiveSection(item.id)}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium ${activeSection === item.id
                                 ? "bg-gray-50 text-gray-900 shadow-sm"
                                 : "text-gray-500 hover:text-gray-900 hover:bg-gray-50/50"
@@ -113,21 +119,40 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 overflow-y-auto">
-                <div className="max-w-4xl mx-auto p-10">
-                    <header className="flex justify-between items-center mb-8">
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            {activeSection === "personal" && "Personal information"}
+            <div className="flex-1 min-w-0 overflow-y-auto">
+                <div className="max-w-4xl mx-auto px-4 pt-16 pb-8 sm:px-6 md:p-10">
+                    {/* Mobile section switcher */}
+                    <div className="md:hidden mb-5">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-gray-400 mb-3 pl-1">
+                            Profile
+                        </p>
+                        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+                            {sidebarItems.map((item) => (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    onClick={() => setActiveSection(item.id)}
+                                    className={`shrink-0 inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold border transition-all ${
+                                        activeSection === item.id
+                                            ? "bg-gray-900 text-white border-gray-900 shadow-sm"
+                                            : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                                    }`}
+                                >
+                                    <span className={activeSection === item.id ? "text-white" : "text-gray-400"}>
+                                        {item.icon}
+                                    </span>
+                                    {item.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
 
-                            {activeSection === "billing" && "Billing & Payment"}
-                            {activeSection === "dev_billing" && "Dev Billing (Test Mode)"}
-                            {activeSection === "credits" && "Care Credits"}
-                            {activeSection === "video" && "Video Settings"}
+                    <header className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-6 md:mb-8">
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                            {sectionTitle}
                         </h1>
 
-
-
-                        <div className="flex items-center gap-2 text-[13px] font-medium text-[#00a870]">
+                        <div className="flex items-center gap-2 text-[12px] sm:text-[13px] font-medium text-[#00a870]">
                             {isSaving ? (
                                 <>
                                     <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
@@ -165,8 +190,10 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
                         <VideoSettingsSection user={user} />
                     )}
 
-
-
+                    {/* Mobile sign out */}
+                    <div className="md:hidden mt-10 pt-6 border-t border-gray-100">
+                        <SignOutButton className="flex items-center justify-center gap-3 px-4 py-3.5 w-full rounded-2xl transition-all duration-200 text-sm font-semibold text-red-500 bg-red-50 hover:bg-red-100" />
+                    </div>
                 </div>
             </div>
         </div>

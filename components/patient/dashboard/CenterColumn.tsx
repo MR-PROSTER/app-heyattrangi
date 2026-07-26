@@ -75,12 +75,12 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
     const timePercentage = Math.max(0, Math.min(100, ((currentHour - 9) / 12) * 100))
 
     return (
-        <div className="flex-1 h-full overflow-y-auto w-full px-6 md:px-8 xl:px-10 py-8 md:py-10 bg-[#fafdfc] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+        <div className="flex-1 h-full overflow-y-auto w-full px-4 sm:px-6 md:px-8 xl:px-10 pt-14 pb-6 sm:pb-8 md:pt-10 md:pb-10 bg-[#fafdfc] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
             {/* Header */}
-            <header className="flex flex-col md:flex-row items-center md:items-start justify-center md:justify-start w-full gap-8 mb-10 mt-4 relative">
+            <header className="flex flex-col md:flex-row items-center md:items-start justify-center md:justify-start w-full gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8 md:mb-10 mt-2 md:mt-4 relative">
                 {/* Avatar Area */}
-                <div className="relative shrink-0 group mb-2 md:mb-0">
-                    <div className="w-28 h-28 md:w-36 md:h-36 relative z-10 flex items-center justify-center">
+                <div className="relative shrink-0 group mb-1 md:mb-0">
+                    <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 relative z-10 flex items-center justify-center">
                         <img
                             src="/new_bot/Ai%20icon.png"
                             alt="Avatar"
@@ -89,15 +89,15 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
                     </div>
                 </div>
 
-                <div className="flex flex-col items-center md:items-start text-center md:text-left flex-1 max-w-3xl pt-2">
-                    <h2 className="text-[14px] md:text-[16px] uppercase tracking-[0.2em] font-black text-gray-700 mb-3">
+                <div className="flex flex-col items-center md:items-start text-center md:text-left flex-1 max-w-3xl pt-0 md:pt-2 min-w-0 w-full">
+                    <h2 className="text-[12px] sm:text-[14px] md:text-[16px] uppercase tracking-[0.14em] sm:tracking-[0.2em] font-black text-gray-700 mb-2 sm:mb-3 max-w-full break-words px-1">
                         HELLO {displayName ? displayName.toUpperCase() : "THERE"} !
                     </h2>
-                    <h1 className="text-[28px] md:text-[36px] font-bold text-gray-900 leading-tight mb-4">
+                    <h1 className="text-[22px] sm:text-[28px] md:text-[36px] font-bold text-gray-900 leading-snug sm:leading-tight mb-3 sm:mb-4 px-1">
                         I'm here to listen and support you between sessions.
                     </h1>
-                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                        <span className="text-gray-500 font-medium tracking-wide">Let's track your health daily!</span>
+                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 sm:gap-3">
+                        <span className="text-gray-500 font-medium tracking-wide text-[13px] sm:text-base">Let's track your health daily!</span>
                         <span className="inline-flex items-center rounded-full bg-orange-100 text-orange-800 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
                             {planLabelMap[normalizedPlan] ?? normalizedPlan.replace(/_/g, " ")}
                         </span>
@@ -113,7 +113,7 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
 
             {/* Upcoming Appointments */}
             <section className="mb-6 w-full">
-                <div className="flex items-center justify-between mb-4 pr-10">
+                <div className="flex items-center justify-between mb-4 pr-0 sm:pr-4 md:pr-10">
                     <h3 className="text-lg font-bold text-gray-900 tracking-tight">Upcoming sessions</h3>
                     <Link
                         href="/patient/appointments"
@@ -260,15 +260,15 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
             <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6 mb-10 w-full">
 
                 {/* AI Mood Analysis Card */}
-                <div className="bg-white rounded-[32px] p-6 shadow-[0_2px_24px_rgba(0,0,0,0.03)] border border-gray-100 flex flex-col relative min-h-[400px]">
-                    <div className="flex justify-between items-start mb-6">
+                <div className="bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-6 shadow-[0_2px_24px_rgba(0,0,0,0.03)] border border-gray-100 flex flex-col relative min-h-0 sm:min-h-[400px]">
+                    <div className="flex justify-between items-start mb-4 sm:mb-6">
                         <div>
                             {isLoadingMood ? (
                                 <div className="h-10 w-24 bg-gray-100 rounded animate-pulse mb-2"></div>
                             ) : (
-                                <h3 className="font-extrabold text-[42px] text-gray-900 leading-none mb-1">{moodData.score}%</h3>
+                                <h3 className="font-extrabold text-[32px] sm:text-[42px] text-gray-900 leading-none mb-1">{moodData.score}%</h3>
                             )}
-                            <p className="text-[14px] font-bold text-gray-500">{moodData.message}</p>
+                            <p className="text-[13px] sm:text-[14px] font-bold text-gray-500">{moodData.message}</p>
                         </div>
                     </div>
 
@@ -334,11 +334,11 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
                     </div>
 
                     {/* Bottom Action Cards */}
-                    <div className="grid grid-cols-2 gap-4 mt-auto">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-auto">
                         {/* Breathing Exercise Card */}
                         <div 
                             onClick={() => setIsBreathingOpen(true)}
-                            className="bg-[#e8f6f0] rounded-[24px] p-5 relative overflow-hidden flex flex-col justify-between group hover:scale-[1.02] transition-transform cursor-pointer shadow-sm min-h-[140px]">
+                            className="bg-[#e8f6f0] rounded-[24px] p-4 sm:p-5 relative overflow-hidden flex flex-col justify-between group hover:scale-[1.02] transition-transform cursor-pointer shadow-sm min-h-[120px] sm:min-h-[140px]">
                             <div className="flex gap-4 items-center">
                                 {/* Red Character Blob */}
                                 <div className="w-14 h-14 bg-[#f47b85] rounded-full shrink-0 flex items-center justify-center relative shadow-sm">

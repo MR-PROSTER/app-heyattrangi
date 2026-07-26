@@ -137,10 +137,10 @@ export default function PersonalInfoSection({ user, onSavingChange }: PersonalIn
     const displayPhoto = previewUrl || user.image
 
     return (
-        <div className="space-y-12">
+        <div className="space-y-8 md:space-y-12">
             {/* Profile Picture Section */}
-            <div className="flex flex-col gap-4">
-                <div className="relative w-32 h-32">
+            <div className="flex flex-col items-center md:items-start gap-4">
+                <div className="relative w-28 h-28 sm:w-32 sm:h-32">
                     <div className="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100 relative group">
                         {displayPhoto ? (
                             <Image
@@ -150,7 +150,7 @@ export default function PersonalInfoSection({ user, onSavingChange }: PersonalIn
                                 className="object-cover"
                             />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-gray-400 font-bold text-3xl">
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-500 text-white font-bold text-3xl">
                                 {(user.name || user.email || "U")[0].toUpperCase()}
                             </div>
                         )}
@@ -178,17 +178,17 @@ export default function PersonalInfoSection({ user, onSavingChange }: PersonalIn
                     />
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto items-stretch sm:items-center pt-2">
                     <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition-colors border border-gray-200"
+                        className="text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2.5 sm:py-1.5 rounded-lg transition-colors border border-gray-200"
                     >
                         Upload to Cloudinary
                     </button>
                     {user.image && (
                         <button
                             onClick={handleRemoveCustomPhoto}
-                            className="text-xs font-bold bg-white hover:bg-red-50 text-red-500 px-3 py-1.5 rounded-lg transition-colors border border-gray-200"
+                            className="text-xs font-bold bg-white hover:bg-red-50 text-red-500 px-3 py-2.5 sm:py-1.5 rounded-lg transition-colors border border-gray-200"
                         >
                             Reset to Default Google Image
                         </button>
@@ -197,7 +197,7 @@ export default function PersonalInfoSection({ user, onSavingChange }: PersonalIn
             </div>
 
             {/* Form Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 md:gap-y-6">
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-gray-900">Full Name</label>
                     <input
@@ -218,7 +218,7 @@ export default function PersonalInfoSection({ user, onSavingChange }: PersonalIn
                         readOnly
                         className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-gray-500 cursor-not-allowed outline-none font-medium"
                     />
-                    <p className="text-[10px] text-gray-400 pl-2 italic">Email is managed via your account provider</p>
+                    <p className="text-[10px] text-gray-400 pl-1 sm:pl-2 italic">Email is managed via your account provider</p>
                 </div>
 
                 <div className="space-y-2">
