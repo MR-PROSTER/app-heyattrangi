@@ -505,3 +505,15 @@ model LoginOtp {
   @@map("login_otps")
 }
 
+model PatientAssessmentResult {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @db.ObjectId
+  assessmentId String
+  date         String
+  results      Json
+  createdAt    DateTime @default(now())
+
+  @@map("patient_assessment_results")
+}
+
+

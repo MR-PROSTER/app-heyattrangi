@@ -7,6 +7,7 @@ import { useState, useEffect } from "react"
 import UpgradeOffersBanner from "./UpgradeOffersBanner"
 import { useRouter } from "next/navigation"
 import BreathingModule from "./BreathingModule"
+import { DEFAULT_AVATAR } from "@/lib/avatar"
 
 export default function CenterColumn({ displayName, plan, upcomingAppointments, dailyTasks = [] }: { displayName: string, plan?: string, upcomingAppointments: any[], dailyTasks?: any[] }) {
     const router = useRouter()
@@ -82,7 +83,7 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
                 <div className="relative shrink-0 group mb-2 md:mb-0">
                     <div className="w-28 h-28 md:w-36 md:h-36 relative z-10 flex items-center justify-center">
                         <img
-                            src="/new_bot/Ai%20icon.png"
+                            src={DEFAULT_AVATAR}
                             alt="Avatar"
                             className="w-full h-full object-contain"
                         />

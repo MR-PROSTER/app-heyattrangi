@@ -1,0 +1,115 @@
+# Attention Assessment Feature Walkthrough
+
+The **Attention Assessment** capability has been successfully implemented on the Hey Attrangi mental wellness platform.
+
+## Changes Made
+
+### 1. Backend: Attention Sentiment & Keyword Parsing
+
+We modified the following files in `heyattrangi-huggingface`:
+
+- **[signals.py](file:///c:/Users/JAKKOJU/Downloads/huggingface/hub/spaces--Heyattrangi-spaces--Bot-Heyattrangi-V4/snapshots/1248af6896eb13a36fd2adb2fe81b1717d61f698/core/signals.py)**: Added a semantic embedding prototype for `"attention"`: `"unable to focus, getting distracted, losing concentration, scatterbrained, brain fog"` and set the cosine similarity threshold to `0.50`.
+- **[app.py](file:///c:/Users/JAKKOJU/Downloads/huggingface/hub/spaces--Heyattrangi-spaces--Bot-Heyattrangi-V4/snapshots/1248af6896eb13a36fd2adb2fe81b1717d61f698/app.py)**:
+  - Updated [process_logic()](file:///c:/Users/JAKKOJU/Downloads/huggingface/hub/spaces--Heyattrangi-spaces--Bot-Heyattrangi-V4/snapshots/1248af6896eb13a36fd2adb2fe81b1717d61f698/app.py#427-965) to check if the attention score is custom-triggered.
+  - Maintained a session-based list `triggered_actions` in memory to prevent the card from appearing repeatedly.
+  - Returns the action payload containing:
+    ```json
+    "action": {
+      "type": "ATTENTION_ASSESSMENT",
+      "title": "Start Attention Assessment",
+      "url": "/patient/library?tab=self_assignments"
+    }
+    ```
+  - Forwarded the Action metadata field inside the Headless `/chat` POST endpoint JSON.
+
+### 2. Frontend: API Spreader & Premium Assessment Card UI
+
+We updated the next files in `heyattrangi-webapp`:
+
+- **[TryPragyaChat.tsx](file:///c:/Users/JAKKOJU/Downloads/app-heyattrangi-main/app-heyattrangi-main/components/ai-bot/TryPragyaChat.tsx)**:
+  - Imported Next.js `Link` component.
+  - Expanded [ChatMessage](file:///c:/Users/JAKKOJU/Downloads/app-heyattrangi/app-heyattrangi/components/ai-bot/TryPragyaChat.tsx#8-18) types to support `action` payload.
+  - Parsed the `action` field on message load response.
+  - Rendered a custom-designed clinical assessment recommendation card with matching warm hues, a target identifier icon, descriptive text, and a focused Start button.
+- **[page.tsx](file:///c:/Users/JAKKOJU/Downloads/app-heyattrangi-main/app-heyattrangi-main/app/patient/library/page.tsx)**:
+  - Added a lightweight `useEffect`-based client search param parser on mounting so if `tab` parameter is present, it dynamically focuses on the corresponding tab view (like `self_assignments` showing ADHD ASRS assessment).
+
+---
+
+## Verification Plan
+
+### Test Script validation
+
+To ensure the backend detects the distraction intent, we can simulate a JSON request:
+
+```bash
+Invoke-RestMethod -Uri "http://localhost:8000/chat" -Method Post -ContentType "application/json" -Body '{"session_id": "test_verification", "message": "I keep getting distracted and losing focus at work"}'
+```
+
+Verify that the responded JSON output contains the `action` block:
+
+```json
+{
+  "reply": "...",
+  "expression": "...",
+  "blocks": [...],
+  "suggestions": [...],
+  "action": {
+    "type": "ATTENTION_ASSESSMENT",
+    "title": "Start Attention Assessment",
+    "url": "/patient/library?tab=self_assignments"
+  }
+}
+```
+
+### Manual UI Flow Validation
+
+1. Navigating to the AI compagnon chat session.
+2. Writing: "I am having such a hard time focusing today, keep going to social media instead of studying."
+3. Confirming that the Assistant message contains the specialized attention card.
+4. Clicking "Start Assessment" redirects automatically to the Library page with "Self Assignments" tab active, presenting the ADHD assessment directly.
+
+---
+
+## 3. Backend: Refined Self-Harm and Crisis Warning Triggers
+
+We replaced the immediate, hardcoded safety override warning when users express feelings of wanting to die or other self-harm indicators with a two-stage safety strike counter.
+
+### Changes Made
+
+- **[signals.py](file:///c:/Users/JAKKOJU/Downloads/huggingface/hub/spaces--Heyattrangi-spaces--Bot-Heyattrangi-V4/snapshots/1248af6896eb13a36fd2adb2fe81b1717d61f698/core/signals.py)**: Modified the regex and semantic embedding check logic. If a `violence_intent` (or suicidal ideation) signal is triggered, it increments a `safety_trigger_count` in the session memory instead of locking the stage to [safety](file:///c:/Users/JAKKOJU/Downloads/huggingface/hub/spaces--Heyattrangi-spaces--Bot-Heyattrangi-V4/snapshots/1248af6896eb13a36fd2adb2fe81b1717d61f698/core/screener.py#103-112) immediately. The stage remains in its current phase (e.g. `exploration`) unless the count reaches 2.
+- **[app.py](file:///c:/Users/JAKKOJU/Downloads/huggingface/hub/spaces--Heyattrangi-spaces--Bot-Heyattrangi-V4/snapshots/1248af6896eb13a36fd2adb2fe81b1717d61f698/app.py)**:
+  - Updated the safety override gateway condition to activate the hardcoded helpline output if `safety_trigger_count >= 2`.
+  - Added a reset handler: if the user's message is normal and does not trigger `violence_intent`, `safety_trigger_count` is set back to `0`.
+  - Supplemented the LLM's system prompt on the very first strike (`safety_trigger_count == 1`) with a directive to be highly empathetic, grounding, and supportive, while specifically forbiding providing advice, asking questions, or outputting helpline/crisis resources in that turn.
+
+### Verification Results
+
+We checked these transitions by running [test_safety_logic.py](file:///c:/Users/JAKKOJU/AppData/Local/Temp/test_safety_logic.py) in the backend environment. The output logs verified that:
+
+1. **First Self-Harm Message**: Scored `violence_intent = 1.0` and `safety_trigger_count = 1`, while keeping `stage = 'opening'`. (Empathetic LLM prompt activated).
+2. **Second Consecutive Self-Harm Message**: Incremented `safety_trigger_count = 2`, transitioning the chatbot to `stage = 'safety'` and return of hardcoded helplines.
+3. **Recovery Flow**: A normal message resets `safety_trigger_count` back to `0`.
+
+---
+
+## 4. Frontend: Chatbot Input UX Enhancements
+
+We improved the conversational input interface to resolve focus loss issues and improve readability/positioning for long user messages.
+
+### Changes Made
+
+- **[TryPragyaChat.tsx](file:///c:/Users/JAKKOJU/Downloads/app-heyattrangi/app-heyattrangi/components/ai-bot/TryPragyaChat.tsx)**:
+  - **Focus Retention**: Introduced an `inputRef` declaration and registered a React `useEffect` callback watching `isLoading` / `isTyping` changes. This triggers auto-focus on the input element immediately when the bot completes responding or typing. Refocused when suggestion pills are accepted.
+  - **Premium Flexbox Container Layout**: Refactored the form wrapper to use a flex layout with `items-end` alignment. The rounded borders, shadow effects, and focus outlines are styled directly on the containing `form` wrapper itself.
+  - **Borderless expanding textarea**: The `<textarea>` runs borderless and transparent inside the flex container. Its height grows dynamically (`min-h-[44px]` up to `max-h-[160px]`) as the user types long paragraphs, wrapping properly.
+  - **Send Button Alignment**: Positioned the send button next to the textarea as a flex sibling (`shrink-0 mb-1`), aligning it automatically at the bottom-right corner without overlapping or obscuring any text.
+
+### Verification Results
+
+Verify the behavior in the browser:
+
+- Focus: Sending a message focuses the cursor back in the text box immediately upon completion of typewriter response streaming.
+- Submissions: Sending via `Enter` works, while `Shift + Enter` starts a new line.
+- Dynamic Height: Long inputs wrap and expand the text box height smoothly.
+- Visual Layout: The send button sits next to the textarea, always remaining at the bottom-right corner of the container without overlapping or blocking any typed characters.

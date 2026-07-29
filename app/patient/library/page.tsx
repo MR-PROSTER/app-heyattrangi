@@ -1,7 +1,8 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { Sparkles, BookOpen, Newspaper, ShieldCheck, ArrowRight, ExternalLink, Clock, Activity } from "lucide-react"
 
 
@@ -42,8 +43,43 @@ const clinicalGuidelines = [
   }
 ]
 
-export default function LibraryPage() {
+function LibraryContent() {
+  const searchParams = useSearchParams()
+  const tabParam = searchParams.get("tab")
   const [activeTab, setActiveTab] = useState<string>("discover") // discover | wellness | distress | illness | stories | selfhelp | brainfood
+  const [highlightedCard, setHighlightedCard] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (tabParam) {
+      setActiveTab(tabParam)
+    }
+  }, [tabParam])
+
+  useEffect(() => {
+    const assessmentParam = searchParams.get("assessment")
+    if (activeTab === "self_assignments" && assessmentParam) {
+      const targetId = `card-${assessmentParam.toLowerCase()}`
+      setHighlightedCard(targetId)
+      
+      // Delay slightly to wait for rendering to finish
+      const timerScroll = setTimeout(() => {
+        const element = document.getElementById(targetId)
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" })
+        }
+      }, 500)
+
+      // Clear the pulsing highlight outline after 5 seconds
+      const timerHighlight = setTimeout(() => {
+        setHighlightedCard(null)
+      }, 5000)
+
+      return () => {
+        clearTimeout(timerScroll)
+        clearTimeout(timerHighlight)
+      }
+    }
+  }, [activeTab, searchParams])
   const [searchQuery, setSearchQuery] = useState<string>("")
   const [news, setNews] = useState<any[]>([])
   const [research, setResearch] = useState<any[]>([])
@@ -566,6 +602,7 @@ export default function LibraryPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[
                   {
+                    id: "card-asrs",
                     title: "Adult ADHD Self-Report Scale",
                     shortName: "ASRS-v1.1",
                     desc: "Start the assessment to know if your struggles with attention and focus might be more than occasional distractions.",
@@ -574,6 +611,7 @@ export default function LibraryPage() {
                     link: "/patient/assessments/asrs"
                   },
                   {
+                    id: "card-oci-r",
                     title: "How severe are my OCD symptoms?",
                     shortName: "OCI-R",
                     desc: "Start the assessment to understand whether your thoughts or behaviours might be signs of OCD.",
@@ -582,6 +620,7 @@ export default function LibraryPage() {
                     link: "/patient/assessments/ocd"
                   },
                   {
+                    id: "card-phq-9",
                     title: "Am I Sad or Depressed?",
                     shortName: "PHQ-9",
                     desc: "Start with the assessment to understand whether your feelings of sadness may be more than a temporary mood.",
@@ -590,6 +629,7 @@ export default function LibraryPage() {
                     link: "/patient/assessments/phq-9"
                   },
                   {
+                    id: "card-gad-7",
                     title: "Am I Anxious?",
                     shortName: "GAD-7",
                     desc: "Take this quick assessment to understand if your feelings of worry or stress indicate anxiety.",
@@ -598,6 +638,7 @@ export default function LibraryPage() {
                     link: "/patient/assessments/gad-7"
                   },
                   {
+                    id: "card-ptsd",
                     title: "Primary Care PTSD Screen",
                     shortName: "PC-PTSD-5",
                     desc: "Start the assessment to understand if you might be experiencing signs of Post-Traumatic Stress.",
@@ -606,7 +647,15 @@ export default function LibraryPage() {
                     link: "/patient/assessments/ptsd"
                   }
                 ].filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()) || item.desc.toLowerCase().includes(searchQuery.toLowerCase()) || item.shortName.toLowerCase().includes(searchQuery.toLowerCase())).map((item, idx) => (
-                  <div key={idx} className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 flex flex-col h-full hover:shadow-md transition-all">
+                  <div 
+                    key={idx} 
+                    id={item.id}
+                    className={`bg-white rounded-[24px] p-6 shadow-sm border flex flex-col h-full hover:shadow-md transition-all ${
+                      highlightedCard === item.id 
+                        ? "border-rose-450 ring-4 ring-rose-100 animate-pulse shadow-lg scale-[1.02]" 
+                        : "border-slate-100"
+                    }`}
+                  >
                     <h4 className="font-bold text-xl text-slate-700 mb-1 tracking-tight pr-4">{item.title}</h4>
                     <p className="text-[11px] font-black text-rose-500 uppercase tracking-widest mb-4">{item.shortName}</p>
                     <p className="text-slate-500 text-sm leading-relaxed mb-6 flex-grow">{item.desc}</p>
@@ -1087,5 +1136,13 @@ export default function LibraryPage() {
 
       </div>
     </div>
+  )
+}
+
+export default function LibraryPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-500 font-semibold font-sans">Loading page...</div>}>
+      <LibraryContent />
+    </Suspense>
   )
 }

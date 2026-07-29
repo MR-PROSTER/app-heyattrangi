@@ -1,4 +1,5 @@
 import Image from "next/image"
+import { DEFAULT_AVATAR } from "@/lib/avatar"
 
 export default function DoctorPragyaPlaceholder() {
   return (
@@ -17,7 +18,7 @@ export default function DoctorPragyaPlaceholder() {
           <div className="absolute inset-0 bg-blue-500/20 blur-[60px] rounded-full group-hover:bg-blue-500/30 transition-all duration-700" />
           <div className="relative w-full h-full rounded-[40px] overflow-hidden border-4 border-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] transform transition-transform duration-700 group-hover:scale-105">
             <Image
-              src="/new_bot/neutral.png"
+              src={DEFAULT_AVATAR}
               alt="Pragya AI"
               fill
               className="object-cover"

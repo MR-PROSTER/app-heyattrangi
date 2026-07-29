@@ -3,6 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect } from "react"
+import { DEFAULT_AVATAR } from "@/lib/avatar"
 
 export default function BotPopup() {
     const [isVisible, setIsVisible] = useState(true)
@@ -49,7 +50,7 @@ export default function BotPopup() {
                 {/* Big Hero Image */}
                 <div className="relative w-full h-[180px] bg-gray-100 overflow-hidden rounded-t-[30px]">
                     <img
-                        src="/new_bot/neutral.png"
+                        src={DEFAULT_AVATAR}
                         alt="Pragya AI"
                         className="object-cover w-full h-full"
                         onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&q=80&w=600" }}
