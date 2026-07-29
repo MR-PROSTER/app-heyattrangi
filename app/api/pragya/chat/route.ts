@@ -73,6 +73,22 @@ export async function POST(req: NextRequest) {
     content: message.trim(),
   })
 
+  let pastAssessments: any[] = [];
+  if (session?.user?.id) {
+    const db: any = prisma;
+    pastAssessments = await db.patientAssessmentResult.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  // DEBUG - REMOVE AFTER TESTING
+  console.log("--- [DEBUG Next.js Route] INCOMING CHAT REQUEST ---");
+  console.log("Session ID:", session?.user?.id || resolvedGuestToken || conversationId);
+  console.log("User message:", message);
+  console.log("Upstream URL:", `${getPragyaUpstreamBase()}/chat`);
+  // END DEBUG
+
   const upstream = await fetch(`${getPragyaUpstreamBase()}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -80,11 +96,24 @@ export async function POST(req: NextRequest) {
       session_id: session?.user?.id ? `patient_${session.user.id}` : resolvedGuestToken ?? "",
       message: message.trim(),
       user_name: nameToUse,
-      generate_suggestions: typeof generate_suggestions === "boolean" ? generate_suggestions : true
+      generate_suggestions: typeof generate_suggestions === "boolean" ? generate_suggestions : true,
+      past_assessments: pastAssessments.map((pa: any) => ({
+        assessmentId: pa.assessmentId,
+        date: pa.date,
+        results: pa.results
+      }))
     }),
   })
 
+
   const text = await upstream.text()
+
+  // DEBUG - REMOVE AFTER TESTING
+  console.log("--- [DEBUG Next.js Route] UPSTREAM RESPONSE ---");
+  console.log("Status:", upstream.status);
+  console.log("Raw Text:", text);
+  // END DEBUG
+
   if (!upstream.ok) {
     return NextResponse.json(
       { error: text || "Upstream chat request failed" },

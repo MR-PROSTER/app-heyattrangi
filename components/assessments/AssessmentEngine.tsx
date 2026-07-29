@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Activity, AlertTriangle, Brain, ListChecks, MessageSquare } from "lucide-react"
 import { triageQuestions, screeners, TriageQuestion, Screener } from "@/lib/data/assessmentEngine"
+import { DEFAULT_AVATAR } from "@/lib/avatar"
 
 type ChatMessage = {
     id: string
@@ -274,7 +275,7 @@ export default function AssessmentEngine() {
             <div className="bg-white border-b border-slate-200 p-4 flex justify-between items-center z-10">
                 <div className="flex items-center gap-3">
                     <div className="w-12 h-12 relative rounded-full overflow-hidden flex items-center justify-center bg-orange-50/50">
-                        <Image src="/new_bot/neutral.png" alt="Bot" fill className="object-contain p-1" />
+                        <Image src={DEFAULT_AVATAR} alt="Bot" fill className="object-contain p-1" />
                     </div>
                     <div>
                         <h2 className="font-bold text-slate-800">Assessment Engine</h2>
@@ -295,7 +296,7 @@ export default function AssessmentEngine() {
                     <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         {msg.role === 'bot' && (
                              <div className="w-10 h-10 relative flex-shrink-0 mr-4 mt-1 bg-orange-50/50 rounded-full">
-                                 <Image src="/new_bot/neutral.png" alt="Bot" fill className="object-contain p-1" />
+                                 <Image src={DEFAULT_AVATAR} alt="Bot" fill className="object-contain p-1" />
                              </div>
                         )}
                         <div className={`max-w-[85%] md:max-w-[75%] p-5 rounded-2xl leading-relaxed ${
@@ -311,7 +312,7 @@ export default function AssessmentEngine() {
                 {phase === "calculating" && (
                      <div className="flex justify-start animate-pulse">
                          <div className="w-10 h-10 relative flex-shrink-0 mr-4 mt-1 bg-orange-50/50 rounded-full">
-                             <Image src="/new_bot/neutral.png" alt="Bot" fill className="object-contain p-1" />
+                             <Image src={DEFAULT_AVATAR} alt="Bot" fill className="object-contain p-1" />
                          </div>
                          <div className="bg-white text-slate-400 p-5 rounded-2xl rounded-tl-sm border border-slate-100 shadow-md text-lg font-medium">
                              typing...

@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
+import { DEFAULT_AVATAR } from "@/lib/avatar"
 
 export default function PragyaSidebarCard() {
     return (
@@ -23,7 +24,7 @@ export default function PragyaSidebarCard() {
                 {/* Avatar Container */}
                 <div className="relative w-full aspect-square rounded-[32px] overflow-hidden bg-white shadow-inner border border-white/50 z-10">
                     <Image
-                        src="/new_bot/neutral.png"
+                        src={DEFAULT_AVATAR}
                         alt="Pragya AI"
                         fill
                         className="object-cover w-full h-full"

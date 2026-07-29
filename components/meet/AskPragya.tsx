@@ -20,7 +20,7 @@ const GROQ_MODEL = "llama-3.3-70b-versatile";
 const STORAGE_KEY = "pragya_context";
 const MAX_CONTEXT = 20;
 
-const SYSTEM_PROMPT = `You are Pragya, a helpful AI assistant built into the Hey Attrangi Meet platform.
+const SYSTEM_PROMPT = `You are Hey Attrangi, a helpful AI assistant built into the Hey Attrangi Meet platform.
 Your goal is to assist participants by answering questions, providing summaries of the meeting chat, and being a general helpful presence.
 Keep responses concise, clear, and professional. You are here to help with the flow of the meeting and answer any general queries.`;
 

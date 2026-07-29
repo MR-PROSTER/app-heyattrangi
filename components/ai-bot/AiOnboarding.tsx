@@ -4,8 +4,10 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import { saveAiOnboarding } from "@/app/actions/patient/onboarding"
+import { DEFAULT_AVATAR } from "@/lib/avatar"
 
 const challengesList = [
+
   "Financial support", "Work support", "Self-Esteem", "Anxiety", "Caregiving support",
   "Loss", "Motivation", "Confidence", "Bullying", "Sleep", "Depression", "Health issues"
 ]
@@ -78,7 +80,7 @@ export default function AiOnboarding() {
               >
                 <div className="w-24 h-24 bg-[#e0f7f4] rounded-full mb-8 flex items-center justify-center overflow-hidden shadow-sm">
                   <div className="relative w-16 h-16">
-                    <Image src="/new_bot/Ai icon.png" alt="Bot Bear Mascot" fill className="object-contain" />
+                    <Image src={DEFAULT_AVATAR} alt="Bot Mascot" fill className="object-contain" />
                   </div>
                 </div>
                 <h1 className="text-3xl font-black text-[#1a2f4c] mb-4 text-center">Hey Attrangi</h1>
