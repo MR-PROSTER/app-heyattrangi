@@ -961,40 +961,82 @@ export default function TryPragyaChat({
                     : "flex-1 opacity-100"
                 }`}
               >
-                {messages.map((msg, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-2 duration-300`}
-                  >
+                {messages.map((msg, idx) => {
+                  const isCrisis = msg.content && (
+                    msg.content.includes("988") || 
+                    msg.content.includes("International Helplines") ||
+                    msg.content.toLowerCase().includes("emergency services") ||
+                    msg.content.toLowerCase().includes("trusted person") ||
+                    msg.content.toLowerCase().includes("suicide hotline")
+                  );
+                  const cleanContent = isCrisis && typeof msg.content === "string" 
+                    ? msg.content.split("**International Helplines:**")[0].trim() 
+                    : msg.content;
+
+                  return (
                     <div
-                      className={`max-w-[85%] sm:max-w-[75%] rounded-3xl p-5 text-[15px] leading-relaxed shadow-sm whitespace-pre-wrap ${
-                        msg.role === "user"
-                          ? "bg-gradient-to-r from-orange-600 to-orange-500 text-white rounded-tr-sm shadow-[0_4px_14px_rgba(249,107,19,0.25)]"
-                          : msg.isError
-                            ? "bg-red-50 text-red-800 rounded-tl-sm border border-red-100 shadow-[0_2px_10px_rgba(220,38,38,0.04)]"
-                            : "bg-white text-gray-800 rounded-tl-sm border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)]"
-                      }`}
+                      key={idx}
+                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-2 duration-300`}
                     >
-                      {msg.role === "assistant" &&
-                      !msg.isError &&
-                      idx === messages.length - 1 ? (
-                        <TypewriterText
-                          text={msg.content}
-                          onCharacterTyped={() => {
-                            messagesEndRef.current?.scrollIntoView({
-                              behavior: "auto",
-                            });
-                          }}
-                          onComplete={() => {
-                            setIsTyping(false);
-                            setTimeout(() => {
-                              setShowSuggestions(true);
-                            }, 3000);
-                          }}
-                        />
-                      ) : (
-                        msg.content
-                      )}
+                      <div
+                        className={`max-w-[85%] sm:max-w-[75%] rounded-3xl p-5 text-[15px] leading-relaxed shadow-sm whitespace-pre-wrap ${
+                          msg.role === "user"
+                            ? "bg-gradient-to-r from-orange-600 to-orange-500 text-white rounded-tr-sm shadow-[0_4px_14px_rgba(249,107,19,0.25)]"
+                            : msg.isError
+                              ? "bg-red-50 text-red-800 rounded-tl-sm border border-red-100 shadow-[0_2px_10px_rgba(220,38,38,0.04)]"
+                              : "bg-white text-gray-800 rounded-tl-sm border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)]"
+                        }`}
+                      >
+                        {msg.role === "assistant" &&
+                        !msg.isError &&
+                        idx === messages.length - 1 ? (
+                          <TypewriterText
+                            text={cleanContent}
+                            onCharacterTyped={() => {
+                              messagesEndRef.current?.scrollIntoView({
+                                behavior: "auto",
+                              });
+                            }}
+                            onComplete={() => {
+                              setIsTyping(false);
+                              setTimeout(() => {
+                                setShowSuggestions(true);
+                              }, 3000);
+                            }}
+                          />
+                        ) : (
+                          cleanContent
+                        )}
+                        {isCrisis && (!isTyping || idx < messages.length - 1) && (
+                          <div className="mt-4 flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                            {[
+                              { name: "Tele MANAS Helpline", number: "14416", desc: "Available 24/7. National crisis response support.", label: "Phone" },
+                              { name: "KIRAN Support", number: "1800-599-0019", desc: "Government mental health service.", label: "SOS" },
+                              { name: "Vandrevala Foundation", number: "9999 666 555", desc: "Crisis and trauma counseling helpline.", label: "Support" }
+                            ].map((line, hidx) => (
+                              <div key={hidx} className="p-5 rounded-2xl bg-gradient-to-r from-orange-50 to-red-50/50 border border-orange-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:shadow-md hover:border-orange-300 transition-all font-sans text-slate-800">
+                                <div className="flex items-start gap-4">
+                                  <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0 mt-0.5 animate-pulse">
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    </svg>
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    <div className="flex items-center gap-2">
+                                      <h4 className="font-bold text-[15px]">{line.name}</h4>
+                                      <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md bg-red-100 text-red-700">{line.label}</span>
+                                    </div>
+                                    <p className="text-[13px] text-gray-600 font-medium leading-relaxed">{line.desc}</p>
+                                    <p className="text-lg font-black text-red-600 tracking-wide mt-1">{line.number}</p>
+                                  </div>
+                                </div>
+                                <a href={`tel:${line.number.replace(/\s+/g, '')}`} className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl text-[13px] font-black tracking-widest uppercase transition-all shadow-md hover:shadow-red-500/20 whitespace-nowrap text-center self-stretch sm:self-center flex flex-1 sm:flex-none items-center justify-center">
+                                  Call Now
+                                </a>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       {(msg.action?.type === "ATTENTION_ASSESSMENT" || msg.action?.type === "ASSESSMENT") && (!isTyping || idx < messages.length - 1) && (
                         <div className="mt-4 p-5 rounded-2xl bg-orange-50/70 border border-orange-100 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500 text-slate-800 font-sans shadow-md">
                           <div className="flex items-start gap-4">
@@ -1054,9 +1096,10 @@ export default function TryPragyaChat({
                           Retry
                         </button>
                       )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {isLoading && <ChatLoadingIndicator />}
                 <div ref={messagesEndRef} className="h-4" />
               </div>
