@@ -73,7 +73,6 @@ const clinicalGuidelines = [
 function LibraryPageContent() {
   const [activeTab, setActiveTab] = useState<string>("discover") // discover | wellness | distress | illness | stories | selfhelp | brainfood
   const [searchQuery, setSearchQuery] = useState<string>("")
-  const [highlightedCard, setHighlightedCard] = useState<string | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
   const tabParam = searchParams.get("tab")
@@ -92,8 +91,6 @@ function LibraryPageContent() {
     const assessmentParam = searchParams.get("assessment")
     if (activeTab === "self_assignments" && assessmentParam) {
       const targetId = `card-${assessmentParam.toLowerCase()}`
-      setHighlightedCard(targetId)
-
       const timer = setTimeout(() => {
         const el = document.getElementById(targetId)
         if (el) {
@@ -103,7 +100,6 @@ function LibraryPageContent() {
 
       return () => clearTimeout(timer)
     }
-    setHighlightedCard(null)
   }, [activeTab, searchParams])
 
   // Canonicalize invalid mode/category in the URL
