@@ -14,11 +14,13 @@ export default async function Home() {
         redirect("/doctor/dashboard")
       case "ADMIN":
         redirect("/admin/dashboard")
+      case "INSTITUTION_ADMIN":
+        redirect("/institution")
       default:
-        redirect("/auth/signin")
+        redirect("/auth")
     }
   }
 
-  // Signed-out users should land on sign-in, not the guest chatbot flow.
-  redirect("/auth/signin")
+  // Signed-out users should land on auth welcome.
+  redirect("/auth")
 }

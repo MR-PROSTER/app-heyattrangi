@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import WellnessScreeningForm from "@/components/ai-bot/WellnessScreeningForm"
 import { auth } from "@/auth.config"
 import { redirect } from "next/navigation"
@@ -48,7 +49,15 @@ export default async function AIBotScreeningPage() {
             </p>
           </div>
 
-          <WellnessScreeningForm />
+          <Suspense
+            fallback={
+              <div className="py-12 text-center text-sm text-[var(--color-text-secondary)]">
+                Loading…
+              </div>
+            }
+          >
+            <WellnessScreeningForm />
+          </Suspense>
         </div>
       </main>
     </div>

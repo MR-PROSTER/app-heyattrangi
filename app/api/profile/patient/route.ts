@@ -5,50 +5,81 @@ import { prisma } from "@/lib/prisma"
 export async function PATCH(req: NextRequest) {
   try {
     const session = await auth()
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const data = await req.json()
-    const { name, age, gender, healthConcerns, emergencyContact, emergencyPhone } = data
+    const {
+      name,
+      age,
+      gender,
+      dob,
+      preferredLanguage,
+      healthConcerns,
+      emergencyContact,
+      emergencyPhone,
+      emergencyRelationship,
+    } = data
 
-    // Update user
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
-        name: name || null,
-      },
-    })
+    if (name !== undefined) {
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: { name: name || null },
+      })
+    }
 
-    // Update or create patient profile
-    await prisma.patient.upsert({
-      where: { userId: session.user.id },
-      create: {
-        userId: session.user.id,
-        age: age || null,
-        gender: gender || null,
-        healthConcerns: healthConcerns || [],
-        emergencyContactName: emergencyContact || null,
-        emergencyContactPhone: emergencyPhone || null,
-      },
-      update: {
-        age: age || null,
-        gender: gender || null,
-        healthConcerns: healthConcerns || [],
-        emergencyContactName: emergencyContact || null,
-        emergencyContactPhone: emergencyPhone || null,
-      },
-    })
+    const patientCreate: Record<string, unknown> = {
+      userId: session.user.id,
+    }
+    const patientUpdate: Record<string, unknown> = {}
+
+    if (age !== undefined) {
+      patientCreate.age = age || null
+      patientUpdate.age = age || null
+    }
+    if (gender !== undefined) {
+      patientCreate.gender = gender || null
+      patientUpdate.gender = gender || null
+    }
+    if (dob !== undefined) {
+      patientCreate.dob = dob || null
+      patientUpdate.dob = dob || null
+    }
+    if (preferredLanguage !== undefined) {
+      patientCreate.preferredLanguage = preferredLanguage || "English"
+      patientUpdate.preferredLanguage = preferredLanguage || "English"
+    }
+    if (healthConcerns !== undefined) {
+      patientCreate.healthConcerns = healthConcerns || []
+      patientUpdate.healthConcerns = healthConcerns || []
+    }
+    if (emergencyContact !== undefined) {
+      patientCreate.emergencyContactName = emergencyContact || null
+      patientUpdate.emergencyContactName = emergencyContact || null
+    }
+    if (emergencyPhone !== undefined) {
+      patientCreate.emergencyContactPhone = emergencyPhone || null
+      patientUpdate.emergencyContactPhone = emergencyPhone || null
+    }
+    if (emergencyRelationship !== undefined) {
+      patientCreate.emergencyRelationship = emergencyRelationship || null
+      patientUpdate.emergencyRelationship = emergencyRelationship || null
+    }
+
+    if (Object.keys(patientUpdate).length > 0) {
+      await prisma.patient.upsert({
+        where: { userId: session.user.id },
+        create: patientCreate as never,
+        update: patientUpdate as never,
+      })
+    }
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Patient profile update error:", error)
-    return NextResponse.json(
-      { error: error.message || "Failed to update profile" },
-      { status: 500 }
-    )
+    const message = error instanceof Error ? error.message : "Failed to update profile"
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
-
-

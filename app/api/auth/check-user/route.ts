@@ -12,13 +12,24 @@ export async function POST(req: Request) {
       );
     }
 
+    const sanitizedEmail = String(email).trim().toLowerCase();
+
     const user = await prisma.user.findUnique({
       where: {
-        email: email.toLowerCase(),
+        email: sanitizedEmail,
+      },
+      select: {
+        id: true,
+        role: true,
+        orgId: true,
       },
     });
 
-    return NextResponse.json({ exists: !!user });
+    return NextResponse.json({
+      exists: !!user,
+      role: user?.role ?? null,
+      orgId: user?.orgId ?? null,
+    });
   } catch (error) {
     console.error("Error checking user existence:", error);
     return NextResponse.json(

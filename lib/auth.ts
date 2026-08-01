@@ -16,6 +16,7 @@ export async function getCurrentUser() {
         patient: true,
         doctor: true,
         admin: true,
+        accounts: { select: { provider: true } },
       },
     })
 

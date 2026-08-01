@@ -31,7 +31,10 @@ export async function POST(req: Request) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Default role to PATIENT if not provided or invalid
-    const userRole = role === "DOCTOR" || role === "PATIENT" ? role : "PATIENT";
+    const allowedRoles = ["DOCTOR", "PATIENT", "INSTITUTION_ADMIN"] as const
+    const userRole = allowedRoles.includes(role as (typeof allowedRoles)[number])
+      ? (role as (typeof allowedRoles)[number])
+      : "PATIENT";
 
     // Create the user
     const user = await prisma.user.create({
@@ -39,6 +42,7 @@ export async function POST(req: Request) {
         email,
         password: hashedPassword,
         role: userRole,
+        ...(userRole === "INSTITUTION_ADMIN" ? { plan: "ORGANIZATION" } : {}),
       },
     });
 

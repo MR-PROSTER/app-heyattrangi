@@ -17,7 +17,7 @@ export default function InstitutionLayout({
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/auth/signin");
+      router.push("/auth/institution/signin");
     } else if (
       status === "authenticated" && 
       (session?.user as any)?.role !== "INSTITUTION_ADMIN" &&

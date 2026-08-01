@@ -124,7 +124,12 @@ const generalItems: SidebarItem[] = [
 
 const toolItems: SidebarItem[] = [
     {
-        label: "Pragya AI",
+        label: "Home",
+        href: "/patient/dashboard",
+        icon: <GridIcon />,
+    },
+    {
+        label: "Talk to Attrangi",
         href: "/patient/ai-bot",
         icon: (
             <div className="relative h-7 w-7 rounded-full overflow-hidden">
@@ -138,21 +143,18 @@ const toolItems: SidebarItem[] = [
         )
     },
     {
-        label: "Library",
+        label: "Journey",
         href: "/patient/library",
-        icon: <LibraryIcon />
+        icon: <LibraryIcon />,
     },
-    // Therapist hidden
-    // { label: "Therapist", href: "/patient/therapists", icon: <UsersIcon /> },
 ]
 
 
 export default function Sidebar() {
     const pathname = usePathname()
+    const { data: session } = useSession()
     const [isCollapsed, setIsCollapsed] = useState(true) // Always closed
     const [isMobileOpen, setIsMobileOpen] = useState(false)
-    const { data: session } = useSession()
-
     const [isNotifOpen, setIsNotifOpen] = useState(false)
     const [unreadCount, setUnreadCount] = useState(0)
 
@@ -188,21 +190,14 @@ export default function Sidebar() {
         }
     }, [isMobileOpen])
 
-    const drawerItems: SidebarItem[] = [
-        { label: "Home", href: "/patient/dashboard", icon: <GridIcon /> },
-        {
-            label: "Chat bot",
-            href: "/patient/ai-bot",
-            icon: toolItems[0]?.icon ?? <ChatIcon />,
-        },
-        { label: "Library", href: "/patient/library", icon: <LibraryIcon /> },
-    ]
+    const drawerItems: SidebarItem[] = toolItems
 
     const renderNavLink = (item: SidebarItem, opts?: { expanded?: boolean; onNavigate?: () => void }) => {
         const expanded = opts?.expanded ?? !isCollapsed
         const isActive =
-            pathname === item.href ||
-            (item.href !== "/patient/dashboard" && pathname.startsWith(item.href))
+            item.href === "/patient/dashboard"
+                ? pathname === item.href
+                : pathname === item.href || pathname.startsWith(item.href)
 
         return (
             <Link
@@ -235,7 +230,8 @@ export default function Sidebar() {
 
     return (
         <>
-        {/* Mobile hamburger — top left */}
+        {/* Mobile hamburger — hidden on Profile (uses in-page back control) */}
+        {pathname !== "/patient/profile" ? (
         <button
             type="button"
             onClick={() => setIsMobileOpen(true)}
@@ -248,6 +244,7 @@ export default function Sidebar() {
                 <line x1="4" y1="17" x2="20" y2="17" />
             </svg>
         </button>
+        ) : null}
 
         {/* Mobile drawer overlay */}
         <div
@@ -408,7 +405,10 @@ export default function Sidebar() {
                     {!isCollapsed && <h3 className="text-[11px] font-bold text-orange-200/50 mb-3 px-2 uppercase tracking-wide">Tools</h3>}
                     <nav className={`flex flex-col ${isCollapsed ? "gap-6" : "gap-1.5"}`}>
                         {toolItems.map((item) => {
-                            const isActive = pathname === item.href
+                            const isActive =
+                                item.href === "/patient/dashboard"
+                                    ? pathname === item.href
+                                    : pathname === item.href || pathname.startsWith(item.href)
 
                             return (
                                 <Link
@@ -464,7 +464,7 @@ export default function Sidebar() {
                     </button>
                 </div>
 
-                {/* Profile Card / Button */}
+                {/* Profile Card / Button — bottom of sidebar (same as before) */}
                 {!isCollapsed ? (
                     <div className="mt-auto mb-6 mx-4">
                         <Link

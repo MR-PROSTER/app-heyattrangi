@@ -741,7 +741,7 @@ export default function PatientOnboarding() {
                                     <div>
                                         <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">25. Platform Security</h4>
                                         <div className="pl-6 border-l-4 border-[#3d838c]/40 text-gray-700 text-justify space-y-2">
-                                            <p>We maintain reasonable encryption, access controls, and monitoring in compliance with the Digital Personal Data Protection Act, 2023. Vulnerabilities and security breaches must be reported immediately to: <span className="font-bold text-[#3d838c]">contact@heyattrangi.com</span>.</p>
+                                            <p>We maintain reasonable encryption, access controls, and monitoring in compliance with the Digital Personal Data Protection Act, 2023. Vulnerabilities and security breaches must be reported immediately to: <span className="font-bold text-[#3d838c]">support@heyattrangi.com</span>.</p>
                                         </div>
                                     </div>
 
@@ -829,9 +829,9 @@ export default function PatientOnboarding() {
                                         <div className="pl-6 border-l-4 border-gray-300 space-y-3">
                                             <p className="font-bold text-gray-900">Aatrangi Private Limited</p>
                                             <div className="pl-6 border-l-4 border-gray-200 text-gray-700 mt-1">
-                                                Email: <span className="font-bold text-[#3d838c]">contact@heyattrangi.com</span><br />
+                                                Email: <span className="font-bold text-[#3d838c]">support@heyattrangi.com</span><br />
                                                 Website: <span className="font-bold text-[#3d838c]">www.heyattrangi.com</span><br />
-                                                Address: Jai Jinendra Banglow, Hubli–Dharwad Road, KHB Colony, Narayanpura, Dharwad, Karnataka – 580009, India
+                                                Address: 1344, JAI JITENDRA BUNGLOW, VANASIRI NAGAR, DHARWAD, DHARWAD SATTUR, DHARWAD-580009, KARNATAKA. TEL. NO.:9552324069
                                             </div>
                                         </div>
                                     </div>
@@ -1040,7 +1040,7 @@ export default function PatientOnboarding() {
                                         <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">10. Your Rights as a Data Principal</h4>
                                         <div className="pl-6 border-l-4 border-[#3d838c]/40 text-gray-700 space-y-2">
                                             <p>Under the DPDP Act, you possess the rights to access, correct, update, and request erasure of your data, withdraw consent easily, nominate a representative, and seek redressal for grievances.</p>
-                                            <p>To exercise these rights, email: <span className="font-bold text-[#3d838c]">contact@heyattrangi.com</span>.</p>
+                                            <p>To exercise these rights, email: <span className="font-bold text-[#3d838c]">support@heyattrangi.com</span>.</p>
                                         </div>
                                     </div>
 
@@ -1076,7 +1076,7 @@ export default function PatientOnboarding() {
                                         <div className="pl-6 border-l-4 border-gray-300 space-y-2">
                                             <p className="font-semibold text-gray-900">For issues, queries, or notices:</p>
                                             <div className="pl-6 border-l-4 border-gray-200 text-gray-700">
-                                                Email: <span className="font-bold text-[#3d838c]">contact@heyattrangi.com</span><br />
+                                                Email: <span className="font-bold text-[#3d838c]">support@heyattrangi.com</span><br />
                                                 Website: <span className="font-bold text-[#3d838c]">www.heyattrangi.com</span><br />
                                                 Grievances: Right to approach the Data Protection Board of India if issues remain unresolved.
                                             </div>
@@ -1251,7 +1251,7 @@ export default function PatientOnboarding() {
                                     <div>
                                         <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">13. Grievance Redressal</h4>
                                         <div className="pl-6 border-l-4 border-gray-300 space-y-2">
-                                            <p>For questions, support, or complaints regarding our AI implementations, contact: <span className="font-bold text-[#3d838c]">contact@heyattrangi.com</span>.</p>
+                                            <p>For questions, support, or complaints regarding our AI implementations, contact: <span className="font-bold text-[#3d838c]">support@heyattrangi.com</span>.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1415,7 +1415,7 @@ export default function PatientOnboarding() {
                                     <div>
                                         <h4 className="font-bold text-red-600 mb-2 uppercase text-[13px] lg:text-[15px]">8. Withdrawal &amp; Erasure Rights</h4>
                                         <div className="pl-6 border-l-4 border-red-500 text-red-700 bg-red-50 p-4 rounded-xl border border-red-100 text-justify space-y-2">
-                                            <p>You have the right to withdraw your data consent at any time by emailing: <span className="font-bold text-[#3d838c]">contact@heyattrangi.com</span>. Upon receipt, we will cease processing and erase your data.</p>
+                                            <p>You have the right to withdraw your data consent at any time by emailing: <span className="font-bold text-[#3d838c]">support@heyattrangi.com</span>. Upon receipt, we will cease processing and erase your data.</p>
                                             <p className="text-xs font-semibold">Exceptions: Data required for compliance, statutory record storage, or therapist notes required under Section 25 of the Mental Healthcare Act, 2017, will be retained as legally mandated.</p>
                                         </div>
                                     </div>
@@ -1587,7 +1587,7 @@ export default function PatientOnboarding() {
                                     <div>
                                         <h4 className="font-bold text-[#3d838c] mb-2 uppercase text-[13px] lg:text-[15px]">8. Responsible Security Research</h4>
                                         <div className="pl-6 border-l-4 border-[#3d838c]/40 text-gray-700 bg-teal-50/30 p-4 rounded-xl border border-teal-100 text-justify space-y-2">
-                                            <p>We welcome white-hat disclosures. Researchers who identify vulnerabilities should report them responsibly to: <span className="font-bold text-[#3d838c]">contact@heyattrangi.com</span>. Please include steps to reproduce and do not exfiltrate user data, disrupt services, or make public disclosures before remediation.</p>
+                                            <p>We welcome white-hat disclosures. Researchers who identify vulnerabilities should report them responsibly to: <span className="font-bold text-[#3d838c]">support@heyattrangi.com</span>. Please include steps to reproduce and do not exfiltrate user data, disrupt services, or make public disclosures before remediation.</p>
                                         </div>
                                     </div>
 

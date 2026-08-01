@@ -26,7 +26,7 @@ export async function middleware(req: NextRequest) {
                        req.cookies.get("__Secure-authjs.session-token")
 
   if (!sessionToken) {
-    return NextResponse.redirect(new URL("/auth/signin", req.url))
+    return NextResponse.redirect(new URL("/auth", req.url))
   }
 
   // For role-based access, we'll let the page handle it

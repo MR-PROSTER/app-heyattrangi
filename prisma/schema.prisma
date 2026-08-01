@@ -577,3 +577,30 @@ model PatientAssessmentResult {
 
   @@map("patient_assessment_results")
 }
+
+enum WellnessActivityCategory {
+  BREATHING
+  GROUNDING
+  RELAXATION
+  JOURNALING
+  SLEEP
+}
+
+model WellnessActivity {
+  id                String                   @id @default(auto()) @map("_id") @db.ObjectId
+  slug              String                   @unique
+  category          WellnessActivityCategory
+  title             String
+  shortDescription  String
+  benefits          String                   @db.String
+  instructions      String[]
+  estimatedDuration String
+  audioUrl          String?
+  displayOrder      Int
+  phase             Int                      @default(1)
+  isAvailable       Boolean                  @default(true)
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  @@map("wellness_activities")
+}

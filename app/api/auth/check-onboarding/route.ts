@@ -35,6 +35,9 @@ export async function GET(req: NextRequest) {
       case "ADMIN":
         isCompleted = !!user.admin
         break
+      case "INSTITUTION_ADMIN":
+        isCompleted = true
+        break
     }
 
     return NextResponse.json({ 

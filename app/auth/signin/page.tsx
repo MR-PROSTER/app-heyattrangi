@@ -4,6 +4,7 @@ import { signIn, useSession } from "next-auth/react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import AuthBrandingPanel from "@/components/auth/AuthBrandingPanel"
 
 type SignupRole = "PATIENT" | "DOCTOR"
 type Step = "EMAIL" | "PASSWORD" | "ROLE_SELECTION" | "PASSWORD_SETUP" | "SSO" | "OTP"
@@ -51,6 +52,12 @@ function RoleIcon({ role, selected }: { role: SignupRole; selected: boolean }) {
 }
 
 export default function SignInPage() {
+  return (
+    <SignInContent />
+  )
+}
+
+function SignInContent() {
   const [step, setStep] = useState<Step>("EMAIL")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -103,6 +110,9 @@ export default function SignInPage() {
             break
           case "ADMIN":
             router.push("/admin/dashboard")
+            break
+          case "INSTITUTION_ADMIN":
+            router.push("/institution")
             break
           default:
             setStep("ROLE_SELECTION")
@@ -366,71 +376,31 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen w-full flex bg-white font-sans">
-      {/* Left Branding Panel */}
-      <div className="hidden lg:flex lg:w-[65%] xl:w-[70%] relative overflow-hidden flex-col justify-between p-12 xl:p-16 bg-[#fafafa]">
-        {/* Animated glowing background lines - Attrangi style */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-          <style dangerouslySetInnerHTML={{__html: `
-            @keyframes shine-sweep {
-              0% { transform: translateX(-100vw) rotate(-15deg); }
-              100% { transform: translateX(100vw) rotate(-15deg); }
-            }
-          `}} />
-          {/* Base gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white via-[#fff4ec] to-[#ffe8d6] opacity-80"></div>
-          
-          {/* Animated floating blobs (shine effect) */}
-          <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-gradient-to-br from-[#ff6b00]/20 to-transparent rounded-full blur-[80px] animate-[pulse_4s_ease-in-out_infinite]"></div>
-          <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-gradient-to-tr from-[#ff9800]/20 to-transparent rounded-full blur-[80px] animate-[pulse_5s_ease-in-out_infinite] [animation-delay:2s]"></div>
-          <div className="absolute top-[30%] left-[20%] w-[40%] h-[40%] bg-[#ff5252]/10 rounded-full blur-[100px] animate-[pulse_6s_ease-in-out_infinite] [animation-delay:1s]"></div>
-          
-          {/* Static Diagonal bands for structure */}
-          <div className="absolute top-[-50%] left-[0%] w-[15%] h-[200%] bg-white/30 -rotate-[15deg] mix-blend-overlay"></div>
-          <div className="absolute top-[-50%] left-[25%] w-[8%] h-[200%] bg-white/40 -rotate-[15deg] mix-blend-overlay"></div>
-          <div className="absolute top-[-50%] left-[45%] w-[12%] h-[200%] bg-white/20 -rotate-[15deg] mix-blend-overlay"></div>
-          <div className="absolute top-[-50%] left-[70%] w-[20%] h-[200%] bg-white/30 -rotate-[15deg] mix-blend-overlay"></div>
+      <AuthBrandingPanel />
 
-          {/* Sweeping shining lights perfectly matching the band tilt */}
-          <div className="absolute top-[-50%] bottom-[-50%] w-[40%] h-[200%] bg-gradient-to-r from-transparent via-white/50 to-transparent mix-blend-overlay animate-[shine-sweep_7s_infinite_linear]"></div>
-          <div className="absolute top-[-50%] bottom-[-50%] w-[20%] h-[200%] bg-gradient-to-r from-transparent via-white/70 to-transparent mix-blend-overlay animate-[shine-sweep_11s_infinite_linear_3s]"></div>
-        </div>
-
-        <div className="relative z-10 w-fit flex items-center gap-3">
-          <div className="w-8 h-8 grid grid-cols-2 grid-rows-2 gap-[2px]">
-            <div className="bg-[#FFC107] rounded-tl-[4px]"></div>
-            <div className="bg-[#FF5252] rounded-tr-[4px]"></div>
-            <div className="bg-[#FF9800] rounded-bl-[4px]"></div>
-            <div className="bg-[#E64A19] rounded-br-[4px]"></div>
-          </div>
-          <span className="font-extrabold text-2xl tracking-tighter text-gray-900">Hey Attrangi!</span>
-        </div>
-
-        <div className="relative z-10 mt-auto">
-          <h2 className="text-2xl xl:text-[28px] font-bold text-[#14293f] leading-snug tracking-tight mb-6 max-w-2xl">
-            Join the community with thousands of people already trusting the website
-          </h2>
-          <div className="flex flex-wrap items-center gap-8 text-[15px] font-semibold text-[#14293f]">
-             <div className="flex items-center gap-2">
-                <span className="text-xl leading-none font-light text-[#ff6b00]">✧</span> 24/7 AI Companion
-             </div>
-             <div className="flex items-center gap-2">
-                <span className="text-xl leading-none font-light text-[#ff6b00]">✧</span> Verified Therapists
-             </div>
-             <div className="flex items-center gap-2">
-                <span className="text-xl leading-none font-light text-[#ff6b00]">✧</span> Personalized Care
-             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Form Panel */}
-      <div className="w-full lg:w-[35%] xl:w-[30%] flex items-center justify-center p-8 sm:p-12 bg-white relative">
+      {/* Right form panel — fixed width so cards never clip */}
+      <div className="w-full lg:w-[min(100%,480px)] xl:w-[500px] shrink-0 flex items-center justify-center p-8 sm:p-12 bg-white relative">
         <div className="w-full max-w-[420px]">
+          {/* Top back — only when not on SSO (SSO has its own back control) */}
+          {step !== "SSO" && (
+            <Link
+              href="/auth"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#e26843] hover:underline mb-6"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              Back
+            </Link>
+          )}
+
           {/* Header section - Hidden in SSO Step */}
           {step !== "SSO" && (
             <div className="mb-8 text-left">
               <h2 className="text-[32px] font-bold text-gray-900 tracking-tight leading-[1.2] mb-2">
-                {step === "ROLE_SELECTION" ? "Choose Profile Type" : "Login or Signup to Hey Attrangi"}
+                {step === "ROLE_SELECTION"
+                  ? "Choose Profile Type"
+                  : "Login or Signup to Hey Attrangi"}
               </h2>
               <p className="text-gray-500 text-sm font-normal leading-relaxed">
                 {step === "EMAIL" && "Enter your email address to continue your mental wellness journey."}
@@ -663,13 +633,16 @@ export default function SignInPage() {
                 </form>
               )}
 
-              {/* STEP 5: WORK EMAIL SSO STEP (Image 1 Style) */}
+              {/* STEP 5: WORK EMAIL SSO — same as before */}
               {step === "SSO" && (
                 <div className="space-y-6">
-                  {/* Back arrow at top left matching Image 1 */}
                   <button
                     type="button"
-                    onClick={() => setStep("EMAIL")}
+                    onClick={() => {
+                      setError("")
+                      // Back from patient SSO → email step
+                      setStep("EMAIL")
+                    }}
                     className="text-gray-500 hover:text-gray-900 transition-colors self-start flex items-center"
                     aria-label="Back"
                   >
@@ -728,7 +701,10 @@ export default function SignInPage() {
                 <div className="text-center mt-6">
                   <button
                     type="button"
-                    onClick={() => setStep("SSO")}
+                    onClick={() => {
+                      setError("")
+                      setStep("SSO")
+                    }}
                     className="text-sm font-semibold text-[#e26843] hover:underline underline-offset-4 bg-transparent border-none cursor-pointer"
                   >
                     Use single sign-on (SSO)

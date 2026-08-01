@@ -8,6 +8,7 @@ import UpgradeOffersBanner from "./UpgradeOffersBanner"
 import { useRouter } from "next/navigation"
 import BreathingModule from "./BreathingModule"
 import { DEFAULT_AVATAR } from "@/lib/avatar"
+import ProfileAvatar from "@/components/patient/ProfileAvatar"
 
 export default function CenterColumn({ displayName, plan, upcomingAppointments, dailyTasks = [] }: { displayName: string, plan?: string, upcomingAppointments: any[], dailyTasks?: any[] }) {
     const router = useRouter()
@@ -104,6 +105,11 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
                         </span>
                     </div>
                 </div>
+
+                <ProfileAvatar
+                    name={displayName}
+                    className="absolute top-0 right-0 md:static md:ml-auto md:mt-2"
+                />
             </header>
 
             {normalizedPlan === 'FREE' && (

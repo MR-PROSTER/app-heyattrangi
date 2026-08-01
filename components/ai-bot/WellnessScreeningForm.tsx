@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import MindMatrixResult from "@/components/ai-bot/MindMatrixResult"
 
@@ -48,13 +49,16 @@ function formatMmSs(totalSeconds: number) {
 }
 
 export default function WellnessScreeningForm() {
+    const searchParams = useSearchParams()
+    const resultParam = searchParams.get("result")
+
     const [step, setStep] = useState(0)
     const [secondsRemaining, setSecondsRemaining] = useState(STEP_TIMER_SECONDS)
     const [data, setData] = useState<ScreeningData>(INITIAL_DATA)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [showSafetyWarning, setShowSafetyWarning] = useState(false)
     const [submittedRiskLevel, setSubmittedRiskLevel] = useState<string | null>(
-        null
+        () => (resultParam && resultParam.trim() ? resultParam.trim() : null)
     )
 
     // --- HANDLERS ---

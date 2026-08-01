@@ -46,11 +46,28 @@ export async function GET(req: NextRequest) {
       // Update user role if different or not set
       if (!user.role || user.role !== selectedRole) {
         try {
+          const updateData: { role: any; plan?: any; orgId?: string } = {
+            role: selectedRole as any,
+          }
+
+          if (selectedRole === "INSTITUTION_ADMIN" && user.email) {
+            const domain = user.email.split("@")[1]?.toLowerCase()
+            if (domain) {
+              const org = await prisma.organization.findFirst({
+                where: { domains: { has: domain } },
+              })
+              if (org) {
+                updateData.plan = "ORGANIZATION"
+                updateData.orgId = org.id
+              } else {
+                updateData.plan = "ORGANIZATION"
+              }
+            }
+          }
+
           user = await prisma.user.update({
             where: { id: session.user.id },
-            data: {
-              role: selectedRole as any,
-            },
+            data: updateData,
             include: {
               patient: true,
               doctor: true,
@@ -81,6 +98,9 @@ export async function GET(req: NextRequest) {
         } catch (error) {
           console.error("Error updating Google user role:", error)
         }
+      }
+      if (selectedRole === "INSTITUTION_ADMIN") {
+        return NextResponse.redirect(new URL("/institution", req.url))
       }
       return NextResponse.redirect(new URL(`/onboarding?role=${selectedRole}`, req.url))
     }
@@ -123,6 +143,8 @@ export async function GET(req: NextRequest) {
           return NextResponse.redirect(new URL("/doctor/dashboard", req.url))
         case "ADMIN":
           return NextResponse.redirect(new URL("/admin/dashboard", req.url))
+        case "INSTITUTION_ADMIN":
+          return NextResponse.redirect(new URL("/institution", req.url))
         default:
           // No role set - send to signup to select role
           console.log("No role set for existing user - redirecting to signup")
@@ -152,6 +174,9 @@ export async function GET(req: NextRequest) {
       case "ADMIN":
         isOnboardingComplete = !!user.admin
         break
+      case "INSTITUTION_ADMIN":
+        isOnboardingComplete = true
+        break
       default:
         isOnboardingComplete = false
     }
@@ -175,8 +200,10 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(new URL("/doctor/dashboard", req.url))
       case "ADMIN":
         return NextResponse.redirect(new URL("/admin/dashboard", req.url))
+      case "INSTITUTION_ADMIN":
+        return NextResponse.redirect(new URL("/institution", req.url))
       default:
-        return NextResponse.redirect(new URL("/auth/signin", req.url))
+        return NextResponse.redirect(new URL("/auth", req.url))
     }
   } catch (error) {
     console.error("Auth callback error:", error)

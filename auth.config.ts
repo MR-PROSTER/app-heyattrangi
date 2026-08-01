@@ -54,7 +54,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
         otp: { label: "OTP", type: "text" },
-        role: { label: "Role", type: "text" }
+        role: { label: "Role", type: "text" },
+        orgId: { label: "Organization ID", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email) {
@@ -90,16 +91,42 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const isReturningUser = Boolean(user);
 
           if (!user) {
-            const userRole = (credentials.role === "DOCTOR" || credentials.role === "PATIENT")
-              ? credentials.role
+            const allowedRoles = ["DOCTOR", "PATIENT", "INSTITUTION_ADMIN"] as const
+            const requestedRole = credentials.role as string | undefined
+            const userRole = allowedRoles.includes(requestedRole as typeof allowedRoles[number])
+              ? (requestedRole as typeof allowedRoles[number])
               : "PATIENT";
+
+            const orgId =
+              typeof credentials.orgId === "string" && credentials.orgId.trim()
+                ? credentials.orgId.trim()
+                : undefined
 
             user = await prisma.user.create({
               data: {
                 email: sanitizedEmail,
                 role: userRole,
+                ...(userRole === "INSTITUTION_ADMIN"
+                  ? {
+                      plan: "ORGANIZATION",
+                      ...(orgId ? { orgId } : {}),
+                    }
+                  : {}),
               },
             });
+          } else if (
+            user.role === "INSTITUTION_ADMIN" &&
+            typeof credentials.orgId === "string" &&
+            credentials.orgId.trim() &&
+            !user.orgId
+          ) {
+            user = await prisma.user.update({
+              where: { id: user.id },
+              data: {
+                orgId: credentials.orgId.trim(),
+                plan: "ORGANIZATION",
+              },
+            })
           }
 
           // Clean up OTP only after successful user resolution
@@ -229,7 +256,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   pages: {
-    signIn: "/auth/signin",
+    signIn: "/auth",
     error: "/auth/error",
   },
   session: {

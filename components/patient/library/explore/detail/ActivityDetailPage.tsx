@@ -1,0 +1,155 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import dynamic from "next/dynamic"
+import { useRouter } from "next/navigation"
+import { AnimatePresence, motion } from "framer-motion"
+import { ArrowLeft } from "lucide-react"
+import type { ExploreActivity } from "@/data/exploreActivities"
+import { getRelatedExploreActivities } from "@/data/exploreActivities"
+import ActivityHero from "@/components/patient/library/explore/detail/ActivityHero"
+import ActivityDescription from "@/components/patient/library/explore/detail/ActivityDescription"
+import ActivityInfoCard from "@/components/patient/library/explore/detail/ActivityInfoCard"
+import BeginButton from "@/components/patient/library/explore/detail/BeginButton"
+import RelatedActivities from "@/components/patient/library/explore/detail/RelatedActivities"
+import ExploreErrorBoundary from "@/components/patient/library/explore/ExploreErrorBoundary"
+import { ActivityDetailSkeleton } from "@/components/patient/library/explore/ExploreSkeletons"
+import type { SessionState } from "@/components/patient/library/explore/session/SessionState"
+import {
+  buildActivityDetailHref,
+  buildExploreHref,
+} from "@/lib/explore/urlState"
+
+const SessionRecorder = dynamic(
+  () => import("@/components/patient/library/explore/session/SessionRecorder"),
+  { loading: () => <ActivityDetailSkeleton />, ssr: false }
+)
+
+const CompletionPage = dynamic(
+  () => import("@/components/patient/library/explore/completion/CompletionPage"),
+  { loading: () => <ActivityDetailSkeleton />, ssr: false }
+)
+
+type DetailView = "detail" | "session" | "complete"
+
+interface ActivityDetailPageProps {
+  activity: ExploreActivity
+}
+
+/**
+ * Activity detail → session recorder → completion. View state is local (session UX).
+ */
+export default function ActivityDetailPage({
+  activity,
+}: ActivityDetailPageProps) {
+  const router = useRouter()
+  const related = getRelatedExploreActivities(activity, 3)
+  const [view, setView] = useState<DetailView>("detail")
+  const [completedSession, setCompletedSession] = useState<SessionState | null>(
+    null
+  )
+
+  useEffect(() => {
+    setView("detail")
+    setCompletedSession(null)
+  }, [activity.id])
+
+  const goBack = () => {
+    router.push(buildExploreHref({ mode: "activities" }))
+  }
+
+  const openActivity = (next: ExploreActivity) => {
+    setView("detail")
+    setCompletedSession(null)
+    router.push(buildActivityDetailHref(next.slug))
+  }
+
+  const beginSession = () => {
+    setCompletedSession(null)
+    setView("session")
+  }
+
+  const exitSession = () => {
+    setCompletedSession(null)
+    setView("detail")
+  }
+
+  const finishSession = (state: SessionState) => {
+    setCompletedSession(state)
+    setView("complete")
+  }
+
+  const goToExplore = () => {
+    setCompletedSession(null)
+    router.push(buildExploreHref({ mode: "activities" }))
+  }
+
+  return (
+    <ExploreErrorBoundary onReset={goBack}>
+      <AnimatePresence mode="wait">
+        {view === "session" ? (
+          <SessionRecorder
+            key={`session-${activity.id}`}
+            activity={activity}
+            onExit={exitSession}
+            onFinish={finishSession}
+          />
+        ) : view === "complete" && completedSession ? (
+          <CompletionPage
+            key={`complete-${activity.id}`}
+            activity={activity}
+            elapsedMs={completedSession.elapsedMs}
+            onDone={goToExplore}
+            onTryAnother={goToExplore}
+          />
+        ) : (
+          <motion.div
+            key={`detail-${activity.id}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="flex-1 h-full min-h-0 w-full bg-[#FFF9F8] text-slate-800 flex flex-col font-sans"
+          >
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              <div className="p-6 md:p-8 w-full max-w-2xl mx-auto pb-10 md:pb-16">
+                <button
+                  type="button"
+                  onClick={goBack}
+                  aria-label="Back to Explore"
+                  className="inline-flex items-center gap-1.5 text-[11px] font-black text-slate-500 hover:text-slate-800 transition-colors uppercase tracking-widest mb-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 rounded-md"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" aria-hidden />
+                  Back
+                </button>
+
+                <div className="space-y-8 md:space-y-10">
+                  <ActivityHero activity={activity} />
+                  <ActivityDescription text={activity.longDescription} />
+                  <ActivityInfoCard activity={activity} />
+
+                  <BeginButton
+                    activityTitle={activity.title}
+                    onBegin={beginSession}
+                  />
+
+                  <RelatedActivities
+                    activities={related}
+                    onSelectActivity={openActivity}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="md:hidden shrink-0 z-20 w-full bg-[#FFF9F8]/95 backdrop-blur-md border-t border-slate-100/80 px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+              <BeginButton
+                activityTitle={activity.title}
+                onBegin={beginSession}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </ExploreErrorBoundary>
+  )
+}

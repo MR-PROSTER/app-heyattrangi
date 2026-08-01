@@ -17,7 +17,7 @@ export default function PricingPage() {
                     Attrangi
                 </Link>
                 <div className="flex gap-4 font-bold text-sm">
-                    <Link href="/auth/signin" className="px-5 py-2.5 rounded-full hover:bg-gray-100 transition-colors">Log In</Link>
+                    <Link href="/auth" className="px-5 py-2.5 rounded-full hover:bg-gray-100 transition-colors">Log In</Link>
                     <Link href="/auth/signup" className="px-5 py-2.5 rounded-full bg-gray-900 text-white hover:bg-gray-800 transition-colors">Sign Up</Link>
                 </div>
             </nav>
