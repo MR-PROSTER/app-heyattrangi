@@ -73,12 +73,38 @@ const clinicalGuidelines = [
 function LibraryPageContent() {
   const [activeTab, setActiveTab] = useState<string>("discover") // discover | wellness | distress | illness | stories | selfhelp | brainfood
   const [searchQuery, setSearchQuery] = useState<string>("")
+  const [highlightedCard, setHighlightedCard] = useState<string | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
+  const tabParam = searchParams.get("tab")
   const rawMode = searchParams.get("mode")
   const rawCategory = searchParams.get("category")
   const rawItem = searchParams.get("item")?.trim() || null
   const { markArticleRead, goExploreHome } = useExplore()
+
+  useEffect(() => {
+    if (tabParam) {
+      setActiveTab(tabParam)
+    }
+  }, [tabParam])
+
+  useEffect(() => {
+    const assessmentParam = searchParams.get("assessment")
+    if (activeTab === "self_assignments" && assessmentParam) {
+      const targetId = `card-${assessmentParam.toLowerCase()}`
+      setHighlightedCard(targetId)
+
+      const timer = setTimeout(() => {
+        const el = document.getElementById(targetId)
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" })
+        }
+      }, 100)
+
+      return () => clearTimeout(timer)
+    }
+    setHighlightedCard(null)
+  }, [activeTab, searchParams])
 
   // Canonicalize invalid mode/category in the URL
   useEffect(() => {
