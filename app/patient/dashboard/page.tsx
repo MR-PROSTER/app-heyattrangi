@@ -1,58 +1,84 @@
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
+
 import { Suspense } from "react"
-import { auth } from "@/auth.config"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import CenterColumn from "@/components/patient/dashboard/CenterColumn"
 import RightColumn from "@/components/patient/dashboard/RightColumn"
-import BotPopup from "@/components/patient/dashboard/BotPopup"
 import DashboardSkeleton from "@/components/patient/dashboard/DashboardSkeleton"
+import { withPerf, perfLog } from "@/lib/perf"
 
-async function DashboardContent() {
-  const session = await auth()
-  const user = await getCurrentUser()
-  
-  if (!user?.id) return null
+function buildMockDailyTasks() {
+  const today = new Date()
+  return [
+    { id: "mock-1", title: "Morning Journaling", type: "JOURNAL", dueDate: new Date(new Date(today).setHours(9, 30, 0)) },
+    { id: "mock-2", title: "Mindful Walk", type: "ACTIVITY", dueDate: new Date(new Date(today).setHours(12, 0, 0)) },
+    { id: "mock-3", title: "Deep Breathing Focus", type: "MEDITATION", dueDate: new Date(new Date(today).setHours(15, 30, 0)) },
+    { id: "mock-4", title: "Pragya AI Reflection", type: "AI_CHAT", dueDate: new Date(new Date(today).setHours(19, 0, 0)) },
+  ]
+}
 
-  const displayName = session?.user?.name || "You"
-  const plan = user?.plan || "FREE"
-  const patient = await prisma.patient.findUnique({ where: { userId: user?.id || "" } })
-
-  let upcomingAppointments: any[] = []
-  let dailyTasks: any[] = []
-
-  if (patient) {
-    const appointments = await prisma.appointment.findMany({
-      where: { patientId: patient.id },
-      include: {
+async function fetchUpcomingAppointments(patientId: string) {
+  return withPerf("DashboardContent.appointments", () =>
+    prisma.appointment.findMany({
+      where: {
+        patientId,
+        appointmentDate: { gt: new Date() },
+        status: { in: ["CONFIRMED", "COMPLETED"] },
+      },
+      select: {
+        id: true,
+        appointmentDate: true,
+        status: true,
+        meetingLink: true,
         doctor: {
-          include: { user: { select: { name: true, image: true } } },
+          select: {
+            id: true,
+            user: { select: { name: true, image: true } },
+          },
         },
       },
       orderBy: { appointmentDate: "asc" },
-    })
-
-    const now = new Date()
-    upcomingAppointments = appointments.filter(
-      (apt) => new Date(apt.appointmentDate) > now && (apt.status === "CONFIRMED" || apt.status === "COMPLETED")
+      take: 10,
+    }).then((rows) =>
+      rows.map((apt) => ({
+        ...apt,
+        meetLink: apt.meetingLink,
+      }))
     )
+  )
+}
 
-    dailyTasks = []
+async function DashboardContent() {
+  const start = performance.now()
 
-    if (dailyTasks.length === 0) {
-        const today = new Date()
-        dailyTasks = [
-            { id: "mock-1", title: "Morning Journaling", type: "JOURNAL", dueDate: new Date(today.setHours(9, 30, 0)) },
-            { id: "mock-2", title: "Mindful Walk", type: "ACTIVITY", dueDate: new Date(today.setHours(12, 0, 0)) },
-            { id: "mock-3", title: "Deep Breathing Focus", type: "MEDITATION", dueDate: new Date(today.setHours(15, 30, 0)) },
-            { id: "mock-4", title: "Pragya AI Reflection", type: "AI_CHAT", dueDate: new Date(today.setHours(19, 0, 0)) },
-        ]
-    }
-  }
+  // Deduped via React.cache — layout no longer re-runs the heavy user include
+  const user = await getCurrentUser()
+
+  if (!user?.id) return null
+
+  const displayName = user.name || "You"
+  const plan = user.plan || "FREE"
+  const patientId = user.patient?.id
+
+  const upcomingAppointments = patientId
+    ? await fetchUpcomingAppointments(patientId)
+    : []
+
+  const dailyTasks = buildMockDailyTasks()
+
+  perfLog("DashboardContent.total", performance.now() - start, {
+    appointments: upcomingAppointments.length,
+  })
 
   return (
     <div className="flex flex-1 w-full relative h-full">
-      <CenterColumn displayName={displayName} plan={plan} upcomingAppointments={upcomingAppointments} dailyTasks={dailyTasks} />
+      <CenterColumn
+        displayName={displayName}
+        plan={plan}
+        upcomingAppointments={upcomingAppointments}
+        dailyTasks={dailyTasks}
+      />
       <RightColumn upcomingAppointments={upcomingAppointments} />
     </div>
   )

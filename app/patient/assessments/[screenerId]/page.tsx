@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { SCREENERS } from "@/lib/data/screeners"
+import { scoreAdditionalScreener } from "@/lib/assessments/scoreAdditionalScreener"
 import { ArrowLeft, Check, AlertTriangle, ArrowRight, Activity } from "lucide-react"
 
 export default function AssessmentPage() {
@@ -30,12 +31,27 @@ export default function AssessmentPage() {
   }
 
   const handleAnswer = (val: number) => {
-    setAnswers({ ...answers, [currentQuestionIdx]: val })
+    const nextAnswers = { ...answers, [currentQuestionIdx]: val }
+    setAnswers(nextAnswers)
     
     // For PTSD, if it's the gate question (idx 0) and answer is No (0), we end the quiz
     if (screenerId === 'ptsd' && currentQuestionIdx === 0 && val === 0) {
       setIsComplete(true)
       return
+    }
+
+    // Skip logic from spreadsheet (C-SSRS / ASQ) — driven by screener.skipLogic
+    const skip = screener.skipLogic
+    if (skip?.type === 'c-ssrs' && currentQuestionIdx === skip.gateQuestionIndex && val === skip.gateNoValue) {
+      setTimeout(() => setCurrentQuestionIdx(skip.jumpToIndex), 300)
+      return
+    }
+    if (skip?.type === 'asq' && currentQuestionIdx === Math.max(...skip.gateQuestionIndices)) {
+      const anyYes = skip.gateQuestionIndices.some((i: number) => (nextAnswers[i] ?? 0) > 0)
+      if (!anyYes) {
+        setTimeout(() => setIsComplete(true), 300)
+        return
+      }
     }
 
     if (currentQuestionIdx < screener.questions.length - 1) {
@@ -48,6 +64,8 @@ export default function AssessmentPage() {
   const calculateResult = () => {
     let score = 0
     let severity = "None-minimal"
+    let interpretation = ""
+    let recommendation = ""
     let hasCrisisRisk = false
 
     if (screenerId === 'phq-9') {
@@ -95,8 +113,12 @@ export default function AssessmentPage() {
       Object.values(answers).forEach(val => score += val)
       severity = score >= 21 ? "Positive Screen for OCD" : "Likely Negative"
     }
+    else if (screener?.scoring) {
+      // New assessments: score from Excel-derived screener.scoring metadata
+      return scoreAdditionalScreener(screener, answers)
+    }
 
-    return { score, severity, hasCrisisRisk }
+    return { score, severity, interpretation, recommendation, hasCrisisRisk }
   }
 
   const currentQuestion = screener.questions[currentQuestionIdx]
@@ -202,6 +224,23 @@ export default function AssessmentPage() {
                         {result.severity}
                       </div>
                     </div>
+
+                    {(result.interpretation || result.recommendation) && (
+                      <div className="text-left space-y-4 max-w-lg mx-auto">
+                        {result.interpretation && (
+                          <div>
+                            <span className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Interpretation</span>
+                            <p className="text-sm text-slate-600 leading-relaxed">{result.interpretation}</p>
+                          </div>
+                        )}
+                        {result.recommendation && (
+                          <div>
+                            <span className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Recommendation</span>
+                            <p className="text-sm text-slate-600 leading-relaxed">{result.recommendation}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {result.hasCrisisRisk && (
                       <div className="bg-red-50 border border-red-100 rounded-2xl p-5 text-left flex gap-4 mt-6">

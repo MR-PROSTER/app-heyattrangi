@@ -197,10 +197,6 @@ export const EXPLORE_CATEGORY_LABELS: Record<ExploreActivityCategory, string> = 
   sleep: "Sleep",
 }
 
-export function getRecommendedExploreActivities(): ExploreActivity[] {
-  return EXPLORE_ACTIVITIES.filter((a) => a.recommended)
-}
-
 export function filterExploreActivities(
   category: "all" | ExploreActivityCategory
 ): ExploreActivity[] {

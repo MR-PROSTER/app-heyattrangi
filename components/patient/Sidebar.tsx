@@ -159,21 +159,28 @@ export default function Sidebar() {
     const [unreadCount, setUnreadCount] = useState(0)
 
     useEffect(() => {
-        // Fetch unread count on mount and optionally poll
+        // Mount + after panel closes (avoid refetch while opening)
+        if (isNotifOpen) return
+
+        const controller = new AbortController()
         const fetchUnread = async () => {
             try {
-                const res = await fetch("/api/patient/notifications")
+                const res = await fetch("/api/patient/notifications", {
+                    signal: controller.signal,
+                })
                 const data = await res.json()
                 if (data.notifications) {
                     const unread = data.notifications.filter((n: any) => !n.isRead).length
                     setUnreadCount(unread)
                 }
-            } catch (e) {
+            } catch (e: any) {
+                if (e?.name === "AbortError") return
                 console.error(e)
             }
         }
         fetchUnread()
-    }, [isNotifOpen]) // Re-fetch when panel closes
+        return () => controller.abort()
+    }, [isNotifOpen])
 
     // Close mobile drawer on route change
     useEffect(() => {

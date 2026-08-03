@@ -2,19 +2,33 @@
 
 import { useEffect } from "react"
 import { motion } from "framer-motion"
-import { ArrowLeft } from "lucide-react"
+import { Source_Serif_4 } from "next/font/google"
 import type { ListenTrack } from "@/data/listenContent"
 import ListenCover from "@/components/patient/library/explore/listen/ListenCover"
 import AudioPlayer from "@/components/patient/library/explore/listen/AudioPlayer"
-import ActivityBadge from "@/components/patient/library/explore/ActivityBadge"
-import ActivityDuration from "@/components/patient/library/explore/ActivityDuration"
 import { useListenPlayer } from "@/components/patient/library/explore/listen/ListenPlayerContext"
+
+const titleSerif = Source_Serif_4({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  display: "swap",
+})
 
 interface ListenPlayerScreenProps {
   track: ListenTrack
   onBack: () => void
 }
 
+function formatListenBadge(duration: string): string {
+  const cleaned = duration.trim().replace(/\s*listen$/i, "")
+  const upper = cleaned.toUpperCase()
+  return upper.includes("LISTEN") ? upper : `${upper} LISTEN`
+}
+
+/**
+ * Full-screen listen player.
+ * Mobile matches listen-player-mobile (image-2); desktop layout unchanged.
+ */
 export default function ListenPlayerScreen({
   track,
   onBack,
@@ -33,41 +47,90 @@ export default function ListenPlayerScreen({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      className="flex-1 h-full min-h-0 w-full bg-[#FFF9F8] text-slate-800 flex flex-col font-sans"
+      className="flex h-full min-h-0 w-full flex-1 flex-col bg-[#F9F8F3] text-[#1A1A1A]"
     >
-      <div className="flex-1 min-h-0 overflow-y-auto">
-        <div className="p-6 md:p-8 w-full max-w-md mx-auto pb-12 space-y-8">
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {/* Mobile layout — image-2 */}
+        <div className="mx-auto flex w-full max-w-[420px] flex-col px-5 pb-10 pt-4 md:hidden">
           <button
             type="button"
             onClick={onBack}
-            aria-label="Back to Listen"
-            className="inline-flex items-center gap-1.5 text-[11px] font-black text-slate-500 hover:text-slate-800 transition-colors uppercase tracking-widest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 rounded-md"
+            aria-label="Back to Explore"
+            className="mb-6 self-start text-[15px] font-medium text-[#6B6B6B] transition-colors hover:text-[#1A1A1A]
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 rounded-md"
           >
-            <ArrowLeft className="w-3.5 h-3.5" aria-hidden />
-            Back
+            ← Explore
           </button>
 
-          <div className="flex flex-col items-center text-center gap-5">
+          <div className="flex flex-col items-center text-center">
+            <ListenCover
+              illustration={track.coverIllustration}
+              size="lg"
+              title={track.title}
+              className="!h-[min(72vw,280px)] !w-[min(72vw,280px)] shadow-[0_16px_40px_rgba(40,30,20,0.16)]"
+            />
+
+            <span className="mt-6 inline-flex items-center rounded-full bg-[#FFF0E6] px-3.5 py-1 text-[11px] font-bold tracking-[0.06em] text-[#E8722A]">
+              {formatListenBadge(track.duration)}
+            </span>
+
+            <h1
+              className={`${titleSerif.className} mt-3.5 text-[30px] font-bold leading-tight tracking-tight text-[#1A1A1A]`}
+            >
+              {track.title}
+            </h1>
+
+            {(track.shortDescription || track.description)?.trim() ? (
+              <p className="mt-2 max-w-[320px] text-[14px] font-normal leading-relaxed text-[#8A8A8A]">
+                {(track.shortDescription || track.description).trim()}
+              </p>
+            ) : null}
+
+            <div className="mt-8 w-full px-1">
+              <AudioPlayer fallbackTrack={track} />
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop layout — unchanged */}
+        <div className="mx-auto hidden w-full max-w-[420px] px-6 pb-16 pt-5 sm:px-8 sm:pt-7 md:block">
+          <button
+            type="button"
+            onClick={onBack}
+            aria-label="Back to Explore"
+            className="mb-10 text-[14px] font-medium text-[#4A4A4A] transition-colors hover:text-[#1A1A1A]
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 rounded-md sm:mb-12"
+          >
+            ← Back to Explore
+          </button>
+
+          <div className="flex flex-col items-center text-center">
             <ListenCover
               illustration={track.coverIllustration}
               size="lg"
               title={track.title}
             />
-            <div className="space-y-2 max-w-sm">
-              <h1 className="font-extrabold text-2xl sm:text-[28px] text-slate-800 tracking-tight">
-                {track.title}
-              </h1>
-              <p className="text-slate-500 font-medium text-sm sm:text-[15px] leading-relaxed">
-                {track.description}
+
+            <span className="mt-7 inline-flex items-center rounded-full bg-[#FFF0E6] px-3.5 py-1 text-[11px] font-bold tracking-[0.06em] text-[#E8722A]">
+              {formatListenBadge(track.duration)}
+            </span>
+
+            <h1
+              className={`${titleSerif.className} mt-4 text-[28px] sm:text-[34px] font-bold leading-tight tracking-tight text-[#111111]`}
+            >
+              {track.title}
+            </h1>
+
+            {track.description?.trim() ? (
+              <p className="mt-2.5 max-w-[340px] text-[15px] font-normal leading-relaxed text-[#6B6B6B]">
+                {track.description.trim()}
               </p>
-              <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-                <ActivityDuration duration={track.duration} />
-                <ActivityBadge label={track.category} />
-              </div>
+            ) : null}
+
+            <div className="mt-10 w-full">
+              <AudioPlayer fallbackTrack={track} />
             </div>
           </div>
-
-          <AudioPlayer />
         </div>
       </div>
     </motion.div>

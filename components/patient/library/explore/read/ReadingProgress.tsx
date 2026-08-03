@@ -4,13 +4,13 @@ interface ReadingProgressProps {
   progress: number
 }
 
-/** Visual-only sticky progress bar. No analytics. */
+/** Soft sticky progress bar for article reading. */
 export default function ReadingProgress({ progress }: ReadingProgressProps) {
   const value = Math.min(100, Math.max(0, progress))
 
   return (
     <div
-      className="sticky top-0 z-30 w-full h-1 bg-slate-100/80"
+      className="sticky top-0 z-30 h-[2px] w-full bg-[#EDEAE3]"
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}
@@ -18,7 +18,7 @@ export default function ReadingProgress({ progress }: ReadingProgressProps) {
       aria-label="Reading progress"
     >
       <div
-        className="h-full bg-orange-400 transition-[width] duration-150 ease-out"
+        className="h-full bg-[#C8C4BC] transition-[width] duration-150 ease-out"
         style={{ width: `${value}%` }}
       />
     </div>

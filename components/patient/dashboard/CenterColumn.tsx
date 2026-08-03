@@ -2,13 +2,18 @@
 
 import Link from "next/link"
 import Image from "next/image"
+import dynamic from "next/dynamic"
 import { format, formatDistanceToNow } from "date-fns"
 import { useState, useEffect } from "react"
 import UpgradeOffersBanner from "./UpgradeOffersBanner"
 import { useRouter } from "next/navigation"
-import BreathingModule from "./BreathingModule"
 import { DEFAULT_AVATAR } from "@/lib/avatar"
 import ProfileAvatar from "@/components/patient/ProfileAvatar"
+
+const BreathingModule = dynamic(() => import("./BreathingModule"), {
+  ssr: false,
+  loading: () => null,
+})
 
 export default function CenterColumn({ displayName, plan, upcomingAppointments, dailyTasks = [] }: { displayName: string, plan?: string, upcomingAppointments: any[], dailyTasks?: any[] }) {
     const router = useRouter()
@@ -50,16 +55,27 @@ export default function CenterColumn({ displayName, plan, upcomingAppointments, 
     const [isBreathingOpen, setIsBreathingOpen] = useState(false)
 
     useEffect(() => {
+        const controller = new AbortController()
         setIsLoadingMood(true)
-        fetch(`/api/patient/analytics/mood?filter=${timeFilter}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data && typeof data.score === 'number') {
+
+        fetch(`/api/patient/analytics/mood?filter=${timeFilter}`, {
+            signal: controller.signal,
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (controller.signal.aborted) return
+                if (data && typeof data.score === "number") {
                     setMoodData(data)
                 }
-                setIsLoadingMood(false)
             })
-            .catch(() => setIsLoadingMood(false))
+            .catch((err) => {
+                if (err?.name === "AbortError") return
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) setIsLoadingMood(false)
+            })
+
+        return () => controller.abort()
     }, [timeFilter])
 
     const c = 251.2;

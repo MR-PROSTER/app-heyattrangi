@@ -1,45 +1,75 @@
 "use client"
 
-import { ChevronRight } from "lucide-react"
+import { Source_Serif_4 } from "next/font/google"
 import type { ReadArticle } from "@/data/readArticles"
-import ReadTimeBadge from "@/components/patient/library/explore/read/ReadTimeBadge"
-import ActivityBadge from "@/components/patient/library/explore/ActivityBadge"
+import ArticleCover from "@/components/patient/library/explore/read/ArticleCover"
+
+const cardSerif = Source_Serif_4({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  display: "swap",
+})
 
 interface ArticleCardProps {
   article: ReadArticle
   onSelect?: (article: ReadArticle) => void
   className?: string
+  /** shelf = image-1 mobile card (title + author); grid = title only */
+  variant?: "shelf" | "grid"
 }
 
+/**
+ * Library browse card — portrait cover + title (+ author on shelf).
+ */
 export default function ArticleCard({
   article,
   onSelect,
   className = "",
+  variant = "grid",
 }: ArticleCardProps) {
+  const readTime =
+    article.estimatedReadTime?.trim() || article.readTime?.trim() || ""
+  const author = article.author?.trim() || ""
+  const isShelf = variant === "shelf"
+
   return (
     <button
       type="button"
       onClick={() => onSelect?.(article)}
-      aria-label={`${article.title}, ${article.readTime} read, ${article.category}`}
-      className={`group relative flex flex-col h-full w-full text-left rounded-[22px] bg-white border border-slate-100/90 p-4 sm:p-5 shadow-[0_4px_16px_rgba(15,23,42,0.04)] transition-all duration-300 ease-out cursor-pointer hover:scale-[1.02] hover:shadow-[0_14px_32px_rgba(15,23,42,0.09)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 ${className}`}
+      aria-label={[
+        article.title,
+        author ? `by ${author}` : "",
+        readTime ? `${readTime} read` : "",
+      ]
+        .filter(Boolean)
+        .join(", ")}
+      className={`group flex w-full flex-col text-left
+        transition-transform duration-200 ease-out
+        hover:-translate-y-0.5 active:scale-[0.98]
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 rounded-[14px]
+        ${className}`}
     >
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <ActivityBadge label={article.category} />
-        <ChevronRight
-          className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors shrink-0 mt-0.5"
-          aria-hidden
-        />
-      </div>
-
-      <h3 className="font-bold text-[15px] sm:text-[16px] text-slate-800 tracking-tight leading-snug mb-1.5">
-        {article.title}
-      </h3>
-      <p className="text-slate-500 text-sm font-medium leading-relaxed mb-4 line-clamp-2 flex-grow">
-        {article.description}
-      </p>
-
-      <div className="flex flex-wrap items-center gap-2 mt-auto pt-1">
-        <ReadTimeBadge readTime={article.readTime} />
+      <ArticleCover
+        illustration={article.cover}
+        coverImage={article.coverImage}
+        title={article.title}
+      />
+      <div className="mt-3 px-0.5">
+        <h3
+          className={`line-clamp-2 leading-snug tracking-tight text-[#1A1A1A]
+            ${
+              isShelf
+                ? `${cardSerif.className} text-[15px] font-bold`
+                : "text-[15px] sm:text-[16px] font-bold"
+            }`}
+        >
+          {article.title}
+        </h3>
+        {isShelf && author ? (
+          <p className="mt-1 truncate text-[12px] font-medium text-[#9A9A9A]">
+            {author}
+          </p>
+        ) : null}
       </div>
     </button>
   )
