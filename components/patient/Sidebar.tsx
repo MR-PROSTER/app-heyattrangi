@@ -134,7 +134,7 @@ const toolItems: SidebarItem[] = [
         icon: (
             <div className="relative h-7 w-7 rounded-full overflow-hidden">
                 <Image
-                    src="/bot_expressions/NEUTRAL.jpg"
+                    src="/bot_expressions/Attrangi's HQ/NEUTRAL 1.png"
                     alt="Pragya AI"
                     fill
                     className="object-cover"
@@ -226,6 +226,10 @@ export default function Sidebar() {
                 ) : null}
             </Link>
         )
+    }
+
+    if (pathname === "/patient/ai-bot") {
+        return null;
     }
 
     return (

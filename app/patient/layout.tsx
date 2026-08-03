@@ -14,22 +14,11 @@ export default async function PatientLayout({
 
   const user = await getCurrentUser()
 
-  // Allow guest (unauthenticated) users on the chatbot route, rendering without the sidebar
-  if (pathname === "/patient/ai-bot") {
-    if (!user) {
-      return (
-        <div className="flex h-screen w-full bg-white overflow-hidden relative">
-          <LoadingBar />
-          <div className="flex-1 min-w-0 h-full flex flex-col relative overflow-hidden">
-            {children}
-          </div>
-        </div>
-      )
+  // Allow guests to bypass unauthorized redirect for the ai-bot route
+  if (!user || user.role !== "PATIENT") {
+    if (pathname !== "/patient/ai-bot") {
+      redirect("/auth/unauthorized")
     }
-  }
-
-  if (!user || (user.role !== "PATIENT")) {
-    redirect("/auth/unauthorized")
   }
 
   return (
