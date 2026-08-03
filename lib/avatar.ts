@@ -1,5 +1,5 @@
-export const DEFAULT_AVATAR = "/bot_expressions/Attrangi's HQ/DEFAULT 1.png";
-export const NEUTRAL_AVATAR = "/bot_expressions/Attrangi's HQ/NEUTRAL 1.png";
+export const DEFAULT_AVATAR = "/bot_expressions/Attrangi_s_HQ/DEFAULT 1.png";
+export const NEUTRAL_AVATAR = "/bot_expressions/Attrangi_s_HQ/NEUTRAL 1.png";
 
 export const EXPRESSION_FILE_MAP: Record<string, string> = {
   SAFETY: "SAFETY 1.png",
@@ -19,5 +19,5 @@ export function getBotAvatar(expression?: string): string {
   if (!expression) return DEFAULT_AVATAR;
   const upper = expression.trim().toUpperCase();
   const file = EXPRESSION_FILE_MAP[upper];
-  return file ? `/bot_expressions/Attrangi's HQ/${file}` : DEFAULT_AVATAR;
+  return file ? `/bot_expressions/Attrangi_s_HQ/${file}` : DEFAULT_AVATAR;
 }

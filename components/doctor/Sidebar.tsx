@@ -63,7 +63,7 @@ const UsersIcon = ({ className }: IconProps) => (
 const SparklesIcon = ({ className }: IconProps) => (
     <div className={`relative ${iconBase} ${className ?? ""} rounded-full overflow-hidden`}>
         <Image
-            src="/bot_expressions/Attrangi's HQ/NEUTRAL 1.png"
+            src="/bot_expressions/Attrangi_s_HQ/NEUTRAL 1.png"
             alt="Pragya AI"
             fill
             className="object-cover"
