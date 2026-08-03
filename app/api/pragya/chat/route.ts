@@ -67,19 +67,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to resolve conversation" }, { status: 500 })
   }
 
-  await appendMessage({
-    conversationId,
-    role: "user",
-    content: message.trim(),
-  })
+  try {
+    await appendMessage({
+      conversationId,
+      role: "user",
+      content: message.trim(),
+    })
+  } catch (error) {
+    console.warn("Failed to save user message to DB:", error)
+  }
 
   let pastAssessments: any[] = [];
   if (session?.user?.id) {
-    const db: any = prisma;
-    pastAssessments = await db.patientAssessmentResult.findMany({
-      where: { userId: session.user.id },
-      orderBy: { createdAt: 'desc' }
-    });
+    try {
+      const db: any = prisma;
+      pastAssessments = await db.patientAssessmentResult.findMany({
+        where: { userId: session.user.id },
+        orderBy: { createdAt: 'desc' }
+      });
+    } catch (dbError) {
+      console.warn("Could not fetch past assessments due to database error (MongoDB may be unreachable):", dbError);
+    }
   }
 
   // DEBUG - REMOVE AFTER TESTING
@@ -126,11 +134,15 @@ export async function POST(req: NextRequest) {
     
     // Save assistant reply to history
     if (data.reply && conversationId) {
-      await appendMessage({
-        conversationId,
-        role: "assistant",
-        content: data.reply,
-      })
+      try {
+        await appendMessage({
+          conversationId,
+          role: "assistant",
+          content: data.reply,
+        })
+      } catch (error) {
+        console.warn("Failed to save assistant message to DB:", error)
+      }
     }
 
     const response = NextResponse.json({
