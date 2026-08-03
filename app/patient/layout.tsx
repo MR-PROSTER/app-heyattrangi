@@ -1,34 +1,42 @@
 import { redirect } from "next/navigation"
-import { getCurrentUser } from "@/lib/auth"
-import Sidebar from "@/components/patient/Sidebar"
+import { auth } from "@/auth.config"
 import LoadingBar from "@/components/ui/LoadingBar"
+import PatientShell from "@/components/patient/PatientShell"
 import { headers } from "next/headers"
+import { withPerf } from "@/lib/perf"
 
 export default async function PatientLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const headersList = await headers()
-  const pathname = headersList.get("x-pathname") || ""
+  return withPerf("PatientLayout", async () => {
+    const headersList = await headers()
+    const pathname = headersList.get("x-pathname") || ""
 
-  const user = await getCurrentUser()
+    // Role comes from JWT claims (no doctor/admin/patient join on every navigation)
+    const session = await auth()
 
-  // Allow guests to bypass unauthorized redirect for the ai-bot route
-  if (!user || user.role !== "PATIENT") {
-    if (pathname !== "/patient/ai-bot") {
+    // Allow guest (unauthenticated) users on the chatbot route,
+    // rendering without the PatientShell/sidebar.
+    if (pathname === "/patient/ai-bot") {
+      if (!session?.user) {
+        return (
+          <div className="flex h-screen w-full bg-white overflow-hidden relative">
+            <LoadingBar />
+            <div className="flex-1 min-w-0 h-full flex flex-col relative overflow-hidden">
+              {children}
+            </div>
+          </div>
+        )
+      }
+    }
+
+    // All other patient routes require an authenticated patient.
+    if (!session?.user || session.user.role !== "PATIENT") {
       redirect("/auth/unauthorized")
     }
-  }
 
-  return (
-    <div className="flex h-screen w-full bg-white overflow-hidden relative">
-      <LoadingBar />
-      <Sidebar />
-      <div className="flex-1 min-w-0 h-full flex flex-col relative overflow-hidden">
-        {children}
-      </div>
-    </div>
-  )
+    return <PatientShell>{children}</PatientShell>
+  })
 }
-

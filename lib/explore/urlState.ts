@@ -113,9 +113,9 @@ export function buildActivityDetailHref(slug: string): string {
 }
 
 export function buildReadItemHref(slug: string): string {
-  return buildExploreHref({ mode: "read", item: slug })
+  return `/read/${encodeURIComponent(slug)}`
 }
 
 export function buildListenItemHref(slug: string): string {
-  return buildExploreHref({ mode: "listen", item: slug })
+  return `/listen/${encodeURIComponent(slug)}`
 }

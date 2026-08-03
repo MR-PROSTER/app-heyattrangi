@@ -474,5 +474,9 @@ export async function getUserMessagesByRoleSince(
       createdAt: "desc",
     },
     take: limit,
+    select: {
+      content: true,
+      createdAt: true,
+    },
   })
 }

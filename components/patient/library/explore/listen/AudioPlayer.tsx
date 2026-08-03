@@ -3,62 +3,62 @@
 import {
   Pause,
   Play,
-  Volume2,
-  VolumeX,
+  RotateCcw,
+  RotateCw,
+  SkipBack,
+  SkipForward,
 } from "lucide-react"
+import type { ListenTrack } from "@/data/listenContent"
 import {
   formatListenTime,
   useListenPlayer,
 } from "@/components/patient/library/explore/listen/ListenPlayerContext"
 
-const SPEEDS = [0.75, 1, 1.25, 1.5] as const
-
 interface AudioPlayerProps {
   className?: string
+  /** Ensures controls render before context track is set */
+  fallbackTrack?: ListenTrack
 }
 
-export default function AudioPlayer({ className = "" }: AudioPlayerProps) {
+const SKIP_SECONDS = 15
+
+/**
+ * Editorial listen controls — progress + transport row (image-2).
+ */
+export default function AudioPlayer({
+  className = "",
+  fallbackTrack,
+}: AudioPlayerProps) {
   const {
     currentTrack,
     isPlaying,
     currentTime,
     duration,
-    volume,
-    playbackRate,
     togglePlayPause,
     seek,
-    setVolume,
-    setPlaybackRate,
   } = useListenPlayer()
 
-  if (!currentTrack) return null
+  const track = currentTrack ?? fallbackTrack ?? null
+  if (!track) return null
 
-  const remaining = Math.max(0, (duration || 0) - currentTime)
+  const safeDuration = Number.isFinite(duration) && duration > 0 ? duration : 0
   const progress =
-    duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0
-  const muted = volume <= 0.001
+    safeDuration > 0 ? Math.min(100, (currentTime / safeDuration) * 100) : 0
+
+  const skipBy = (delta: number) => {
+    if (safeDuration > 0) {
+      seek(Math.max(0, Math.min(safeDuration, currentTime + delta)))
+    } else {
+      seek(Math.max(0, currentTime + delta))
+    }
+  }
 
   return (
     <div
-      className={`w-full rounded-[22px] bg-white border border-slate-100/90 shadow-[0_4px_16px_rgba(15,23,42,0.04)] p-5 sm:p-6 space-y-5 ${className}`}
+      className={`w-full space-y-7 md:space-y-8 ${className}`}
       role="region"
-      aria-label={`Audio player for ${currentTrack.title}`}
+      aria-label={`Audio player for ${track.title}`}
     >
-      <div className="flex items-center justify-center gap-4">
-        <button
-          type="button"
-          onClick={togglePlayPause}
-          aria-label={isPlaying ? "Pause" : "Play"}
-          className="w-14 h-14 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center shadow-[0_8px_24px_rgba(249,115,22,0.28)] transition-all hover:scale-[1.03] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2"
-        >
-          {isPlaying ? (
-            <Pause className="w-5 h-5 fill-current" aria-hidden />
-          ) : (
-            <Play className="w-5 h-5 fill-current ml-0.5" aria-hidden />
-          )}
-        </button>
-      </div>
-
       <div className="space-y-2">
         <label className="sr-only" htmlFor="listen-seek">
           Seek
@@ -67,84 +67,99 @@ export default function AudioPlayer({ className = "" }: AudioPlayerProps) {
           id="listen-seek"
           type="range"
           min={0}
-          max={duration || 0}
+          max={Math.max(safeDuration, 1)}
           step={0.1}
-          value={Number.isFinite(currentTime) ? currentTime : 0}
+          value={Number.isFinite(currentTime) ? Math.min(currentTime, Math.max(safeDuration, 1)) : 0}
           onChange={(e) => seek(Number(e.target.value))}
           aria-valuemin={0}
-          aria-valuemax={Math.round(duration || 0)}
+          aria-valuemax={Math.round(safeDuration || 0)}
           aria-valuenow={Math.round(currentTime)}
           aria-label="Seek position"
-          className="w-full accent-orange-500 h-2 cursor-pointer"
+          className="w-full cursor-pointer appearance-none bg-transparent outline-none
+            [&::-webkit-slider-thumb]:appearance-none
+            [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:w-3.5
+            [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--color-brand)]
+            [&::-webkit-slider-thumb]:shadow-[0_1px_4px_rgba(232,114,42,0.4)]
+            [&::-webkit-slider-thumb]:mt-[-5.5px]
+            [&::-moz-range-thumb]:h-3.5 [&::-moz-range-thumb]:w-3.5
+            [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[var(--color-brand)]
+            [&::-moz-range-thumb]:border-0
+            [&::-webkit-slider-runnable-track]:h-[3px] [&::-webkit-slider-runnable-track]:rounded-full
+            [&::-moz-range-track]:h-[3px] [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-transparent"
           style={{
-            background: `linear-gradient(to right, #f97316 ${progress}%, #e2e8f0 ${progress}%)`,
+            background: `linear-gradient(to right, var(--color-brand) ${progress}%, #F5D9C4 ${progress}%)`,
+            height: 3,
+            borderRadius: 999,
           }}
         />
-        <div className="flex items-center justify-between text-xs font-semibold tabular-nums text-slate-400">
+        <div className="flex items-center justify-between text-[12px] font-medium tabular-nums text-[#9A9A9A]">
           <span aria-label={`Current time ${formatListenTime(currentTime)}`}>
             {formatListenTime(currentTime)}
           </span>
-          <span aria-label={`Remaining ${formatListenTime(remaining)}`}>
-            -{formatListenTime(remaining)}
+          <span aria-label={`Duration ${formatListenTime(safeDuration)}`}>
+            {safeDuration > 0
+              ? formatListenTime(safeDuration)
+              : track.duration.replace(/\s*min.*/i, ":00").replace(/^(\d+)$/, "$1:00") ||
+                "0:00"}
           </span>
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <button
-            type="button"
-            onClick={() => setVolume(muted ? 0.85 : 0)}
-            aria-label={muted ? "Unmute" : "Mute"}
-            className="w-9 h-9 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 flex items-center justify-center shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2"
-          >
-            {muted ? (
-              <VolumeX className="w-4 h-4" aria-hidden />
-            ) : (
-              <Volume2 className="w-4 h-4" aria-hidden />
-            )}
-          </button>
-          <label className="sr-only" htmlFor="listen-volume">
-            Volume
-          </label>
-          <input
-            id="listen-volume"
-            type="range"
-            min={0}
-            max={1}
-            step={0.01}
-            value={volume}
-            onChange={(e) => setVolume(Number(e.target.value))}
-            aria-label="Volume"
-            className="w-full max-w-[140px] accent-orange-500 cursor-pointer"
-          />
-        </div>
-
-        <div
-          className="flex items-center gap-1.5"
-          role="group"
-          aria-label="Playback speed"
+      <div className="flex items-center justify-center gap-5 sm:gap-6">
+        <button
+          type="button"
+          onClick={() => skipBy(-SKIP_SECONDS)}
+          aria-label={`Rewind ${SKIP_SECONDS} seconds`}
+          className="flex h-10 w-10 items-center justify-center rounded-full text-[#5A5A5A] transition-colors hover:bg-black/[0.04] hover:text-[#1A1A1A]
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2"
         >
-          {SPEEDS.map((speed) => {
-            const active = playbackRate === speed
-            return (
-              <button
-                key={speed}
-                type="button"
-                onClick={() => setPlaybackRate(speed)}
-                aria-pressed={active}
-                aria-label={`${speed} times speed`}
-                className={`px-2.5 py-1.5 rounded-full text-[11px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 ${
-                  active
-                    ? "bg-slate-800 text-white"
-                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                }`}
-              >
-                {speed}x
-              </button>
-            )
-          })}
-        </div>
+          <RotateCcw className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => seek(0)}
+          aria-label="Restart track"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-[#5A5A5A] transition-colors hover:bg-black/[0.04] hover:text-[#1A1A1A]
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2"
+        >
+          <SkipBack className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+        </button>
+
+        <button
+          type="button"
+          onClick={togglePlayPause}
+          aria-label={isPlaying ? "Pause" : "Play"}
+          className="flex h-[64px] w-[64px] items-center justify-center rounded-full bg-[var(--color-brand)] text-white
+            shadow-[0_10px_28px_rgba(232,114,42,0.4)] transition-all hover:brightness-95 hover:scale-[1.03] active:scale-[0.98]
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]/40 focus-visible:ring-offset-2"
+        >
+          {isPlaying ? (
+            <Pause className="h-6 w-6 fill-current" aria-hidden />
+          ) : (
+            <Play className="h-6 w-6 fill-current ml-0.5" aria-hidden />
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => safeDuration > 0 && seek(safeDuration)}
+          aria-label="Go to end"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-[#5A5A5A] transition-colors hover:bg-black/[0.04] hover:text-[#1A1A1A]
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2"
+        >
+          <SkipForward className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => skipBy(SKIP_SECONDS)}
+          aria-label={`Forward ${SKIP_SECONDS} seconds`}
+          className="flex h-10 w-10 items-center justify-center rounded-full text-[#5A5A5A] transition-colors hover:bg-black/[0.04] hover:text-[#1A1A1A]
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2"
+        >
+          <RotateCw className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+        </button>
       </div>
     </div>
   )

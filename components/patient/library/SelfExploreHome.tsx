@@ -2,10 +2,11 @@
 
 import React, { useMemo, useState, memo } from "react"
 import dynamic from "next/dynamic"
-import { Search, SlidersHorizontal } from "lucide-react"
+import { useSession } from "next-auth/react"
+import { Bell, Search, SlidersHorizontal } from "lucide-react"
+import { Source_Serif_4 } from "next/font/google"
 import ExploreTabSwitcher from "@/components/patient/library/explore/ExploreTabSwitcher"
 import ExploreCategoryChips from "@/components/patient/library/explore/ExploreCategoryChips"
-import RecommendedSection from "@/components/patient/library/explore/RecommendedSection"
 import ActivityGrid from "@/components/patient/library/explore/ActivityGrid"
 import ExploreErrorBoundary from "@/components/patient/library/explore/ExploreErrorBoundary"
 import { useExplore } from "@/components/patient/library/explore/ExploreProvider"
@@ -17,7 +18,6 @@ import {
 import { useListenPlayer } from "@/components/patient/library/explore/listen/ListenPlayerContext"
 import {
   filterExploreActivities,
-  getRecommendedExploreActivities,
   type ExploreActivity,
 } from "@/data/exploreActivities"
 import { READ_ARTICLES, type ReadArticle } from "@/data/readArticles"
@@ -27,6 +27,12 @@ import {
   type ListenTrack,
 } from "@/data/listenContent"
 import type { ExploreMode } from "@/lib/explore/urlState"
+
+const exploreSerif = Source_Serif_4({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  display: "swap",
+})
 
 const ReadModePanel = dynamic(
   () => import("@/components/patient/library/explore/read/ReadModePanel"),
@@ -52,8 +58,10 @@ interface SelfExploreHomeProps {
 
 /**
  * Explore hub — tab/category state comes from ExploreProvider (URL).
+ * Mobile Read/Listen uses image-1 literary shelf layout.
  */
 function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
+  const { data: session } = useSession()
   const {
     mode,
     category,
@@ -69,12 +77,10 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
   const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
 
-  const listenTracks = useMemo(() => getBrowsableListenTracks(), [])
+  const firstName = session?.user?.name?.trim().split(/\s+/)[0] || "there"
+  const isShelfMode = mode === "read" || mode === "listen"
 
-  const recommendedActivities = useMemo(
-    () => getRecommendedExploreActivities(),
-    []
-  )
+  const listenTracks = useMemo(() => getBrowsableListenTracks(), [])
 
   const filteredActivities = useMemo(
     () => filterExploreActivities(category),
@@ -105,7 +111,49 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
 
   return (
     <div className="space-y-6 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 w-full pb-20">
-      <div className="flex items-start justify-between gap-4">
+      {/* Mobile literary header (image-1) for Read / Listen */}
+      {isShelfMode ? (
+        <div className="md:hidden space-y-4">
+          <div className="flex items-center justify-between">
+            <div
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-[#2C2C2C] text-[15px] font-bold text-white"
+              aria-hidden
+            >
+              {(session?.user?.name?.[0] || "U").toUpperCase()}
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowSearch((v) => !v)}
+              aria-label="Search"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1A1A1A] text-white
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2"
+            >
+              <Bell className="h-5 w-5" strokeWidth={2} />
+            </button>
+          </div>
+          <div>
+            <p
+              className={`${exploreSerif.className} text-[28px] font-bold leading-tight text-[#1A1A1A]`}
+            >
+              Hey, <span className="text-[#E8722A]">{firstName}!</span>
+            </p>
+            <p
+              className={`${exploreSerif.className} mt-1 text-[26px] font-bold leading-snug text-[#1A1A1A]`}
+            >
+              {mode === "listen"
+                ? "What will you listen today?"
+                : "What will you read today?"}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Default / desktop Explore header */}
+      <div
+        className={`flex items-start justify-between gap-4 ${
+          isShelfMode ? "hidden md:flex" : ""
+        }`}
+      >
         <div className="min-w-0">
           <h1 className="font-extrabold text-[28px] md:text-[32px] text-slate-800 tracking-tight">
             Explore
@@ -150,11 +198,6 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
           </button>
         </div>
       )}
-
-      <RecommendedSection
-        activities={recommendedActivities}
-        onSelectActivity={handleSelectActivity}
-      />
 
       <ExploreTabSwitcher
         value={mode}

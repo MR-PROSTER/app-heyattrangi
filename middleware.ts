@@ -45,6 +45,8 @@ export const config = {
     "/doctor/:path*",
     "/admin/:path*",
     "/dashboard/:path*",
+    "/read/:path*",
+    "/listen/:path*",
   ],
 }
 

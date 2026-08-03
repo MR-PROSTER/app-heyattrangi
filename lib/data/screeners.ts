@@ -1,3 +1,5 @@
+import { ADDITIONAL_SCREENERS } from "@/lib/data/additionalScreeners"
+
 export const SCREENERS: Record<string, any> = {
   "phq-9": {
     "title": "Am I Sad or Depressed? (PHQ-9)",
@@ -1419,5 +1421,6 @@ export const SCREENERS: Record<string, any> = {
         ]
       }
     ]
-  }
+  },
+  ...ADDITIONAL_SCREENERS,
 };

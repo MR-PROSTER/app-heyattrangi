@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -24,6 +25,10 @@ import { READ_ARTICLES } from "@/data/readArticles"
 import { getBrowsableListenTracks } from "@/data/listenContent"
 import { getReadArticlesByIds } from "@/data/readArticles"
 import type { ReadArticle } from "@/data/readArticles"
+import {
+  getRecentlyReadIds,
+  markRecentlyReadId,
+} from "@/lib/read/recentlyRead"
 
 interface ExploreContextValue {
   mode: ExploreMode
@@ -51,6 +56,10 @@ export function ExploreProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [recentlyReadIds, setRecentlyReadIds] = useState<string[]>([])
+
+  useEffect(() => {
+    setRecentlyReadIds(getRecentlyReadIds())
+  }, [])
 
   const hideRead = READ_ARTICLES.length === 0
   const hideListen = getBrowsableListenTracks().length === 0
@@ -137,10 +146,8 @@ export function ExploreProvider({ children }: { children: ReactNode }) {
   )
 
   const markArticleRead = useCallback((article: ReadArticle) => {
-    setRecentlyReadIds((prev) => {
-      const next = [article.id, ...prev.filter((id) => id !== article.id)]
-      return next.slice(0, 8)
-    })
+    markRecentlyReadId(article.id)
+    setRecentlyReadIds(getRecentlyReadIds())
   }, [])
 
   const goExploreHome = useCallback(

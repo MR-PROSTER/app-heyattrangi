@@ -4,7 +4,6 @@ import React, { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Sparkles, BookOpen, Newspaper, ShieldCheck, ArrowRight, ExternalLink, Clock, Activity } from "lucide-react"
-import dynamic from "next/dynamic"
 import BreathingExercise from "@/components/patient/library/BreathingExercise"
 import SelfExploreHome from "@/components/patient/library/SelfExploreHome"
 import MiniPlayer from "@/components/patient/library/explore/listen/MiniPlayer"
@@ -14,24 +13,15 @@ import ExploreErrorBoundary from "@/components/patient/library/explore/ExploreEr
 import {
   PlayerSkeleton,
 } from "@/components/patient/library/explore/ExploreSkeletons"
-import { getReadArticleBySlug } from "@/data/readArticles"
 import { getListenTrackBySlug } from "@/data/listenContent"
 import {
   buildExploreHref,
+  buildReadItemHref,
+  buildListenItemHref,
   parseExploreMode,
   parseExploreCategory,
 } from "@/lib/explore/urlState"
 import { AnimatePresence } from "framer-motion"
-
-const ArticleDetail = dynamic(
-  () => import("@/components/patient/library/explore/read/ArticleDetail"),
-  { loading: () => <PlayerSkeleton />, ssr: false }
-)
-const ListenPlayerScreen = dynamic(
-  () => import("@/components/patient/library/explore/listen/ListenPlayerScreen"),
-  { loading: () => <PlayerSkeleton />, ssr: false }
-)
-
 
 // --- TYPES ---
 interface JournalEntry {
@@ -79,7 +69,7 @@ function LibraryPageContent() {
   const rawMode = searchParams.get("mode")
   const rawCategory = searchParams.get("category")
   const rawItem = searchParams.get("item")?.trim() || null
-  const { markArticleRead, goExploreHome } = useExplore()
+  const { goExploreHome } = useExplore()
 
   useEffect(() => {
     if (tabParam) {
@@ -264,20 +254,28 @@ function LibraryPageContent() {
     setQuizScore(score)
   }
 
-  // Invalid item slug → return to Explore safely
+  // Legacy ?mode=read&item=slug → canonical /read/[slug]
   useEffect(() => {
-    if (readMode && readItem && !getReadArticleBySlug(readItem)) {
-      router.replace(buildExploreHref({ mode: "read", item: null }))
+    if (readMode && readItem) {
+      router.replace(buildReadItemHref(readItem))
     }
+  }, [readMode, readItem, router])
+
+  // Legacy ?mode=listen&item=slug → canonical /listen/[slug]
+  useEffect(() => {
+    if (listenMode && readItem && getListenTrackBySlug(readItem)) {
+      router.replace(buildListenItemHref(readItem))
+    }
+  }, [listenMode, readItem, router])
+
+  // Invalid listen item slug → return to Explore safely
+  useEffect(() => {
     if (listenMode && readItem && !getListenTrackBySlug(readItem)) {
       router.replace(buildExploreHref({ mode: "listen", item: null }))
     }
-  }, [readMode, listenMode, readItem, router])
+  }, [listenMode, readItem, router])
 
-  const readArticle = readMode && readItem ? getReadArticleBySlug(readItem) : undefined
-  const listenTrack = listenMode && readItem ? getListenTrackBySlug(readItem) : undefined
-
-  if (readMode && readItem && !readArticle) {
+  if (readMode && readItem) {
     return (
       <div className="flex-1 h-full flex items-center justify-center bg-[#FFF9F8]">
         <PlayerSkeleton />
@@ -285,44 +283,10 @@ function LibraryPageContent() {
     )
   }
 
-  if (listenMode && readItem && !listenTrack) {
+  if (listenMode && readItem) {
     return (
       <div className="flex-1 h-full flex items-center justify-center bg-[#FFF9F8]">
         <PlayerSkeleton />
-      </div>
-    )
-  }
-
-  if (readArticle) {
-    return (
-      <div className="flex-1 h-full min-h-0 overflow-hidden w-full bg-[#FFF9F8] text-slate-800 flex flex-col font-sans relative">
-        <ExploreErrorBoundary onReset={() => goExploreHome("read")}>
-          <ArticleDetail
-            article={readArticle}
-            onBack={() => router.push(buildExploreHref({ mode: "read", item: null }))}
-            onRead={markArticleRead}
-          />
-        </ExploreErrorBoundary>
-        <AnimatePresence>
-          <LibraryMiniPlayer
-            onExpand={(slug) =>
-              router.push(buildExploreHref({ mode: "listen", item: slug }))
-            }
-          />
-        </AnimatePresence>
-      </div>
-    )
-  }
-
-  if (listenTrack) {
-    return (
-      <div className="flex-1 h-full min-h-0 overflow-hidden w-full bg-[#FFF9F8] text-slate-800 flex flex-col font-sans">
-        <ExploreErrorBoundary onReset={() => goExploreHome("listen")}>
-          <ListenPlayerScreen
-            track={listenTrack}
-            onBack={() => router.push(buildExploreHref({ mode: "listen", item: null }))}
-          />
-        </ExploreErrorBoundary>
       </div>
     )
   }
@@ -349,7 +313,8 @@ function LibraryPageContent() {
               <SelfExploreHome onNavigateLibraryTab={setActiveTab} />
             </ExploreErrorBoundary>
 
-            {/* Mental Health Research & News Dashboard */}
+            {/* Mental Health Dashboard section — temporarily hidden */}
+            {false && (
             <div className="mt-12 border-t border-slate-100 pt-16">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
                 <div>
@@ -504,6 +469,7 @@ function LibraryPageContent() {
 
               </div>
             </div>
+            )}
 
           </div>
         )}
@@ -1063,9 +1029,7 @@ function LibraryPageContent() {
 
       <AnimatePresence>
         <LibraryMiniPlayer
-          onExpand={(slug) =>
-            router.push(`/patient/library?mode=listen&item=${encodeURIComponent(slug)}`)
-          }
+          onExpand={(slug) => router.push(buildListenItemHref(slug))}
         />
       </AnimatePresence>
     </div>

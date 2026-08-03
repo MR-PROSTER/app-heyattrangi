@@ -50,6 +50,7 @@ export default function ListenPlayerProvider({
   children,
 }: ListenPlayerProviderProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const pendingTrackRef = useRef<ListenTrack | null>(null)
   const [currentTrack, setCurrentTrack] = useState<ListenTrack | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -83,6 +84,17 @@ export default function ListenPlayerProvider({
     audio.addEventListener("ended", onEnded)
     audio.addEventListener("error", onError)
 
+    // Flush track queued before audio element existed (child effect race)
+    const pending = pendingTrackRef.current
+    if (pending) {
+      pendingTrackRef.current = null
+      audio.src = pending.audioSrc
+      setCurrentTrack(pending)
+      setCurrentTime(0)
+      setDuration(0)
+      void audio.play().catch(() => setIsPlaying(false))
+    }
+
     return () => {
       audio.pause()
       audio.removeEventListener("timeupdate", onTime)
@@ -113,8 +125,17 @@ export default function ListenPlayerProvider({
 
   const playTrack = useCallback(
     (track: ListenTrack) => {
+      // Always set track so player UI renders even if audio isn't ready yet
+      markPlayed(track)
+
       const audio = audioRef.current
-      if (!audio) return
+      if (!audio) {
+        pendingTrackRef.current = track
+        setCurrentTrack(track)
+        setCurrentTime(0)
+        setDuration(0)
+        return
+      }
 
       const isSame = currentTrack?.id === track.id
       if (!isSame) {
@@ -127,7 +148,6 @@ export default function ListenPlayerProvider({
       void audio.play().catch(() => {
         setIsPlaying(false)
       })
-      markPlayed(track)
     },
     [currentTrack?.id, markPlayed]
   )

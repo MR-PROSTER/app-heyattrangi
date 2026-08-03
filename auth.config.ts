@@ -220,36 +220,66 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // Default to callback handler
       return `${baseUrl}/auth/callback`
     },
-    async jwt({ token, account, profile, user }) {
-      if (user) {
+    async jwt({ token, user, trigger }) {
+      // Hydrate claims once at sign-in (or explicit update) so session()
+      // does not hit Mongo on every auth()/getSession call.
+      if (user?.id) {
         token.id = user.id
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: user.id },
+            select: { role: true, plan: true, orgId: true },
+          })
+          if (dbUser) {
+            token.role = dbUser.role
+            token.plan = dbUser.plan
+            token.orgId = dbUser.orgId
+          }
+        } catch (error) {
+          console.error("Error hydrating JWT claims:", error)
+          token.role = token.role || "PATIENT"
+        }
+      } else if (trigger === "update" && token.id) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { role: true, plan: true, orgId: true },
+          })
+          if (dbUser) {
+            token.role = dbUser.role
+            token.plan = dbUser.plan
+            token.orgId = dbUser.orgId
+          }
+        } catch (error) {
+          console.error("Error refreshing JWT claims:", error)
+        }
       }
       return token
     },
     async session({ session, token, user }) {
-      // With JWT strategy, user ID is in token.id
       const userId = (token?.id as string) || user?.id
 
       if (session.user && userId) {
-        try {
-          // Get user role and plan from database
-          const dbUser = await prisma.user.findUnique({
-            where: { id: userId },
-            include: {
-              patient: true,
-              doctor: true,
-              admin: true,
-            },
-          })
-          
-          session.user.id = userId
-          session.user.role = dbUser?.role || "PATIENT"
-          session.user.plan = dbUser?.plan
-          session.user.orgId = dbUser?.orgId
-        } catch (error) {
-          console.error("Error in session callback:", error)
-          session.user.id = userId
-          session.user.role = "PATIENT"
+        session.user.id = userId
+
+        if (token.role) {
+          session.user.role = token.role as typeof session.user.role
+          session.user.plan = token.plan as typeof session.user.plan
+          session.user.orgId = (token.orgId as string | null | undefined) ?? null
+        } else {
+          // Legacy JWTs minted before claim hydration — one lean lookup
+          try {
+            const dbUser = await prisma.user.findUnique({
+              where: { id: userId },
+              select: { role: true, plan: true, orgId: true },
+            })
+            session.user.role = dbUser?.role || "PATIENT"
+            session.user.plan = dbUser?.plan
+            session.user.orgId = dbUser?.orgId
+          } catch (error) {
+            console.error("Error in session fallback:", error)
+            session.user.role = "PATIENT"
+          }
         }
       }
       return session
