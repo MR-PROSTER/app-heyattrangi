@@ -17,7 +17,8 @@ export default async function PatientLayout({
     // Role comes from JWT claims (no doctor/admin/patient join on every navigation)
     const session = await auth()
 
-    // Allow guest (unauthenticated) users on the chatbot route, rendering without the sidebar
+    // Allow guest (unauthenticated) users on the chatbot route,
+    // rendering without the PatientShell/sidebar.
     if (pathname === "/patient/ai-bot") {
       if (!session?.user) {
         return (
@@ -31,6 +32,7 @@ export default async function PatientLayout({
       }
     }
 
+    // All other patient routes require an authenticated patient.
     if (!session?.user || session.user.role !== "PATIENT") {
       redirect("/auth/unauthorized")
     }

@@ -244,6 +244,17 @@ const ChatLoadingIndicator = () => {
     );
 };
 
+const HOME_GREETINGS = [
+    "Greetings of the Day 👋",
+    "Good to See You! 👋",
+    "How Can I Help You Today? 😊",
+    "Hi There! 👋",
+    "Welcome Back! 👋",
+    "What's on Your Mind Today? 💬",
+    "Let's Talk! 👋",
+    "Ready When You Are! ✨"
+];
+
 export default function TryPragyaChat({
     sessionId,
     initialPlan = "FREE",
@@ -312,6 +323,12 @@ export default function TryPragyaChat({
             localStorage.setItem(GUEST_TRIAL_EXHAUSTED_KEY, "true");
         }
     }, [isGuestSession]);
+
+    const [currentGreeting, setCurrentGreeting] = useState("Hi There! 👋");
+
+    useEffect(() => {
+        setCurrentGreeting(HOME_GREETINGS[Math.floor(Math.random() * HOME_GREETINGS.length)]);
+    }, []);
 
     const [hasStarted, setHasStarted] = useState(false);
     const [conversationStarted, setConversationStarted] = useState(false);
@@ -583,6 +600,7 @@ export default function TryPragyaChat({
         setSummaryReport(null);
         setSummaryError(null);
         setSummarizeHint(null);
+        setCurrentGreeting(HOME_GREETINGS[Math.floor(Math.random() * HOME_GREETINGS.length)]);
     };
 
     const endAndSummarize = async () => {
@@ -644,413 +662,193 @@ export default function TryPragyaChat({
     return (
         <>
             <div className="flex flex-col h-full bg-white text-gray-800 overflow-hidden font-sans relative">
-                {/* Subtle grid pattern + soft radial ambient glow */}
-                <div
-                    className="absolute inset-0 pointer-events-none z-0 opacity-40"
-                    style={{
-                        backgroundImage: `
-            radial-gradient(circle at 100% 0%, rgba(254, 215, 170, 0.15) 0%, transparent 50%),
-            radial-gradient(circle at 0% 100%, rgba(254, 243, 199, 0.15) 0%, transparent 50%),
-            radial-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px)
-          `,
-                        backgroundSize: "100% 100%, 100% 100%, 20px 20px",
-                    }}
-                ></div>
-                <div className="flex-1 flex flex-col md:flex-row w-full max-w-[1600px] mx-auto overflow-hidden relative h-full z-10">
-                    {/* Mobile Header (Visible only on small screens) */}
-                    <div className="md:hidden w-full relative shrink-0 z-20 overflow-hidden bg-transparent">
-                        <div className="absolute top-4 right-4 z-30 flex items-center gap-2">
-                            {!isAuthenticated && (
-                                <a
-                                    href="/auth/signin"
-                                    title="Sign In"
-                                    className="p-2 text-gray-500 hover:text-orange-500 rounded-full bg-white/40 backdrop-blur-md hover:bg-white transition-colors border border-white/40 shadow-sm flex items-center justify-center"
-                                >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                                    </svg>
-                                </a>
-                            )}
+                <div className="flex-1 flex flex-col w-full max-w-4xl mx-auto overflow-hidden relative h-full z-10 px-4 md:px-8">
+                    {/* Top Navigation */}
+                    <div className="w-full flex items-center justify-between py-6 shrink-0 z-20">
+                        {/* Back Arrow */}
+                        <Link
+                            href="/patient/dashboard"
+                            className="p-2 text-gray-800 hover:text-black hover:bg-gray-100 transition-colors rounded-full -ml-3"
+                        >
+                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </Link>
+                        
+                        {/* Right side: History */}
+                        <div className="flex items-center gap-4">
                             <button
-                                onClick={resetChat}
-                                title="Reset Chat"
-                                className="p-2 text-gray-500 hover:text-orange-500 rounded-full bg-white/40 backdrop-blur-md hover:bg-white transition-colors border border-white/40 shadow-sm"
+                                onClick={async () => {
+                                    setHistoryOpen(true);
+                                    setIsHistoryLoading(true);
+                                    try {
+                                        const res = await fetch("/api/pragya/history");
+                                        const data = await res.json();
+                                        if (res.ok && data.messages) {
+                                            setPastMessages(data.messages);
+                                        }
+                                    } catch (e) {
+                                        console.error("Error fetching history:", e);
+                                    } finally {
+                                        setIsHistoryLoading(false);
+                                    }
+                                }}
+                                className="p-2 text-gray-800 hover:text-black hover:bg-gray-100 transition-colors rounded-full flex items-center justify-center -mr-3"
+                                title="Chat History"
                             >
-                                <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                    />
-                                </svg>
-                            </button>
-                            <button
-                                onClick={endAndSummarize}
-                                disabled={summarizing || !hasStarted || messages.length === 0}
-                                title="End & Summarize"
-                                className={`p-2 rounded-full transition-colors border shadow-sm backdrop-blur-md ${summarizing || !hasStarted || messages.length === 0
-                                    ? "text-gray-400 bg-white/30 border-white/20 cursor-not-allowed"
-                                    : "text-white bg-orange-500 border-orange-400 hover:bg-orange-600"
-                                    }`}
-                            >
-                                <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-                                    />
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3" />
                                 </svg>
                             </button>
                         </div>
-
-                        <div className="flex px-5 pt-10 pb-8 items-center justify-between relative z-10 max-w-lg mx-auto">
-                            <div className="relative w-[150px] h-[150px] shrink-0 -ml-6 z-10">
-                                <Image
-                                    src={getBotAvatar(botExpression)}
-                                    alt="Pragya Avatar"
-                                    fill
-                                    className="object-cover scale-[1.15]"
-                                    sizes="150px"
-                                    priority
-                                    unoptimized
-                                    style={{
-                                        maskImage:
-                                            "radial-gradient(circle, black 60%, transparent 80%)",
-                                        WebkitMaskImage:
-                                            "radial-gradient(circle, black 60%, transparent 80%)",
-                                    }}
-                                />
-                            </div>
-                            <div className="bg-white p-5 rounded-3xl rounded-tl-sm shadow-[0_8px_30px_rgb(0,0,0,0.1)] flex-1 -ml-4 relative z-30 border border-white">
-                                <h1 className="text-[17px] font-bold text-[#4a2e5d] mb-1.5 flex items-center gap-1.5">
-                                    Hey Attrangi! <span className="text-lg">👋</span>
-                                </h1>
-                                <p className="text-[13px] text-gray-600 leading-relaxed font-medium pr-2">
-                                    I'm here to listen, support and help you feel better.
-                                </p>
-                                <div className="absolute bottom-3 right-4 text-[#d9b8f2]">
-                                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        {/* Chat container top overlap */}
-                        <div className="absolute bottom-0 left-0 right-0 h-6 bg-white rounded-t-[24px] z-20"></div>
                     </div>
 
-                    {/* Left Sidebar */}
-                    <div className="hidden md:flex w-[360px] md:w-[400px] bg-white border-r border-gray-100 flex-col items-center py-8 px-6 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10 relative">
-                        <div className="flex-1 flex flex-col items-center justify-center w-full pb-12">
-                            <h1 className="text-xl font-bold text-gray-800 tracking-wide mb-8">
-                                Hey Attrangi
-                            </h1>
+                    {/* LIMIT REACHED MODAL OVERLAY */}
+                    {limitData.isLimitReached && (
+                        <div className="absolute inset-0 z-50 backdrop-blur-md bg-white/30 flex items-center justify-center p-6 animate-in fade-in duration-500">
+                            <div className="bg-white/90 backdrop-blur-xl p-10 rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.1)] border border-white/50 text-center max-w-md w-full scale-in-center">
+                                <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <svg
+                                        className="w-10 h-10 text-orange-600"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                        />
+                                    </svg>
+                                </div>
+                                <h2 className="text-2xl font-bold text-gray-800 mb-3">
+                                    Limit Reached
+                                </h2>
+                                <p className="text-gray-500 mb-8 font-medium">
+                                    {isGuestSession
+                                        ? `You've exhausted the free trial on this device. Sign in to continue chatting with Pragya.`
+                                        : `You've used all ${limitData.maxChats} chats for your current plan today. Upgrade to continue chatting!`}
+                                </p>
 
-                            {/* Bot Avatar Container */}
-                            <div className="relative w-[320px] h-[320px] rounded-[2.5rem] shadow-[0_20px_50px_rgba(249,107,19,0.15)] mb-8 overflow-hidden group border border-orange-50/50">
-                                <div className="relative w-full h-full transform transition-transform duration-700 ease-out group-hover:scale-105">
-                                    <Image
-                                        src={getBotAvatar(botExpression)}
-                                        alt="Pragya Avatar"
-                                        fill
-                                        className="object-cover"
-                                        sizes="320px"
-                                        priority
-                                        unoptimized
-                                    />
+                                <div className="space-y-4">
+                                    <a
+                                        href={isGuestSession ? "/auth/signin" : "/patient/billing"}
+                                        className="block w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-orange-500/30 transition-all hover:-translate-y-1 active:scale-[0.98]"
+                                    >
+                                        {isGuestSession ? "Sign In to Continue" : "Upgrade Plan"}
+                                    </a>
                                 </div>
                             </div>
+                        </div>
+                    )}
 
-                            {/* Mode Pill */}
-                            <div className="bg-gray-50 border border-gray-200 px-4 py-1.5 rounded-full flex items-center gap-2 shadow-inner group cursor-default transition-all duration-300 hover:border-orange-200 mb-8">
-                                <div className="w-1.5 h-1.5 rounded-full bg-gray-400 group-hover:bg-orange-400 transition-colors"></div>
-                                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest group-hover:text-gray-600 transition-colors">
-                                    {botExpression} MODE
+                    {/* Chat Limit Badge */}
+                    <div
+                        className={`absolute right-4 md:right-8 top-[84px] z-50 hidden lg:flex items-center transition-all duration-700 ${hasStarted ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+                    >
+                        <div className="flex items-center gap-3 bg-white border border-gray-200 shadow-sm rounded-full pl-2 pr-5 py-1.5 backdrop-blur-sm bg-white/90 pointer-events-auto">
+                            <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
+                                <svg
+                                    className="w-4 h-4"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                >
+                                    <rect
+                                        x="2"
+                                        y="5"
+                                        width="20"
+                                        height="14"
+                                        rx="2"
+                                        ry="2"
+                                    ></rect>
+                                    <line x1="2" y1="10" x2="22" y2="10"></line>
+                                </svg>
+                            </div>
+                            <div className="flex flex-col items-start leading-tight">
+                                <span className="text-[9px] text-gray-400 uppercase tracking-widest font-black">
+                                    Available
+                                </span>
+                                <span className="text-sm font-bold text-gray-800">
+                                    {isGuestSession
+                                        ? `${limitData.remaining} / ${GUEST_TRIAL_LIMIT} Free Trials`
+                                        : plan === "FREE"
+                                            ? `${limitData.remaining} / 10 Chats`
+                                            : plan === "ESSENTIAL"
+                                                ? `${limitData.remaining} / 25 Chats`
+                                                : "Unlimited Chats"}
                                 </span>
                             </div>
-
-                            {/* Action Buttons */}
-                            <div className="w-full max-w-[280px] space-y-3">
-                                {isAuthenticated ? (
-                                    <button
-                                        type="button"
-                                        onClick={async () => {
-                                            setHistoryOpen(true);
-                                            setIsHistoryLoading(true);
-                                            try {
-                                                const res = await fetch("/api/pragya/history");
-                                                const data = await res.json();
-                                                if (res.ok && data.messages) {
-                                                    setPastMessages(data.messages);
-                                                }
-                                            } catch (e) {
-                                                console.error("Error fetching history:", e);
-                                            } finally {
-                                                setIsHistoryLoading(false);
-                                            }
-                                        }}
-                                        className="flex w-full items-center justify-center gap-2 rounded-[16px] border border-gray-200 bg-white px-4 py-4 text-[15px] font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50"
-                                    >
-                                        <svg
-                                            className="h-5 w-5 text-gray-400"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={1.5}
-                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                            />
-                                        </svg>
-                                        Chat History
-                                    </button>
-                                ) : (
-                                    <a
-                                        href="/auth/signin"
-                                        className="flex w-full items-center justify-center gap-2 rounded-[16px] border border-orange-500 bg-gradient-to-r from-orange-600 to-orange-500 px-4 py-4 text-[15px] font-bold text-white shadow-md transition-colors hover:from-orange-700 hover:to-orange-600"
-                                    >
-                                        <svg className="h-5 w-5 text-orange-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                                        </svg>
-                                        Sign In to Save Chats
-                                    </a>
-                                )}
-                                <button
-                                    type="button"
-                                    onClick={resetChat}
-                                    className="flex w-full items-center justify-center gap-2 rounded-[16px] border border-gray-200 bg-white px-4 py-4 text-[15px] font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50"
-                                >
-                                    <svg
-                                        className="h-5 w-5 text-gray-400"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={1.5}
-                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                        />
-                                    </svg>
-                                    Reset Chat
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={endAndSummarize}
-                                    disabled={summarizing}
-                                    className="flex w-full items-center justify-center gap-2 rounded-[16px] border border-orange-500 bg-gradient-to-r from-orange-600 to-orange-500 px-4 py-4 text-[15px] font-medium text-white shadow-md transition-colors hover:from-orange-700 hover:to-orange-600 disabled:cursor-not-allowed disabled:opacity-70"
-                                >
-                                    <svg
-                                        className="h-5 w-5 shrink-0 text-orange-100"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={1.5}
-                                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-                                        />
-                                    </svg>
-                                    {summarizing ? "Summarizing…" : "End & Summarize"}
-                                </button>
-                                {summarizeHint && (
-                                    <p className="text-center text-[12px] font-medium text-orange-700">
-                                        {summarizeHint}
-                                    </p>
-                                )}
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() => setShowMemoryPolicy(true)}
-                                className="mt-6 text-[12px] font-bold text-gray-400 hover:text-orange-500 transition-colors flex items-center gap-1.5"
-                            >
-                                <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                </svg>
-                                Memory Policy
-                            </button>
                         </div>
                     </div>
 
-                    {/* Main Content Area */}
-                    <div
-                        className={`flex-1 flex justify-center bg-transparent relative overflow-y-auto ${limitData.isLimitReached ? "overflow-hidden" : ""}`}
-                    >
-                        {/* LIMIT REACHED MODAL OVERLAY */}
-                        {limitData.isLimitReached && (
-                            <div className="absolute inset-0 z-50 backdrop-blur-md bg-white/30 flex items-center justify-center p-6 animate-in fade-in duration-500">
-                                <div className="bg-white/90 backdrop-blur-xl p-10 rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.1)] border border-white/50 text-center max-w-md w-full scale-in-center">
-                                    <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                                        <svg
-                                            className="w-10 h-10 text-orange-600"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                                            />
-                                        </svg>
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-gray-800 mb-3">
-                                        Limit Reached
-                                    </h2>
-                                    <p className="text-gray-500 mb-8 font-medium">
-                                        {isGuestSession
-                                            ? `You've exhausted the free trial on this device. Sign in to continue chatting with Pragya.`
-                                            : `You've used all ${limitData.maxChats} chats for your current plan today. Upgrade to continue chatting!`}
-                                    </p>
-
-                                    <div className="space-y-4">
-                                        <a
-                                            href={isGuestSession ? "/auth/signin" : "/patient/billing"}
-                                            className="block w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-orange-500/30 transition-all hover:-translate-y-1 active:scale-[0.98]"
-                                        >
-                                            {isGuestSession ? "Sign In to Continue" : "Upgrade Plan"}
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Chat Limit Badge */}
+                    {/* Unified Chat Layout with Smooth Transitions */}
+                    <div className="w-full flex flex-col h-full bg-transparent overflow-hidden relative">
+                        {/* Header / Mode Toggle Area */}
                         <div
-                            className={`absolute right-4 md:right-8 top-4 md:top-8 z-50 hidden lg:flex items-center transition-all duration-700 ${hasStarted ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+                            className={`transition-all duration-700 ease-in-out w-full flex flex-col items-center shrink-0 relative z-10 pt-4 md:pt-8 ${!hasStarted ? "flex-1 justify-center -mt-16" : "pb-2"}`}
                         >
-                            <div className="flex items-center gap-3 bg-white border border-gray-200 shadow-sm rounded-full pl-2 pr-5 py-1.5 backdrop-blur-sm bg-white/90 pointer-events-auto">
-                                <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
-                                    <svg
-                                        className="w-4 h-4"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2.5"
-                                    >
-                                        <rect
-                                            x="2"
-                                            y="5"
-                                            width="20"
-                                            height="14"
-                                            rx="2"
-                                            ry="2"
-                                        ></rect>
-                                        <line x1="2" y1="10" x2="22" y2="10"></line>
-                                    </svg>
-                                </div>
-                                <div className="flex flex-col items-start leading-tight">
-                                    <span className="text-[9px] text-gray-400 uppercase tracking-widest font-black">
-                                        Available
-                                    </span>
-                                    <span className="text-sm font-bold text-gray-800">
-                                        {isGuestSession
-                                            ? `${limitData.remaining} / ${GUEST_TRIAL_LIMIT} Free Trials`
-                                            : plan === "FREE"
-                                                ? `${limitData.remaining} / 10 Chats`
-                                                : plan === "ESSENTIAL"
-                                                    ? `${limitData.remaining} / 25 Chats`
-                                                    : "Unlimited Chats"}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Unified Chat Layout with Smooth Transitions */}
-                        <div className="w-full max-w-4xl mx-auto flex flex-col h-full bg-transparent overflow-hidden relative">
-                            {/* Header / Mode Toggle Area */}
+                            {/* Avatar, Greeting & Title (Hides on start) */}
                             <div
-                                className={`transition-all duration-700 ease-in-out w-full flex flex-col shrink-0 relative z-10 ${!hasStarted
-                                    ? "flex-1 items-center justify-center mt-[-8vh]"
-                                    : "pt-8 pb-4"
+                                className={`flex flex-col items-center transition-all duration-700 ease-in-out overflow-hidden ${!hasStarted
+                                    ? "opacity-100 max-h-[400px] mb-8 scale-100"
+                                    : "opacity-0 max-h-0 mb-0 scale-95 pointer-events-none"
                                     }`}
                             >
-                                {/* Big Title */}
-                                <div
-                                    className={`text-center transition-all duration-700 ease-in-out overflow-hidden ${!hasStarted
-                                        ? "opacity-100 max-h-[200px] mb-12 scale-100"
-                                        : "opacity-0 max-h-0 mb-0 scale-95 pointer-events-none"
-                                        }`}
-                                >
-                                    <h2 className="text-[14px] md:text-[16px] uppercase tracking-[0.2em] font-black text-gray-700 mb-6">
-                                        HELLO {userName ? userName.toUpperCase() : "THERE"}!
-                                    </h2>
-                                    <h1 className="text-[28px] md:text-[40px] font-bold text-gray-900 leading-tight">
-                                        I'm here to listen and support you between sessions.
-                                    </h1>
-                                    {!isAuthenticated && (
-                                        <p className="mt-4 text-sm text-gray-500">
-                                            {guestTrialExhausted ? "Free trial exhausted on this device. " : "Already have an account? "}
-                                            <a href="/auth/signin" className="text-orange-500 font-bold hover:underline">
-                                                Sign In
-                                            </a>
-                                        </p>
-                                    )}
+                                <div className="mb-4 flex items-center justify-center relative shrink-0 transition-transform duration-700 ease-in-out">
+                                    <Image
+                                        src={getBotAvatar(botExpression)}
+                                        alt="Pragya Bot"
+                                        width={96}
+                                        height={96}
+                                        className="object-contain"
+                                        priority
+                                    />
                                 </div>
+                                <h2 className="text-[12px] uppercase tracking-[0.05em] font-bold text-[#b3b3b3] mb-6 font-sans mt-2">
+                                    HELLO {userName ? userName.toUpperCase() : "THERE"}!
+                                </h2>
+                                <h1 className="text-[28px] md:text-[34px] font-extrabold text-[#2a2a2a] leading-tight text-center font-sans tracking-tight">
+                                    {currentGreeting}
+                                </h1>
+                            </div>
 
-                                {/* Mode Buttons */}
-                                {!conversationStarted && (
-                                    <div className="flex flex-wrap justify-center items-center gap-2 md:gap-3 w-full pr-16 md:pr-4">
-                                        {CHAT_MODES.map((mode) => (
+                            {/* Mode Buttons 2x2 Grid */}
+                            {!conversationStarted && (
+                                <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-[560px] transition-all duration-700 ease-in-out px-2 ${!hasStarted ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+                                    {CHAT_MODES.map((mode) => {
+                                        const getModeColor = (id: string) => {
+                                            switch (id) {
+                                                case "listen": return "bg-[#FFF6D4]";
+                                                case "reflect": return "bg-[#DFEDFF]";
+                                                case "think": return "bg-[#D2FBD6]";
+                                                case "direct": return "bg-[#FCE6EE]";
+                                                default: return "bg-gray-100";
+                                            }
+                                        };
+                                        return (
                                             <button
                                                 key={mode.id}
                                                 onClick={() => {
                                                     if (selectedMode !== mode.id) {
                                                         setSelectedMode(mode.id);
-                                                        if (hasStarted) {
-                                                            setIsTyping(true);
-                                                            setMessages((prev) => [
-                                                                ...prev,
-                                                                {
-                                                                    role: "assistant",
-                                                                    content: `I've switched to **${mode.title}** mode. ${mode.description}`,
-                                                                },
-                                                            ]);
-                                                        }
                                                     }
                                                 }}
-                                                className={`px-3 py-1.5 rounded-full text-[12px] md:px-4 md:py-2 md:text-[13px] font-medium transition-all duration-300 shadow-sm whitespace-nowrap ${selectedMode === mode.id
-                                                    ? "bg-orange-500 text-white shadow-md shadow-orange-500/20 scale-105"
-                                                    : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-orange-200 hover:text-orange-500"
-                                                    }`}
+                                                className={`flex items-center gap-4 px-3 py-3 bg-white rounded-2xl border ${selectedMode === mode.id ? "border-[#FF6812]" : "border-gray-100"} shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:border-gray-200 transition-all text-left group`}
                                             >
-                                                {mode.title}
+                                                <div className={`w-[26px] h-[26px] rounded-lg shrink-0 ${getModeColor(mode.id)}`}></div>
+                                                <span className="text-[13px] font-extrabold text-[#1f2937] group-hover:text-[#FF6812] transition-colors">{mode.title}</span>
                                             </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
 
-                            {/* Chat Messages */}
+                        {/* Chat Messages */}
                             <div
                                 className={`overflow-y-auto p-6 md:p-8 space-y-6 no-scrollbar bg-transparent transition-all duration-700 ease-in-out ${!hasStarted
                                     ? "flex-none opacity-0 h-0 p-0 md:p-0"
@@ -1306,7 +1104,7 @@ export default function TryPragyaChat({
 
                                     <form
                                         onSubmit={sendMessage}
-                                        className={`w-full bg-white text-gray-800 transition-all flex items-end gap-2 border border-gray-200/80 focus-within:border-orange-300 focus-within:ring-4 focus-within:ring-orange-100/50 ${!hasStarted ? "rounded-full py-1.5 pl-6 pr-2.5 shadow-[0_10px_40px_rgba(249,107,19,0.08)]" : "rounded-3xl py-2 pl-5 pr-3 shadow-md"}`}
+                                        className={`w-full bg-white text-gray-800 transition-all flex items-end gap-2 border border-orange-100 focus-within:border-orange-200 focus-within:ring-4 focus-within:ring-orange-50/50 ${!hasStarted ? "rounded-full py-1.5 pl-6 pr-2.5 shadow-sm" : "rounded-3xl py-2 pl-5 pr-3 shadow-md"}`}
                                     >
                                         <textarea
                                             ref={inputRef}
@@ -1326,57 +1124,28 @@ export default function TryPragyaChat({
                                         <button
                                             type="submit"
                                             disabled={isLoading || !inputMessage.trim()}
-                                            className={`p-2.5 rounded-[14px] h-10 w-10 shrink-0 mb-1 transition-all duration-300 flex items-center justify-center ${isLoading || !inputMessage.trim()
-                                                ? "text-gray-300 bg-transparent"
-                                                : "text-white bg-orange-500 hover:bg-orange-600 shadow-md hover:-translate-y-0.5 shadow-orange-500/20"
+                                            className={`p-2.5 rounded-full h-10 w-10 shrink-0 mb-1 transition-all duration-300 flex items-center justify-center ${isLoading || !inputMessage.trim()
+                                                ? "text-gray-400 bg-[#f4f4f5]"
+                                                : "text-gray-700 bg-[#f4f4f5] hover:bg-[#e4e4e7]"
                                                 }`}
                                         >
                                             <svg
-                                                className="w-5 h-5 transform translate-x-[-1px] translate-y-[1px]"
-                                                fill="currentColor"
-                                                viewBox="0 0 20 20"
+                                                className="w-[18px] h-[18px] transform translate-x-[-1px] translate-y-[1px]"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
                                             >
-                                                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                                             </svg>
                                         </button>
                                     </form>
-                                </div>
-
-                                <div
-                                    className={`transition-all duration-700 ${!hasStarted ? "opacity-0 h-0 overflow-hidden mt-0" : "flex justify-center items-center mt-4 text-[11px] text-gray-500 font-medium opacity-100 h-auto"}`}
-                                >
-                                    <p className="hidden md:block">
-                                        Pragya may produce inaccurate information about people,
-                                        places, or facts.
-                                    </p>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowMemoryPolicy(true)}
-                                        className="md:hidden text-gray-400 hover:text-orange-500 transition-colors flex items-center gap-1"
-                                    >
-                                        <svg
-                                            className="w-3.5 h-3.5"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                            />
-                                        </svg>
-                                        Memory Policy
-                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Memory Policy Modal */}
+                {/* Memory Policy Modal */}
             {showMemoryPolicy && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl relative scale-in-center">

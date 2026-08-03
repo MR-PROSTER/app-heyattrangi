@@ -1,23 +1,23 @@
-export const DEFAULT_AVATAR = "/bot_expressions/DEFAULT.jpg";
-export const NEUTRAL_AVATAR = "/bot_expressions/NEUTRAL.jpg";
+export const DEFAULT_AVATAR = "/bot_expressions/Attrangi_s_HQ/DEFAULT 1.png";
+export const NEUTRAL_AVATAR = "/bot_expressions/Attrangi_s_HQ/NEUTRAL 1.png";
 
 export const EXPRESSION_FILE_MAP: Record<string, string> = {
-  SAFETY: "SAFETY.jpg",
-  COMFORTING: "COMFORTING.jpg",
-  EMPATHETIC: "EMPATHETIC.jpg",
-  REFLECTIVE: "REFLECTIVE.jpg",
-  WARM: "WARM.jpg",
-  STRESSED: "STRESSED.jpg",
-  TIRED: "TIRED.jpg",
-  STEADY: "STEADY.jpg",
-  TALKING: "TALKING.jpg",
-  NEUTRAL: "NEUTRAL.jpg",
-  DEFAULT: "DEFAULT.jpg",
+  SAFETY: "SAFETY 1.png",
+  COMFORTING: "COMFORTING 1.png",
+  EMPATHETIC: "EMPATHETIC 1.png",
+  REFLECTIVE: "REFLECTIVE 1.png",
+  WARM: "WARM 1.png",
+  STRESSED: "STRESSED 1.png",
+  TIRED: "TIRED 1.png",
+  STEADY: "STEADY 1.png",
+  TALKING: "TALKING 1.png",
+  NEUTRAL: "NEUTRAL 1.png",
+  DEFAULT: "DEFAULT 1.png",
 };
 
 export function getBotAvatar(expression?: string): string {
   if (!expression) return DEFAULT_AVATAR;
   const upper = expression.trim().toUpperCase();
   const file = EXPRESSION_FILE_MAP[upper];
-  return file ? `/bot_expressions/${file}` : DEFAULT_AVATAR;
+  return file ? `/bot_expressions/Attrangi_s_HQ/${file}` : DEFAULT_AVATAR;
 }
