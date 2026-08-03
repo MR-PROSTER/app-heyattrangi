@@ -25,19 +25,6 @@ export default function DashboardSkeleton() {
           </div>
         </div>
       </div>
-
-      {/* Right Column Skeleton */}
-      <div className="w-[350px] border-l border-gray-100 p-8 hidden xl:block space-y-8">
-        <div className="h-64 bg-gray-50 rounded-3xl"></div>
-        <div className="space-y-4">
-          <div className="h-6 w-32 bg-gray-200 rounded-md"></div>
-          <div className="space-y-3">
-            {[1, 2].map(i => (
-              <div key={i} className="h-24 bg-gray-50 rounded-2xl"></div>
-            ))}
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

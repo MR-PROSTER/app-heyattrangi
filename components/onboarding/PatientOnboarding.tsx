@@ -971,7 +971,7 @@ function ConsentScreen({
                             value={data.emergencyContact}
                             onChange={(e) => onChange({ emergencyContact: e.target.value })}
                             className="w-full px-4 py-3.5 rounded-[8px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-gray-800 placeholder-gray-400"
-                            placeholder="e.g. Bharath (Brother)"
+                            placeholder="e.g. Name (Guardian)"
                             required
                         />
                     </div>
@@ -989,7 +989,7 @@ function ConsentScreen({
                                 value={data.emergencyPhone}
                                 onChange={(e) => onChange({ emergencyPhone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
                                 className="flex-1 px-4 py-3.5 outline-none text-[15px] text-gray-800 placeholder-gray-400 bg-transparent"
-                                placeholder="e.g. 7995736278"
+                                placeholder="e.g. XXXXXXXXXX"
                                 required
                             />
                         </div>
