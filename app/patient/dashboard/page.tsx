@@ -4,7 +4,6 @@ import { Suspense } from "react"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import CenterColumn from "@/components/patient/dashboard/CenterColumn"
-import RightColumn from "@/components/patient/dashboard/RightColumn"
 import DashboardSkeleton from "@/components/patient/dashboard/DashboardSkeleton"
 import { withPerf, perfLog } from "@/lib/perf"
 
@@ -79,7 +78,6 @@ async function DashboardContent() {
         upcomingAppointments={upcomingAppointments}
         dailyTasks={dailyTasks}
       />
-      <RightColumn upcomingAppointments={upcomingAppointments} />
     </div>
   )
 }
