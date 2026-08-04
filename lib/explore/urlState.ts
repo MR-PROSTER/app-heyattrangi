@@ -109,6 +109,24 @@ export function buildExploreHref(
 }
 
 export function buildActivityDetailHref(slug: string): string {
+  if (
+    slug === "breathing" ||
+    slug === "box-breathing" ||
+    slug === "breathing-4-7-8" ||
+    slug === "belly-breathing" ||
+    slug === "physiological-sigh"
+  ) {
+    if (slug === "breathing") return "/explore/activities/breathing"
+    const mode =
+      slug === "box-breathing"
+        ? "box"
+        : slug === "breathing-4-7-8"
+          ? "478"
+          : slug === "belly-breathing"
+            ? "belly"
+            : "sigh"
+    return `/explore/activities/breathing?mode=${mode}`
+  }
   return `/dashboard/explore?item=${encodeURIComponent(slug)}`
 }
 

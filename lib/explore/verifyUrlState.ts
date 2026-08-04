@@ -58,9 +58,13 @@ assert(
   "category href"
 )
 assert(
-  buildActivityDetailHref("box-breathing") ===
-    "/dashboard/explore?item=box-breathing",
+  buildActivityDetailHref("breathing") === "/explore/activities/breathing",
   "activity detail href"
+)
+assert(
+  buildActivityDetailHref("box-breathing") ===
+    "/explore/activities/breathing?mode=box",
+  "legacy box href"
 )
 
 console.log("Explore URL state verification passed.")
