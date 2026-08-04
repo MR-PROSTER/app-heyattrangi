@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useMemo, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { getBotAvatar } from "@/lib/avatar";
 
 interface ChatMessage {
@@ -267,6 +268,7 @@ export default function TryPragyaChat({
     userName?: string;
 }) {
     const { status } = useSession();
+    const router = useRouter();
     const isAuthenticated = status === "authenticated";
     const isGuestSession = !sessionId;
 
@@ -666,17 +668,37 @@ export default function TryPragyaChat({
                     {/* Top Navigation */}
                     <div className="w-full flex items-center justify-between py-6 shrink-0 z-20">
                         {/* Back Arrow */}
-                        <Link
-                            href="/patient/dashboard"
+                        <a
+                            href={isGuestSession ? "https://heyattrangi.com" : "/patient/dashboard"}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (isGuestSession) {
+                                    if (window.history.length > 2) {
+                                        router.back();
+                                    } else {
+                                        window.location.href = "https://heyattrangi.com";
+                                    }
+                                } else {
+                                    router.push("/patient/dashboard");
+                                }
+                            }}
                             className="p-2 text-gray-800 hover:text-black hover:bg-gray-100 transition-colors rounded-full -ml-3"
                         >
                             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
                             </svg>
-                        </Link>
+                        </a>
                         
                         {/* Right side: History */}
                         <div className="flex items-center gap-4">
+                            {isGuestSession && (
+                                <Link
+                                    href="/auth/signin"
+                                    className="px-4 py-1.5 text-[14px] font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors rounded-full shadow-sm whitespace-nowrap"
+                                >
+                                    Login
+                                </Link>
+                            )}
                             <button
                                 onClick={async () => {
                                     setHistoryOpen(true);
@@ -734,7 +756,13 @@ export default function TryPragyaChat({
 
                                 <div className="space-y-4">
                                     <a
-                                        href={isGuestSession ? "/auth/signin" : "/patient/billing"}
+                                        href={
+                                            isGuestSession
+                                                ? ([...messages].reverse().find(m => m.action)?.action?.url 
+                                                    ? `/auth/signin?callbackUrl=${encodeURIComponent([...messages].reverse().find(m => m.action)!.action!.url)}`
+                                                    : "/auth/signin")
+                                                : "/patient/billing"
+                                        }
                                         className="block w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-orange-500/30 transition-all hover:-translate-y-1 active:scale-[0.98]"
                                     >
                                         {isGuestSession ? "Sign In to Continue" : "Upgrade Plan"}
@@ -958,7 +986,7 @@ export default function TryPragyaChat({
                                                             </div>
                                                         </div>
                                                         <Link
-                                                            href={msg.action.url}
+                                                            href={isGuestSession ? `/auth/signin?callbackUrl=${encodeURIComponent(msg.action.url)}` : msg.action.url}
                                                             className="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-[12px] font-black tracking-widest uppercase transition-all shadow-md hover:shadow-orange-500/20 whitespace-nowrap text-center self-stretch md:self-center flex items-center justify-center"
                                                         >
                                                             Start Recommended Task
