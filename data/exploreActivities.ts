@@ -83,6 +83,7 @@ export const EXPLORE_ACTIVITIES: ExploreActivity[] = [
     audio: "No",
     type: "Body awareness",
   },
+  /*
   {
     id: "body-scan",
     title: "Body Scan",
@@ -98,6 +99,7 @@ export const EXPLORE_ACTIVITIES: ExploreActivity[] = [
     audio: "Optional",
     type: "Guided relaxation",
   },
+  */
   {
     id: "progressive-muscle-relaxation",
     title: "Progressive Muscle Relaxation",
@@ -128,6 +130,7 @@ export const EXPLORE_ACTIVITIES: ExploreActivity[] = [
     audio: "No",
     type: "Reflection",
   },
+  /*
   {
     id: "sleep-wind-down",
     title: "Sleep Wind Down",
@@ -143,6 +146,7 @@ export const EXPLORE_ACTIVITIES: ExploreActivity[] = [
     audio: "Optional",
     type: "Wind-down",
   },
+  */
 ]
 
 export const EXPLORE_CATEGORY_LABELS: Record<ExploreActivityCategory, string> = {

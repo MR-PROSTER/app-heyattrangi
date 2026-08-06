@@ -73,6 +73,8 @@ export type ActivityKind =
   | "grounding"
   | "micro-movement"
   | "body-scan"
+  | "progressive-muscle-relaxation"
+  | "journal-reflection"
   | "coming-soon"
 
 export type ScanEyes = "closed" | "open"

@@ -192,17 +192,32 @@ function resolveTimelineAndCycles(options: PacedTimelineOptions): {
   if (!timeline.loops) {
     return { timeline, totalCycles: 1 }
   }
+  // 0 = unlimited (never auto-completes)
   return { timeline, totalCycles: options.totalCycles ?? 1 }
 }
 
 function buildSegmentBoundaries(
   timeline: Timeline,
-  totalCycles: number
+  totalCycles: number,
+  /** Inclusive window for unlimited mode — avoid allocating infinite boundaries */
+  range?: { fromMs: number; toMs: number }
 ): SegmentBoundary[] {
-  const cycles = timeline.loops ? totalCycles : 1
+  const unlimited = timeline.loops && totalCycles <= 0
+  const cycleMs = cycleMsOf(timeline)
+  if (cycleMs <= 0) return []
+
+  let startCycle = 1
+  let endCycle = timeline.loops ? Math.max(1, totalCycles) : 1
+  if (unlimited) {
+    const from = range?.fromMs ?? 0
+    const to = range?.toMs ?? from + cycleMs * 2
+    startCycle = Math.max(1, Math.floor(from / cycleMs) + 1)
+    endCycle = Math.max(startCycle, Math.floor(to / cycleMs) + 2)
+  }
+
   const out: SegmentBoundary[] = []
-  let t = 0
-  for (let c = 1; c <= cycles; c++) {
+  for (let c = startCycle; c <= endCycle; c++) {
+    let t = (c - 1) * cycleMs
     for (let i = 0; i < timeline.segments.length; i++) {
       const seg = timeline.segments[i]
       out.push({
@@ -232,7 +247,6 @@ function deriveFromTimeline(
   complete: boolean
   cyclesCompleted: number
 } {
-  const cycles = timeline.loops ? totalCycles : 1
   const segments = timeline.segments
   if (segments.length === 0) {
     return {
@@ -249,21 +263,27 @@ function deriveFromTimeline(
   }
   const durations = segments.map((s) => s.seconds * 1000)
   const cycleMs = durations.reduce((a, b) => a + b, 0)
-  const totalMs = cycleMs * cycles
+  const unlimited = timeline.loops && totalCycles <= 0
+  const cycles = unlimited
+    ? Number.POSITIVE_INFINITY
+    : timeline.loops
+      ? totalCycles
+      : 1
   const lastSeg = segments[segments.length - 1]
   const last = segmentToPhaseSpec(lastSeg)
 
-  if (elapsedMs >= totalMs) {
+  if (!unlimited && Number.isFinite(cycles) && elapsedMs >= cycleMs * cycles) {
+    const finiteCycles = cycles as number
     return {
       phase: last.id,
       phaseIndex: segments.length - 1,
       phaseSpec: last,
-      cycle: cycles,
+      cycle: finiteCycles,
       phaseProgress: 1,
       phaseRemaining: 0,
       cycleProgress: 1,
       complete: true,
-      cyclesCompleted: cycles,
+      cyclesCompleted: finiteCycles,
     }
   }
 
@@ -450,10 +470,10 @@ export function usePacedTimeline(
       if (status !== "running" && status !== "paused") return
       const boundaries = buildSegmentBoundaries(
         timelineRef.current,
-        totalCyclesRef.current
+        totalCyclesRef.current,
+        { fromMs: prevElapsed, toMs: nextElapsed }
       )
       for (const b of boundaries) {
-        // Emit every phase start strictly after prev and at-or-before next
         if (b.elapsed > prevElapsed && b.elapsed <= nextElapsed) {
           firePhase(b.cycle, b.phaseIndex, b.spec)
         }
@@ -468,7 +488,8 @@ export function usePacedTimeline(
       if (lead <= 0 || (status !== "running" && status !== "paused")) return
       const boundaries = buildSegmentBoundaries(
         timelineRef.current,
-        totalCyclesRef.current
+        totalCyclesRef.current,
+        { fromMs: Math.max(0, elapsedMs - lead - 50), toMs: elapsedMs + lead + 50 }
       )
       for (const b of boundaries) {
         if (b.elapsed === 0) continue

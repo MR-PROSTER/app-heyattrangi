@@ -678,4 +678,28 @@ describe("useBreathingEngine — Belly / 2-phase", () => {
     expect(result.current.phaseSpec.kind).toBe("inhale")
     expect(result.current.phaseSpec.seconds).toBe(3)
   })
+
+  it("totalCycles 0 = unlimited — does not auto-complete after many cycles", () => {
+    const onComplete = vi.fn()
+    const { result } = renderHook(() =>
+      useBreathingEngine({
+        pattern: PATTERN_478,
+        totalCycles: 0,
+        onComplete,
+      })
+    )
+
+    act(() => {
+      result.current.start()
+    })
+
+    // 5 full 4-7-8 cycles = 5 * 19s = 95_000ms
+    act(() => {
+      flushFrames(95_000)
+    })
+
+    expect(onComplete).not.toHaveBeenCalled()
+    expect(result.current.status).toBe("running")
+    expect(result.current.cycle).toBeGreaterThanOrEqual(5)
+  })
 })

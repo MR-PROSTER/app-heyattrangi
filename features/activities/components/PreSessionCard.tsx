@@ -37,6 +37,10 @@ interface PreSessionCardProps {
   beginDisabled?: boolean
   beginLabel?: string
   teachingStep?: ReactNode
+  /** Extra pre-session controls (voice, ambience) rendered after sound/haptics */
+  settingsExtras?: ReactNode
+  /** Content after Begin — e.g. Learn More videos */
+  appendix?: ReactNode
 }
 
 function ActivityIconTile({ icon }: { icon: ActivityIcon }) {
@@ -70,6 +74,8 @@ export function PreSessionCard({
   beginDisabled = false,
   beginLabel = "Begin",
   teachingStep = null,
+  settingsExtras = null,
+  appendix = null,
 }: PreSessionCardProps) {
   return (
     <div className="mx-auto flex min-h-[100dvh] w-full max-w-lg flex-col px-5 py-6">
@@ -198,6 +204,8 @@ export function PreSessionCard({
         </button>
       </div>
 
+      {settingsExtras}
+
       {safetyNotice}
 
       <div className="mt-auto flex flex-col items-center gap-3 pb-4 pt-6">
@@ -211,6 +219,8 @@ export function PreSessionCard({
         </button>
         <p className="text-center text-sm text-ink-subtle">{footerNote}</p>
       </div>
+
+      {appendix}
     </div>
   )
 }

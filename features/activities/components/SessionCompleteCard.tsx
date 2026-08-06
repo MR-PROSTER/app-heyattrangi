@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { Check } from "lucide-react"
+import { SubtleConfetti } from "./boxBreathing/SubtleConfetti"
 import { formatDuration, formatMinutesApprox } from "../lib/formatDuration"
 
 interface SessionCompleteCardProps {
@@ -12,6 +13,8 @@ interface SessionCompleteCardProps {
   completedFully: boolean
   endedEarly?: boolean
   headlineOverride?: string
+  encouragement?: string
+  celebration?: boolean
   onDone: () => void
   onAgain: () => void
   onSaveMood?: (mood: 1 | 2 | 3 | 4 | 5 | undefined) => void
@@ -32,6 +35,8 @@ export function SessionCompleteCard({
   completedFully,
   endedEarly,
   headlineOverride,
+  encouragement,
+  celebration = false,
   onDone,
   onAgain,
   onSaveMood,
@@ -46,8 +51,14 @@ export function SessionCompleteCard({
         ? `That's ${formatMinutesApprox(durationMs)} for you.`
         : `You did ${cyclesCompleted} of ${plannedCycles} cycles. That counts.`)
 
+  const avgPaceSec =
+    cyclesCompleted > 0
+      ? Math.round(durationMs / cyclesCompleted / 1000)
+      : null
+
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-lg flex-col items-center justify-center px-5 py-10 text-center">
+    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-lg flex-col items-center justify-center px-5 py-10 text-center">
+      {celebration ? <SubtleConfetti /> : null}
       <motion.div
         className="mb-6 grid h-16 w-16 place-items-center rounded-full bg-accent-soft text-accent"
         initial={{ scale: 0.6, opacity: 0 }}
@@ -64,7 +75,13 @@ export function SessionCompleteCard({
       <p className="mt-3 text-[15px] leading-relaxed text-ink-muted">
         {formatDuration(durationMs)} · {cyclesCompleted}{" "}
         {cyclesCompleted === 1 ? "cycle" : "cycles"}
+        {avgPaceSec != null ? ` · ~${avgPaceSec}s average pace` : null}
       </p>
+      {encouragement ? (
+        <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-ink-muted">
+          {encouragement}
+        </p>
+      ) : null}
 
       <fieldset className="mt-10 w-full">
         <legend className="mb-4 text-sm font-semibold text-ink">

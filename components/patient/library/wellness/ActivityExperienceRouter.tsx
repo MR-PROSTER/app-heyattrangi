@@ -9,7 +9,6 @@ import {
 } from "./BreathingExperiences"
 import {
   CategoryNamingExperience,
-  Grounding54321Experience,
   ObjectFocusExperience,
 } from "./GroundingExperiences"
 import {
@@ -23,6 +22,9 @@ import {
   PromptedReflectionExperience,
   WindDownExperience,
 } from "./JournalSleepExperiences"
+import GroundingExercise from "@/features/activities/components/GroundingExercise"
+import BellyBreathing from "@/features/activities/components/BellyBreathing"
+import FourSevenEightBreathing from "@/features/activities/components/FourSevenEightBreathing"
 
 interface ActivityExperienceRouterProps {
   activity: WellnessActivity
@@ -50,13 +52,14 @@ export default function ActivityExperienceRouter({
     case "box-breathing":
       return <BoxBreathingExperience {...shared} />
     case "breathing-4-7-8":
-      return <Breathing478Experience {...shared} />
+      return <FourSevenEightBreathing onBack={onExit} onDone={onDone} />
     case "belly-breathing":
-      return <BellyBreathingExperience {...shared} />
+      return <BellyBreathing onBack={onExit} onDone={onDone} />
     case "physiological-sigh":
       return <PhysiologicalSighExperience {...shared} />
     case "grounding-54321":
-      return <Grounding54321Experience {...shared} />
+      return <GroundingExercise onExit={onExit} onDone={onDone} />
+
     case "category-naming":
       return <CategoryNamingExperience {...shared} />
     case "object-focus":

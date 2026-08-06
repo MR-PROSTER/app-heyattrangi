@@ -158,8 +158,7 @@ function LibraryPageContent() {
   const [breathProgress, setBreathProgress] = useState<number>(0)
   const [isBreathingActive, setIsBreathingActive] = useState<boolean>(false)
 
-  // Grounding technique (5-4-3-2-1)
-  const [groundingStep, setGroundingStep] = useState<number>(5)
+
 
   // Mood Journal
   const [journalText, setJournalText] = useState<string>("")
@@ -657,76 +656,7 @@ function LibraryPageContent() {
         {/* --- 2. DISTRESS SIGNALS MODULE --- */}
         {activeTab === "distress" && (
           <div className="space-y-10 animate-in fade-in duration-300">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              
-              {/* Grounding Assistant */}
-              <div className="bg-white rounded-3xl p-10 border border-slate-200/80 shadow-lg hover:shadow-xl transition-shadow min-h-[420px] flex flex-col">
-                <div className="mb-6">
-                  <h3 className="font-extrabold text-2xl text-slate-900">5-4-3-2-1 Grounding Assistant</h3>
-                  <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest block mt-2">Grounding Technique</span>
-                </div>
-
-                <div className="flex-1 flex flex-col justify-center items-center py-8 text-center bg-gradient-to-br from-orange-50/50 to-red-50/30 rounded-2xl p-6 mb-6">
-                  {groundingStep === 5 && (
-                    <div className="animate-in fade-in duration-300 w-full">
-                      <span className="text-xs font-black text-orange-600 uppercase tracking-wider block mb-3">Step 1 of 5</span>
-                      <h4 className="text-2xl font-extrabold text-slate-900 mb-3">Identify 5 things you can see</h4>
-                      <p className="text-slate-500 text-sm font-medium max-w-xs mx-auto leading-relaxed">Focus on small, stationary objects in your line of sight.</p>
-                    </div>
-                  )}
-                  {groundingStep === 4 && (
-                    <div className="animate-in fade-in duration-300 w-full">
-                      <span className="text-xs font-black text-orange-600 uppercase tracking-wider block mb-3">Step 2 of 5</span>
-                      <h4 className="text-2xl font-extrabold text-slate-900 mb-3">Identify 4 things you can touch</h4>
-                      <p className="text-slate-500 text-sm font-medium max-w-xs mx-auto leading-relaxed">Notice the texture of fabric, wood surfaces, or your breathing muscles.</p>
-                    </div>
-                  )}
-                  {groundingStep === 3 && (
-                    <div className="animate-in fade-in duration-300 w-full">
-                      <span className="text-xs font-black text-orange-600 uppercase tracking-wider block mb-3">Step 3 of 5</span>
-                      <h4 className="text-2xl font-extrabold text-slate-900 mb-3">Identify 3 things you can hear</h4>
-                      <p className="text-slate-500 text-sm font-medium max-w-xs mx-auto leading-relaxed">Listen for distant traffic, ambient hums, or the rustle of leaves.</p>
-                    </div>
-                  )}
-                  {groundingStep === 2 && (
-                    <div className="animate-in fade-in duration-300 w-full">
-                      <span className="text-xs font-black text-orange-600 uppercase tracking-wider block mb-3">Step 4 of 5</span>
-                      <h4 className="text-2xl font-extrabold text-slate-900 mb-3">Identify 2 things you can smell</h4>
-                      <p className="text-slate-500 text-sm font-medium max-w-xs mx-auto leading-relaxed">Sniff the air, hand soap, clothing, or a book.</p>
-                    </div>
-                  )}
-                  {groundingStep === 1 && (
-                    <div className="animate-in fade-in duration-300 w-full">
-                      <span className="text-xs font-black text-orange-600 uppercase tracking-wider block mb-3">Step 5 of 5</span>
-                      <h4 className="text-2xl font-extrabold text-slate-900 mb-3">Identify 1 thing you can taste</h4>
-                      <p className="text-slate-500 text-sm font-medium max-w-xs mx-auto leading-relaxed">Notice the natural taste in your mouth, or take a sip of cool water.</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex justify-between items-center gap-3 pt-4 border-t border-slate-100">
-                  <button
-                    disabled={groundingStep === 5}
-                    onClick={() => setGroundingStep((prev) => prev + 1)}
-                    className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl font-bold text-xs text-slate-600 disabled:opacity-30 transition-all"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (groundingStep === 1) {
-                        setGroundingStep(5)
-                      } else {
-                        setGroundingStep((prev) => prev - 1)
-                      }
-                    }}
-                    className="flex-1 px-6 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-black text-xs uppercase tracking-wider transition-all"
-                  >
-                    {groundingStep === 1 ? "Start Over" : "Next Step"}
-                  </button>
-                </div>
-              </div>
-
+            <div className="max-w-3xl mx-auto">
               {/* Support Hotlines with enhanced design */}
               <div className="bg-white rounded-3xl p-10 border border-slate-200/80 shadow-lg hover:shadow-xl transition-shadow space-y-6">
                 <div>

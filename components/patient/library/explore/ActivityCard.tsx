@@ -5,7 +5,6 @@ import { ChevronRight } from "lucide-react"
 import type { ExploreActivity } from "@/data/exploreActivities"
 import { EXPLORE_CATEGORY_LABELS } from "@/data/exploreActivities"
 import ActivityIcon from "@/components/patient/library/explore/ActivityIcon"
-import ActivityBadge from "@/components/patient/library/explore/ActivityBadge"
 import ActivityDuration from "@/components/patient/library/explore/ActivityDuration"
 
 interface ActivityCardProps {
@@ -44,7 +43,6 @@ function ActivityCard({
 
       <div className="flex flex-wrap items-center gap-2 mt-auto pt-1">
         <ActivityDuration duration={activity.duration} />
-        <ActivityBadge label={EXPLORE_CATEGORY_LABELS[activity.category]} />
       </div>
     </button>
   )

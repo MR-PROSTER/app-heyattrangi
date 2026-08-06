@@ -172,7 +172,7 @@ describe("FourSevenEightSession", () => {
     ).toBeInTheDocument()
   })
 
-  it("history with completed 478 record → 9 cycles preselected, no chip", async () => {
+  it("history with completed 478 record → 8 cycles preselected, no chip", async () => {
     useSessionStore.setState({
       history: [
         {
@@ -188,11 +188,28 @@ describe("FourSevenEightSession", () => {
     })
     render(<FourSevenEightSession activity={activity} />)
     expect(
-      screen.getByRole("radio", { name: /9 cycles/i })
+      screen.getByRole("radio", { name: /8 cycles/i })
     ).toHaveAttribute("aria-checked", "true")
     expect(
       screen.queryByText("Recommended for your first time")
     ).not.toBeInTheDocument()
+  })
+
+  it("exposes unlimited cycle option and help + learn-more sections", () => {
+    render(<FourSevenEightSession activity={activity} />)
+    expect(
+      screen.getByRole("radio", { name: /unlimited/i })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("heading", {
+        name: /what is the 4-7-8 breathing technique/i,
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("heading", { name: /learn more/i })
+    ).toBeInTheDocument()
+    expect(screen.getByText(/voice guidance/i)).toBeInTheDocument()
+    expect(screen.getByText(/nature sounds/i)).toBeInTheDocument()
   })
 
   it("safety notice renders before the Begin button in DOM order", () => {

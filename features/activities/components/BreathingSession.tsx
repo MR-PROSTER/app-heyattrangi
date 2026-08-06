@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useEffect, useRef, useState } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import type { Activity, BreathingPattern } from "../types"
 import { BOX_PATTERN } from "../types"
 import { PATTERN_478 } from "../data/patterns"
 import type { BreathingModeId, BreathingModeOption } from "../data/breathingModes"
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion"
+import { useVoiceGuide } from "../hooks/useVoiceGuide"
+import { useSessionStore } from "../store/useSessionStore"
 import type { AudioCueProfile } from "../hooks/useSessionAudio"
 import { SessionShell } from "./SessionShell"
 import { BreathingBox } from "./BreathingBox"
@@ -14,6 +16,7 @@ import { BreathingRing } from "./BreathingRing"
 import { FourSevenEightNotice } from "./FourSevenEightNotice"
 import { BellyBreathingSession } from "./BellyBreathingSession"
 import { PhysiologicalSighSession } from "./PhysiologicalSighSession"
+import { Breathing478Widget } from "./fourSevenEight/Breathing478Widget"
 import type { DurationOption } from "./PreSessionCard"
 import type { BreathingEngineState } from "../hooks/usePacedTimeline"
 
@@ -32,6 +35,7 @@ const MODE_OPTIONS: readonly BreathingModeOption[] = [
       "Inhale for 4, hold for 7, exhale for 8. The longer out-breath is the point.",
     ready: true,
   },
+  /*
   {
     id: "belly",
     label: "Belly",
@@ -45,6 +49,7 @@ const MODE_OPTIONS: readonly BreathingModeOption[] = [
       "A quick double inhale and long exhale when you need a reset.",
     ready: true,
   },
+  */
 ] as const
 
 interface ModeConfig {
@@ -104,6 +109,33 @@ const MODE_CONFIG: Record<Exclude<BreathingModeId, "belly" | "sigh">, ModeConfig
   },
 }
 
+function VoiceSync({
+  engine,
+  voiceEnabled,
+}: {
+  engine: BreathingEngineState
+  voiceEnabled: boolean
+}) {
+  const { speakPhase } = useVoiceGuide(voiceEnabled)
+  const lastKey = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (engine.status !== "running") return
+    const key = `${engine.cycle}:${engine.phaseIndex}`
+    if (lastKey.current === key) return
+    lastKey.current = key
+    speakPhase(engine.phaseSpec.kind, key)
+  }, [
+    engine.status,
+    engine.cycle,
+    engine.phaseIndex,
+    engine.phaseSpec.kind,
+    speakPhase,
+  ])
+
+  return null
+}
+
 function parseMode(raw: string | null): BreathingModeId {
   if (raw === "478" || raw === "belly" || raw === "sigh" || raw === "box") {
     return raw
@@ -126,11 +158,15 @@ export function BreathingSession({
   backHref = "/patient/library",
   initialMode,
 }: BreathingSessionProps) {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const fromQuery = parseMode(searchParams.get("mode"))
   const [mode, setMode] = useState<BreathingModeId>(initialMode ?? fromQuery)
   const reducedMotion = usePrefersReducedMotion()
   const option = MODE_OPTIONS.find((m) => m.id === mode) ?? MODE_OPTIONS[0]
+  const prefs = useSessionStore((s) => s.prefs)
+  const setPref = useSessionStore((s) => s.setPref)
+  const [voice, setVoice] = useState(prefs.voiceGuide ?? false)
 
   if (mode === "belly") {
     return (
@@ -150,20 +186,21 @@ export function BreathingSession({
     )
   }
 
+  if (mode === "478") {
+    return <Breathing478Widget defaultCycles={4} onBack={() => router.push(backHref)} />
+  }
+
   const config = MODE_CONFIG[mode]
 
-  const visualizer = (engine: BreathingEngineState) =>
-    mode === "478" ? (
-      <BreathingRing engine={engine} />
-    ) : (
-      <BreathingBox
-        phase={engine.phase}
-        cycleProgressMv={engine.cycleProgressMv}
-        phaseProgressMv={engine.phaseProgressMv}
-        reducedMotion={reducedMotion}
-        countdown={engine.phaseRemaining}
-      />
-    )
+  const visualizer = (engine: BreathingEngineState) => (
+    <BreathingBox
+      phase={engine.phase}
+      cycleProgressMv={engine.cycleProgressMv}
+      phaseProgressMv={engine.phaseProgressMv}
+      reducedMotion={reducedMotion}
+      countdown={engine.phaseRemaining}
+    />
+  )
 
   return (
     <SessionShell
@@ -192,6 +229,32 @@ export function BreathingSession({
           : "This mode is almost ready. Try Box, 4-7-8, or Belly for now."
       }
       visualizer={visualizer}
+      settingsExtras={
+        <fieldset className="mb-6">
+          <legend className="mb-2 text-sm font-semibold text-ink">
+            Voice guidance
+          </legend>
+          <p id="breathing-voice-help" className="mb-2 text-sm text-ink-subtle">
+            Speaks “Breathe in”, “Hold”, and “Breathe out” at each phase.
+          </p>
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center rounded-full border border-hairline bg-surface px-4 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            aria-pressed={voice}
+            aria-describedby="breathing-voice-help"
+            onClick={() => {
+              const next = !voice
+              setVoice(next)
+              setPref("voiceGuide", next)
+            }}
+          >
+            Voice: {voice ? "On" : "Off"}
+          </button>
+        </fieldset>
+      }
+      sessionCoach={(engine) => (
+        <VoiceSync engine={engine} voiceEnabled={voice} />
+      )}
     />
   )
 }

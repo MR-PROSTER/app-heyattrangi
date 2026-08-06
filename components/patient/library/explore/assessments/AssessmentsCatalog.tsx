@@ -1,10 +1,12 @@
 "use client"
 
+import { useMemo } from "react"
 import Link from "next/link"
 import ExploreSectionHeader from "@/components/patient/library/explore/ExploreSectionHeader"
 import { CLINICAL_ASSESSMENTS } from "@/data/clinicalAssessments"
 
 interface AssessmentsCatalogProps {
+  searchQuery?: string
   /** Kept for API compatibility with Explore hub */
   onNavigateLibraryTab?: (tab: string) => void
 }
@@ -12,7 +14,17 @@ interface AssessmentsCatalogProps {
 /**
  * Assessments hub — clinical assessments listed directly (no Self & Mind folder).
  */
-export default function AssessmentsCatalog({}: AssessmentsCatalogProps) {
+export default function AssessmentsCatalog({ searchQuery = "", onNavigateLibraryTab }: AssessmentsCatalogProps) {
+  const filtered = useMemo(() => {
+    if (!searchQuery) return CLINICAL_ASSESSMENTS
+    const q = searchQuery.toLowerCase()
+    return CLINICAL_ASSESSMENTS.filter(
+      (a) =>
+        a.title.toLowerCase().includes(q) ||
+        a.description.toLowerCase().includes(q) ||
+        (a.shortName && a.shortName.toLowerCase().includes(q))
+    )
+  }, [searchQuery])
   return (
     <div className="space-y-8">
       {/* Hero */}
@@ -63,7 +75,7 @@ export default function AssessmentsCatalog({}: AssessmentsCatalogProps) {
         <ExploreSectionHeader title="Assessments" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-          {CLINICAL_ASSESSMENTS.map((item) => (
+          {filtered.map((item) => (
             <article
               key={item.id}
               className="bg-white rounded-[24px] p-5 sm:p-6 shadow-sm border border-slate-100 flex flex-col h-full hover:shadow-md transition-all"

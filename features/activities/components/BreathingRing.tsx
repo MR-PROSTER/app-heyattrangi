@@ -5,6 +5,7 @@ import {
   motion,
   useMotionValue,
   useMotionValueEvent,
+  useTransform,
   AnimatePresence,
 } from "framer-motion"
 import type { BreathingEngineState } from "../hooks/usePacedTimeline"
@@ -68,6 +69,7 @@ export function BreathingRing({ engine }: BreathingRingProps) {
   const cy = useMotionValue(CY - R)
   const trailLength = useMotionValue(0)
   const trailOpacity = useMotionValue(0.6)
+  const glowOpacity = useTransform(trailOpacity, (v) => v * 0.6)
   const dotOpacity = useMotionValue(reducedMotion ? 0.7 : 1)
   const lastCycleRef = useRef(engine.cycle)
   const kind = engine.phaseSpec.kind
@@ -174,6 +176,30 @@ export function BreathingRing({ engine }: BreathingRingProps) {
           : null}
       </AnimatePresence>
 
+      {!reducedMotion && kind === "hold" && (
+        <>
+          {[0, 1, 2].map((i) => (
+            <motion.span
+              key={`hold-glimmer-${i}`}
+              data-testid="hold-glimmer"
+              aria-hidden
+              className="pointer-events-none absolute h-1 w-1 rounded-full bg-accent/40"
+              style={{
+                left: `${38 + i * 12}%`,
+                top: `${32 + i * 14}%`,
+              }}
+              animate={{ y: [0, -12, 0], opacity: [0.15, 0.55, 0.15] }}
+              transition={{
+                duration: 2.8,
+                repeat: Infinity,
+                delay: i * 0.5,
+                ease: "easeInOut",
+              }}
+            />
+          ))}
+        </>
+      )}
+
       <motion.div
         className="absolute inset-[28%] rounded-full"
         style={{
@@ -228,13 +254,31 @@ export function BreathingRing({ engine }: BreathingRingProps) {
               strokeDashoffset={offset}
               animate={{
                 strokeWidth: active ? 8 : 6,
-                opacity: active ? 1 : 0.3,
+                opacity: active ? 1 : 0.4,
               }}
               transition={{ duration: 0.4, ease: "easeOut" }}
-              className={active ? "stroke-accent" : "stroke-hairline"}
+              className={active ? "stroke-accent" : "stroke-ink-subtle"}
             />
           )
         })}
+
+        {!reducedMotion && (
+          <motion.path
+            aria-hidden
+            d={fullCircle}
+            fill="none"
+            className="stroke-accent"
+            strokeWidth={10}
+            strokeLinecap="round"
+            style={{
+              pathLength: trailLength,
+              opacity: glowOpacity,
+              rotate: -90,
+              transformOrigin: "center",
+              filter: "blur(6px)",
+            }}
+          />
+        )}
 
         <motion.path
           d={fullCircle}
@@ -268,23 +312,49 @@ export function BreathingRing({ engine }: BreathingRingProps) {
           )
         })}
 
-        <motion.circle
-          r={9}
-          fill="var(--color-accent-breath)"
-          style={{ cx, cy, opacity: dotOpacity }}
-        />
+        <motion.g style={{ opacity: dotOpacity }}>
+          {!reducedMotion && (
+            <motion.circle
+              aria-hidden
+              r={18}
+              fill="var(--color-accent-breath)"
+              style={{ cx, cy, filter: "blur(8px)" }}
+              animate={{ opacity: [0.2, 0.5, 0.2] }}
+              transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+            />
+          )}
+          <motion.circle r={9} fill="var(--color-accent-breath)" style={{ cx, cy }} />
+        </motion.g>
       </svg>
 
       <div className="pointer-events-none absolute inset-0 grid place-items-center">
-        <motion.span
-          key={engine.phaseRemaining}
-          className="text-5xl font-semibold tabular-nums tracking-tight text-ink"
-          initial={{ scale: 1.15, opacity: 0.7 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 380, damping: 22 }}
-        >
-          {engine.phaseRemaining}
-        </motion.span>
+        <div className="flex flex-col items-center gap-1">
+          <motion.span
+            key={engine.phaseRemaining}
+            className="text-5xl font-semibold tabular-nums tracking-tight text-ink"
+            initial={{ scale: 1.15, opacity: 0.7 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 380, damping: 22 }}
+          >
+            {engine.phaseRemaining}
+          </motion.span>
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={kind}
+              className="text-sm font-medium text-ink-muted"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.35 }}
+            >
+              {kind === "inhale"
+                ? "Inhale"
+                : kind === "hold"
+                  ? "Hold"
+                  : "Exhale"}
+            </motion.span>
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   )

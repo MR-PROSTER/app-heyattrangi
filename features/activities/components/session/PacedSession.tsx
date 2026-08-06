@@ -59,6 +59,10 @@ export interface SessionShellProps {
   footerNote?: string
   /** Between description and duration — e.g. hand-placement walkthrough */
   teachingStep?: ReactNode
+  /** Extra pre-session controls after sound/haptics */
+  settingsExtras?: ReactNode
+  /** After Begin on the pre-session screen (Learn More, etc.) */
+  preSessionAppendix?: ReactNode
   /** Under the visualizer during an active session */
   sessionCoach?: ReactNode | ((engine: BreathingEngineState) => ReactNode)
   /** Extra session chrome (pace controls) — never idle-dimmed */
@@ -72,6 +76,20 @@ export interface SessionShellProps {
   startMode?: "guided" | "instant"
   /** Slide-up settings content for instant activities */
   settingsSheet?: ReactNode
+  /** Called when the user picks a duration (including 0 = unlimited) */
+  onCyclesSelected?: (cycles: number) => void
+  /** Countdown screen supporting line */
+  countdownLabel?: string
+  /** Override complete-screen headline */
+  completeHeadline?: string | ((result: {
+    cyclesCompleted: number
+    durationMs: number
+    completedFully: boolean
+    endedEarly: boolean
+  }) => string)
+  completeEncouragement?: string
+  /** Subtle confetti on the completion screen */
+  completeCelebration?: boolean
 }
 
 function phaseResumeHint(kind: PhaseKind): string {
@@ -102,11 +120,18 @@ export function PacedSession({
   beginLabel,
   footerNote,
   teachingStep = null,
+  settingsExtras = null,
+  preSessionAppendix = null,
   sessionCoach = null,
   sessionChrome = null,
   hidePhaseLabel = false,
   startMode = "guided",
   settingsSheet = null,
+  countdownLabel = "Tap to skip",
+  completeHeadline,
+  onCyclesSelected,
+  completeEncouragement,
+  completeCelebration,
 }: SessionShellProps) {
   const router = useRouter()
   const hydrated = useStoreHydration()
@@ -163,6 +188,10 @@ export function PacedSession({
     if (!hydrated) return
     setCycles(resolvedDefault)
   }, [hydrated, resolvedDefault])
+
+  useEffect(() => {
+    onCyclesSelected?.(cycles)
+  }, [cycles, onCyclesSelected])
 
   useEffect(() => {
     if (!durationOptions.some((o) => o.cycles === cycles)) {
@@ -430,6 +459,8 @@ export function PacedSession({
           beginLabel={beginLabel}
           footerNote={footerNote}
           teachingStep={teachingStep}
+          settingsExtras={settingsExtras}
+          appendix={preSessionAppendix}
           onCyclesChange={setCycles}
           onSoundChange={(v) => setPref("sound", v)}
           onHapticsChange={(v) => setPref("haptics", v)}
@@ -463,7 +494,8 @@ export function PacedSession({
             {countdown === 0 ? "" : countdown}
           </motion.span>
         </AnimatePresence>
-        <p className="mt-6 text-sm text-ink-subtle">Tap to skip</p>
+        <p className="mt-2 text-base font-medium text-ink-muted">Get ready</p>
+        <p className="mt-2 text-sm text-ink-subtle">{countdownLabel}</p>
       </button>
     )
   }
@@ -472,11 +504,18 @@ export function PacedSession({
     return (
       <div className="min-h-[100dvh] bg-canvas">
         <SessionCompleteCard
-          plannedCycles={cycles}
+          plannedCycles={cycles <= 0 ? result.cyclesCompleted : cycles}
           cyclesCompleted={result.cyclesCompleted}
           durationMs={result.durationMs}
           completedFully={result.completedFully}
           endedEarly={result.endedEarly}
+          headlineOverride={
+            typeof completeHeadline === "function"
+              ? completeHeadline(result)
+              : completeHeadline
+          }
+          encouragement={completeEncouragement}
+          celebration={completeCelebration}
           onSaveMood={(m) => {
             moodRef.current = m
           }}

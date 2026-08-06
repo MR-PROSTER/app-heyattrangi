@@ -101,6 +101,7 @@ export const ACTIVITIES: readonly Activity[] = [
     icon: "move",
     kind: "micro-movement",
   },
+  /*
   {
     id: "body-scan",
     title: "Body Scan",
@@ -113,6 +114,7 @@ export const ACTIVITIES: readonly Activity[] = [
     icon: "scan",
     kind: "body-scan",
   },
+  */
   {
     id: "progressive-muscle-relaxation",
     title: "Progressive Muscle Relaxation",
@@ -123,7 +125,7 @@ export const ACTIVITIES: readonly Activity[] = [
     longDescription:
       "Gently tense and release different muscle groups. The contrast can help you notice where you are holding on, and give those areas a chance to soften.",
     icon: "muscle",
-    kind: "coming-soon",
+    kind: "progressive-muscle-relaxation",
   },
   {
     id: "journal-reflection",
@@ -135,8 +137,9 @@ export const ACTIVITIES: readonly Activity[] = [
     longDescription:
       "A short writing space with a simple prompt. You can jot a few lines or more — whatever feels useful. There is no need for polish or a particular outcome.",
     icon: "journal",
-    kind: "coming-soon",
+    kind: "journal-reflection",
   },
+  /*
   {
     id: "sleep-wind-down",
     title: "Sleep Wind Down",
@@ -149,6 +152,7 @@ export const ACTIVITIES: readonly Activity[] = [
     icon: "moon",
     kind: "coming-soon",
   },
+  */
 ] as const
 
 export function getActivityBySlug(slug: string): Activity | undefined {

@@ -14,6 +14,33 @@ function withCycleSeconds(
 /** Alias — prefer this name in new code. */
 export const PATTERN_BOX = BOX_PATTERN
 
+/** Box breathing with equal sides (3–6 seconds per phase). */
+export function patternFromBoxSeconds(seconds: number): BreathingPattern {
+  const s = Math.min(6, Math.max(3, Math.round(seconds)))
+  return withCycleSeconds(`box-${s}`, [
+    { id: "inhale", kind: "inhale", seconds: s, label: "Inhale" },
+    { id: "hold-in", kind: "hold", seconds: s, label: "Hold" },
+    { id: "exhale", kind: "exhale", seconds: s, label: "Exhale" },
+    { id: "hold-out", kind: "hold", seconds: s, label: "Hold" },
+  ])
+}
+
+export function boxDurationOptions(breathSeconds: number) {
+  const cycleSec = breathSeconds * 4
+  const fmt = (cycles: number) => {
+    const sec = cycles * cycleSec
+    if (sec < 60) return `~${sec}s`
+    const min = Math.round(sec / 60)
+    return min === 1 ? "~1 min" : `~${min} min`
+  }
+  return [
+    { cycles: 4, label: "4 cycles", detail: fmt(4) },
+    { cycles: 8, label: "8 cycles", detail: fmt(8) },
+    { cycles: 12, label: "12 cycles", detail: fmt(12) },
+    { cycles: 0, label: "Unlimited", detail: "Until you stop" },
+  ] as const
+}
+
 /** 4-7-8 Breathing: inhale 4 → hold 7 → exhale 8. */
 export const PATTERN_478 = withCycleSeconds("478", [
   {

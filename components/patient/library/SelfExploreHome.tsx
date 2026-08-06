@@ -6,7 +6,6 @@ import { useSession } from "next-auth/react"
 import { Bell, Search, SlidersHorizontal } from "lucide-react"
 import { Source_Serif_4 } from "next/font/google"
 import ExploreTabSwitcher from "@/components/patient/library/explore/ExploreTabSwitcher"
-import ExploreCategoryChips from "@/components/patient/library/explore/ExploreCategoryChips"
 import ActivityGrid from "@/components/patient/library/explore/ActivityGrid"
 import ExploreErrorBoundary from "@/components/patient/library/explore/ExploreErrorBoundary"
 import { useExplore } from "@/components/patient/library/explore/ExploreProvider"
@@ -68,7 +67,6 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
     hiddenTabs,
     recentlyRead,
     setMode,
-    setCategory,
     openActivity,
     openArticle,
     openListenTrack,
@@ -82,10 +80,36 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
 
   const listenTracks = useMemo(() => getBrowsableListenTracks(), [])
 
-  const filteredActivities = useMemo(
-    () => filterExploreActivities(category),
-    [category]
-  )
+  const filteredActivities = useMemo(() => {
+    const base = filterExploreActivities(category)
+    if (!searchQuery) return base
+    const q = searchQuery.toLowerCase()
+    return base.filter(
+      (a) =>
+        a.title.toLowerCase().includes(q) ||
+        a.description.toLowerCase().includes(q)
+    )
+  }, [category, searchQuery])
+
+  const filteredArticles = useMemo(() => {
+    if (!searchQuery) return READ_ARTICLES
+    const q = searchQuery.toLowerCase()
+    return READ_ARTICLES.filter(
+      (a) =>
+        a.title.toLowerCase().includes(q) ||
+        a.description.toLowerCase().includes(q)
+    )
+  }, [searchQuery])
+
+  const filteredListenTracks = useMemo(() => {
+    if (!searchQuery) return listenTracks
+    const q = searchQuery.toLowerCase()
+    return listenTracks.filter(
+      (t) =>
+        t.title.toLowerCase().includes(q) ||
+        t.description.toLowerCase().includes(q)
+    )
+  }, [listenTracks, searchQuery])
 
   const recentlyPlayed = useMemo(
     () => getListenTracksByIds(recentlyPlayedIds),
@@ -210,11 +234,7 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
         description="Try another tab, or refresh Explore."
       >
         {mode === "activities" && (
-          <div className="space-y-5 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200">
-            <ExploreCategoryChips
-              value={category}
-              onChange={setCategory}
-            />
+          <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200">
             <ActivityGrid
               activities={filteredActivities}
               onSelectActivity={handleSelectActivity}
@@ -222,24 +242,27 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
           </div>
         )}
 
-        {mode === "read" && READ_ARTICLES.length > 0 && (
+        {mode === "read" && filteredArticles.length > 0 && (
           <ReadModePanel
-            articles={READ_ARTICLES}
+            articles={filteredArticles}
             recentlyRead={recentlyRead}
             onSelectArticle={handleSelectArticle}
           />
         )}
 
-        {mode === "listen" && listenTracks.length > 0 && (
+        {mode === "listen" && filteredListenTracks.length > 0 && (
           <ListenModePanel
-            tracks={listenTracks}
+            tracks={filteredListenTracks}
             recentlyPlayed={recentlyPlayed}
             onSelectTrack={handleSelectTrack}
           />
         )}
 
         {mode === "assessments" && (
-          <AssessmentsModePanel onNavigateLibraryTab={onNavigateLibraryTab} />
+          <AssessmentsModePanel
+            onNavigateLibraryTab={onNavigateLibraryTab}
+            searchQuery={searchQuery}
+          />
         )}
       </ExploreErrorBoundary>
     </div>

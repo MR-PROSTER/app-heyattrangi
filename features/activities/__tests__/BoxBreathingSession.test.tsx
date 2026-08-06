@@ -149,21 +149,21 @@ describe("BoxBreathingSession", () => {
     vi.unstubAllGlobals()
   })
 
-  it("renders pre-session and Begin starts the countdown", async () => {
+  it("renders pre-session and Start Exercise starts the countdown", async () => {
     const user = userEvent.setup()
     render(<BoxBreathingSession activity={activity} />)
 
     expect(
       screen.getByRole("heading", { name: "Box Breathing" })
     ).toBeInTheDocument()
-    await user.click(screen.getByRole("button", { name: "Begin" }))
+    await user.click(screen.getByRole("button", { name: "Start Exercise" }))
     expect(screen.getByLabelText("Skip countdown")).toBeInTheDocument()
   })
 
   it("pause button toggles aria-label between Pause and Resume", async () => {
     const user = userEvent.setup()
     render(<BoxBreathingSession activity={activity} />)
-    await user.click(screen.getByRole("button", { name: "Begin" }))
+    await user.click(screen.getByRole("button", { name: "Start Exercise" }))
     await user.click(screen.getByLabelText("Skip countdown"))
 
     const pause = await screen.findByLabelText("Pause session")
@@ -181,7 +181,7 @@ describe("BoxBreathingSession", () => {
 
     const user = userEvent.setup()
     render(<BoxBreathingSession activity={activity} />)
-    await user.click(screen.getByRole("button", { name: "Begin" }))
+    await user.click(screen.getByRole("button", { name: "Start Exercise" }))
     await user.click(screen.getByLabelText("Skip countdown"))
 
     await screen.findByLabelText("Pause session")
@@ -200,8 +200,8 @@ describe("BoxBreathingSession", () => {
     expect(addSession).toHaveBeenCalledTimes(1)
     expect(addSession.mock.calls[0][0]).toMatchObject({
       completed: true,
-      cyclesPlanned: 8,
-      cyclesCompleted: 8,
+      cyclesPlanned: 4,
+      cyclesCompleted: 4,
     })
   })
 
@@ -221,7 +221,7 @@ describe("BoxBreathingSession", () => {
 
     const user = userEvent.setup()
     render(<BoxBreathingSession activity={activity} />)
-    await user.click(screen.getByRole("button", { name: "Begin" }))
+    await user.click(screen.getByRole("button", { name: "Start Exercise" }))
     await user.click(screen.getByLabelText("Skip countdown"))
 
     await screen.findByLabelText("Pause session")
@@ -232,7 +232,7 @@ describe("BoxBreathingSession", () => {
     const user = userEvent.setup()
     render(<BoxBreathingSession activity={activity} />)
 
-    const begin = screen.getByRole("button", { name: "Begin" })
+    const begin = screen.getByRole("button", { name: "Start Exercise" })
     begin.focus()
     await user.keyboard("{Enter}")
     await screen.findByLabelText("Skip countdown")
@@ -248,6 +248,18 @@ describe("BoxBreathingSession", () => {
     )
     expect(
       await screen.findByRole("button", { name: "Done" })
+    ).toBeInTheDocument()
+  })
+
+  it("exposes breath settings, intro, and help on pre-session", () => {
+    render(<BoxBreathingSession activity={activity} />)
+    expect(screen.getByText(/before we begin/i)).toBeInTheDocument()
+    expect(screen.getByText(/breath duration/i)).toBeInTheDocument()
+    expect(
+      screen.getByRole("heading", { name: /what is box breathing/i })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("radio", { name: /unlimited/i })
     ).toBeInTheDocument()
   })
 })

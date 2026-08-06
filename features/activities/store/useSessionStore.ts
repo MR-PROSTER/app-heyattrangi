@@ -62,6 +62,13 @@ interface SessionPrefs {
   scanAnchor?: ScanAnchor
   scanSkipRegions?: string[]
   scanAmbience?: boolean
+  voiceGuide?: boolean
+  natureSound?: string
+  boxBreathSeconds?: number
+  boxVoiceGuide?: boolean
+  boxVoiceRate?: number
+  boxVoiceVolume?: number
+  boxVoiceURI?: string | null
 }
 
 interface SessionStore {
@@ -105,6 +112,13 @@ const DEFAULT_PREFS: SessionPrefs = {
   scanAnchor: "hands",
   scanSkipRegions: [],
   scanAmbience: false,
+  voiceGuide: false,
+  natureSound: "off",
+  boxBreathSeconds: 4,
+  boxVoiceGuide: false,
+  boxVoiceRate: 0.92,
+  boxVoiceVolume: 0.85,
+  boxVoiceURI: null,
 }
 
 function normalizeBellyPace(raw: unknown): BellyPaceId {
@@ -310,7 +324,7 @@ export const useSessionStore = create<SessionStore>()(
     }),
     {
       name: "hey-attrangi-activity-sessions",
-      version: 7,
+      version: 9,
       storage: createJSONStorage(() => createSafeStorage()),
       skipHydration: true,
       partialize: (state) => ({
@@ -386,6 +400,45 @@ export const useSessionStore = create<SessionStore>()(
                 : [],
           scanAmbience:
             version < 7 ? false : Boolean(p.prefs?.scanAmbience),
+          voiceGuide:
+            version < 8 ? false : Boolean(p.prefs?.voiceGuide),
+          natureSound:
+            version < 8
+              ? "off"
+              : typeof p.prefs?.natureSound === "string" &&
+                  ["off", "rain", "forest", "ocean", "wind"].includes(
+                    p.prefs.natureSound
+                  )
+                ? p.prefs.natureSound
+                : "off",
+          boxBreathSeconds:
+            version < 9
+              ? 4
+              : typeof p.prefs?.boxBreathSeconds === "number" &&
+                  p.prefs.boxBreathSeconds >= 3 &&
+                  p.prefs.boxBreathSeconds <= 6
+                ? Math.round(p.prefs.boxBreathSeconds)
+                : 4,
+          boxVoiceGuide:
+            version < 9 ? false : Boolean(p.prefs?.boxVoiceGuide),
+          boxVoiceRate:
+            version < 9
+              ? 0.92
+              : typeof p.prefs?.boxVoiceRate === "number"
+                ? Math.min(1.1, Math.max(0.7, p.prefs.boxVoiceRate))
+                : 0.92,
+          boxVoiceVolume:
+            version < 9
+              ? 0.85
+              : typeof p.prefs?.boxVoiceVolume === "number"
+                ? Math.min(1, Math.max(0.3, p.prefs.boxVoiceVolume))
+                : 0.85,
+          boxVoiceURI:
+            version < 9
+              ? null
+              : typeof p.prefs?.boxVoiceURI === "string"
+                ? p.prefs.boxVoiceURI
+                : null,
         }
         return { history, prefs }
       },
