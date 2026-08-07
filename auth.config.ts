@@ -229,12 +229,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           const dbUser = await prisma.user.findUnique({
             where: { id: user.id },
-            select: { role: true, plan: true, orgId: true },
+            select: { role: true, plan: true, orgId: true, name: true },
           })
           if (dbUser) {
             token.role = dbUser.role
             token.plan = dbUser.plan
             token.orgId = dbUser.orgId
+            token.name = dbUser.name
           }
         } catch (error) {
           console.error("Error hydrating JWT claims:", error)
@@ -244,12 +245,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           const dbUser = await prisma.user.findUnique({
             where: { id: token.id as string },
-            select: { role: true, plan: true, orgId: true },
+            select: { role: true, plan: true, orgId: true, name: true },
           })
           if (dbUser) {
             token.role = dbUser.role
             token.plan = dbUser.plan
             token.orgId = dbUser.orgId
+            token.name = dbUser.name
           }
         } catch (error) {
           console.error("Error refreshing JWT claims:", error)
@@ -267,6 +269,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           session.user.role = token.role as typeof session.user.role
           session.user.plan = token.plan as typeof session.user.plan
           session.user.orgId = (token.orgId as string | null | undefined) ?? null
+        }
+        if (token.name) {
+          session.user.name = token.name as string
         } else {
           // Legacy JWTs minted before claim hydration — one lean lookup
           try {

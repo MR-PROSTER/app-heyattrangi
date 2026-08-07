@@ -24,10 +24,6 @@ export default function ProfileHeader({
   const router = useRouter()
 
   const goBack = () => {
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      router.back()
-      return
-    }
     router.push(fallbackBackHref)
   }
 

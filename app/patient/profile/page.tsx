@@ -10,7 +10,7 @@ async function ProfileContent() {
   if (!user) return null
 
   return (
-    <div className="flex-1 h-full w-full bg-white">
+    <div className="flex-1 h-full min-h-0 w-full bg-white flex flex-col">
       <ProfileSettings
         user={{
           ...user,

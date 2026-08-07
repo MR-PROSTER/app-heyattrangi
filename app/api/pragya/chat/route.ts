@@ -35,10 +35,13 @@ export async function POST(req: NextRequest) {
   let conversationId: string | null = null
   let resolvedGuestToken: string | null = null
 
+  let preferredLanguage = "English"
+
   if (session?.user?.id) {
     // Signed-in users are unlimited for now; we only keep counts/history.
     const dbUser = await prisma.user.findUnique({
-      where: { id: session.user.id }
+      where: { id: session.user.id },
+      include: { patient: true }
     })
 
     if (!dbUser) {
@@ -46,6 +49,9 @@ export async function POST(req: NextRequest) {
     }
     
     plan = dbUser.plan;
+    if (dbUser.patient?.preferredLanguage) {
+      preferredLanguage = dbUser.patient.preferredLanguage
+    }
   }
 
   const context = await resolveChatContext({
@@ -104,6 +110,7 @@ export async function POST(req: NextRequest) {
       session_id: session?.user?.id ? `patient_${session.user.id}` : resolvedGuestToken ?? "",
       message: message.trim(),
       user_name: nameToUse,
+      language: preferredLanguage,
       generate_suggestions: typeof generate_suggestions === "boolean" ? generate_suggestions : true,
       past_assessments: pastAssessments.map((pa: any) => ({
         assessmentId: pa.assessmentId,

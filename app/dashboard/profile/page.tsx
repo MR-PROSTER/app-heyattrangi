@@ -48,11 +48,6 @@ async function ProfileContent() {
               <StreakCard streakDays={streakDays} />
             </div>
           </div>
-
-          <div className="mt-5 space-y-4">
-            <SignOutSection />
-            <DeleteAccountSection />
-          </div>
         </div>
       </div>
     </main>

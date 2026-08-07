@@ -309,6 +309,7 @@ export default function Sidebar() {
                     {drawerItems.map((item) => renderNavLink(item, { expanded: true, onNavigate: () => setIsMobileOpen(false) }))}
                 </nav>
 
+                {/* Profile Drawer Link commented out
                 <Link
                     href="/patient/profile"
                     onClick={() => setIsMobileOpen(false)}
@@ -337,6 +338,7 @@ export default function Sidebar() {
                         </span>
                     </div>
                 </Link>
+                */}
             </aside>
         </div>
 
@@ -453,7 +455,7 @@ export default function Sidebar() {
 
                 {/* Notifications Button commented out per user request */}
 
-                {/* Profile Card / Button — bottom of sidebar (same as before) */}
+                {/* Profile Card / Button commented out per user request
                 {!isCollapsed ? (
                     <div className="mt-auto mb-6 mx-4">
                         <Link
@@ -506,6 +508,7 @@ export default function Sidebar() {
                         </Link>
                     </div>
                 )}
+                */}
 
                 {/* Bottom CTA */}
                 {/* {!isCollapsed && (

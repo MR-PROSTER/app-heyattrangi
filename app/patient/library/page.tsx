@@ -291,7 +291,7 @@ function LibraryPageContent() {
   }
 
   return (
-    <div className="flex-1 h-full overflow-y-auto w-full bg-[#FFF9F8] text-slate-800 flex flex-col font-sans relative">
+    <div className="flex-1 h-full min-h-0 overflow-y-auto w-full bg-[#FFF9F8] text-slate-800 flex flex-col font-sans relative">
       
 
 

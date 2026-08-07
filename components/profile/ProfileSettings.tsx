@@ -98,7 +98,7 @@ function ProfileShell() {
   }
 
   return (
-    <div className="flex h-full w-full bg-[#fafbfc] md:bg-[#fafbfc] overflow-hidden max-md:bg-[#EEF0F8]">
+    <div className="flex h-full w-full min-h-0 bg-[#fafbfc] md:bg-[#fafbfc] overflow-hidden max-md:bg-[#EEF0F8]">
       <aside
         className="hidden md:flex w-[260px] lg:w-[280px] shrink-0 border-r border-gray-100 bg-white
           sticky top-0 h-full max-h-screen flex-col gap-5 p-5 lg:p-6"
@@ -301,9 +301,11 @@ function ProfileShell() {
               <PrivacyConsentCard />
             </ProfileErrorBoundary>
 
+            {/* Account actions commented out per user request
             <ProfileErrorBoundary title="Account actions unavailable">
               <AccountActionsCard />
             </ProfileErrorBoundary>
+            */}
           </div>
         </div>
       </div>
