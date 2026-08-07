@@ -359,6 +359,13 @@ export default function TryPragyaChat({
     const [chatCount, setChatCount] = useState(initialChatCount);
     const [showMemoryPolicy, setShowMemoryPolicy] = useState(false);
 
+    const [isRecording, setIsRecording] = useState(false);
+    const [isTranscribing, setIsTranscribing] = useState(false);
+    const [recordingTime, setRecordingTime] = useState(0);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isSendingRef = useRef(false);
     const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -659,6 +666,112 @@ export default function TryPragyaChat({
         setSummaryReport(null);
         setSummaryError(null);
         resetChat();
+    };
+
+    useEffect(() => {
+        if (isRecording) {
+            recordingTimerRef.current = setInterval(() => {
+                setRecordingTime((prev) => prev + 1);
+            }, 1000);
+        } else {
+            if (recordingTimerRef.current) {
+                clearInterval(recordingTimerRef.current);
+            }
+            setRecordingTime(0);
+        }
+        return () => {
+            if (recordingTimerRef.current) {
+                clearInterval(recordingTimerRef.current);
+            }
+        };
+    }, [isRecording]);
+
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            mediaRecorderRef.current = mediaRecorder;
+            audioChunksRef.current = [];
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) {
+                    audioChunksRef.current.push(e.data);
+                }
+            };
+
+            mediaRecorder.onstop = async () => {
+                try {
+                    const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+                    stream.getTracks().forEach((track) => track.stop());
+
+                    if (audioBlob.size === 0) {
+                        setIsTranscribing(false);
+                        return;
+                    }
+
+                    setIsTranscribing(true);
+                    const formData = new FormData();
+                    formData.append("audio", audioBlob);
+
+                    const response = await fetch("/api/speech/transcribe", {
+                        method: "POST",
+                        body: formData,
+                    });
+
+                    if (!response.ok) {
+                        const data = await response.json();
+                        throw new Error(data.error || "Failed to transcribe audio");
+                    }
+
+                    const data = await response.json();
+                    if (data.transcript) {
+                        setInputMessage((prev) => {
+                            const newText = prev.trim() ? `${prev} ${data.transcript}` : data.transcript;
+                            if (inputRef.current) {
+                                setTimeout(() => {
+                                    inputRef.current!.style.height = "auto";
+                                    inputRef.current!.style.height = `${Math.min(inputRef.current!.scrollHeight, 180)}px`;
+                                    inputRef.current!.focus();
+                                }, 50);
+                            }
+                            return newText;
+                        });
+                    }
+                } catch (error) {
+                    console.error("Transcription error:", error);
+                    alert("Transcription failed. Please try again or type your message.");
+                } finally {
+                    setIsTranscribing(false);
+                }
+            };
+
+            mediaRecorder.start();
+            setIsRecording(true);
+        } catch (error) {
+            console.error("Microphone access denied or error:", error);
+            alert("Microphone access was denied. Please allow microphone access to use Speech-to-Text.");
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && isRecording) {
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+        }
+    };
+
+    const toggleRecording = () => {
+        if (isRecording) {
+            stopRecording();
+        } else {
+            startRecording();
+        }
+    };
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, "0")}`;
     };
 
     return (
@@ -1132,40 +1245,81 @@ export default function TryPragyaChat({
 
                                     <form
                                         onSubmit={sendMessage}
-                                        className={`w-full bg-white text-gray-800 transition-all flex items-end gap-2 border border-orange-100 focus-within:border-orange-200 focus-within:ring-4 focus-within:ring-orange-50/50 ${!hasStarted ? "rounded-full py-1.5 pl-6 pr-2.5 shadow-sm" : "rounded-3xl py-2 pl-5 pr-3 shadow-md"}`}
+                                        className={`w-full bg-white text-gray-800 transition-all flex items-end gap-1 border border-orange-100 focus-within:border-orange-200 focus-within:ring-4 focus-within:ring-orange-50/50 ${!hasStarted ? "rounded-full py-1.5 pl-6 pr-2.5 shadow-sm" : "rounded-3xl py-2 pl-5 pr-3 shadow-md"}`}
                                     >
-                                        <textarea
-                                            ref={inputRef}
-                                            value={inputMessage}
-                                            onChange={handleInputChange}
-                                            onKeyDown={handleKeyDown}
-                                            placeholder={
-                                                hasStarted
-                                                    ? "Type your message here..."
-                                                    : "Tell me what's been on your mind..."
-                                            }
-                                            rows={1}
-                                            className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 py-3 focus:outline-none resize-none min-h-[44px] max-h-[160px] leading-relaxed text-[15px] overflow-y-auto style-scrollbar"
-                                            disabled={isLoading}
-                                            autoFocus
-                                        />
+                                        {isRecording ? (
+                                            <div className="flex-1 flex items-center justify-center gap-3 py-3 min-h-[44px]">
+                                                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                                                <span className="text-red-500 font-bold text-sm tracking-wider">
+                                                    Recording {formatTime(recordingTime)}
+                                                </span>
+                                            </div>
+                                        ) : isTranscribing ? (
+                                            <div className="flex-1 flex items-center justify-center gap-3 py-3 min-h-[44px]">
+                                                <div className="w-4 h-4 border-2 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
+                                                <span className="text-orange-500 font-bold text-[13px] tracking-widest uppercase">
+                                                    Transcribing...
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <textarea
+                                                ref={inputRef}
+                                                value={inputMessage}
+                                                onChange={handleInputChange}
+                                                onKeyDown={handleKeyDown}
+                                                placeholder={
+                                                    hasStarted
+                                                        ? "Type your message here..."
+                                                        : "Tell me what's been on your mind..."
+                                                }
+                                                rows={1}
+                                                className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 py-3 focus:outline-none resize-none min-h-[44px] max-h-[160px] leading-relaxed text-[15px] overflow-y-auto style-scrollbar"
+                                                disabled={isLoading || isRecording || isTranscribing}
+                                                autoFocus
+                                            />
+                                        )}
+                                        
                                         <button
-                                            type="submit"
-                                            disabled={isLoading || !inputMessage.trim()}
-                                            className={`p-2.5 rounded-full h-10 w-10 shrink-0 mb-1 transition-all duration-300 flex items-center justify-center ${isLoading || !inputMessage.trim()
-                                                ? "text-gray-400 bg-[#f4f4f5]"
-                                                : "text-gray-700 bg-[#f4f4f5] hover:bg-[#e4e4e7]"
-                                                }`}
+                                            type="button"
+                                            onClick={toggleRecording}
+                                            disabled={isLoading || isTranscribing}
+                                            className={`p-2.5 rounded-full h-10 w-10 shrink-0 mb-1 transition-all duration-300 flex items-center justify-center ${
+                                                isRecording ? "bg-red-50 text-red-500 hover:bg-red-100" :
+                                                (isLoading || isTranscribing) ? "text-gray-300 bg-transparent" :
+                                                "text-gray-400 bg-transparent hover:bg-orange-50 hover:text-orange-500"
+                                            }`}
+                                            title={isRecording ? "Stop Recording" : "Start Voice Input"}
                                         >
-                                            <svg
-                                                className="w-[18px] h-[18px] transform translate-x-[-1px] translate-y-[1px]"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                                            </svg>
+                                            {isRecording ? (
+                                                <svg className="w-[18px] h-[18px]" fill="currentColor" viewBox="0 0 24 24">
+                                                    <rect x="6" y="6" width="12" height="12" rx="2" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                                </svg>
+                                            )}
                                         </button>
+
+                                        {!isRecording && (
+                                            <button
+                                                type="submit"
+                                                disabled={isLoading || !inputMessage.trim() || isTranscribing}
+                                                className={`p-2.5 rounded-full h-10 w-10 shrink-0 mb-1 transition-all duration-300 flex items-center justify-center ${isLoading || !inputMessage.trim() || isTranscribing
+                                                    ? "text-gray-400 bg-[#f4f4f5]"
+                                                    : "text-gray-700 bg-[#f4f4f5] hover:bg-[#e4e4e7]"
+                                                    }`}
+                                            >
+                                                <svg
+                                                    className="w-[18px] h-[18px] transform translate-x-[-1px] translate-y-[1px]"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                                </svg>
+                                            </button>
+                                        )}
                                     </form>
                                 </div>
                             </div>
