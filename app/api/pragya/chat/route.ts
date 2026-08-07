@@ -27,6 +27,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "message is required" }, { status: 400 })
   }
 
+  // --- Multilingual Setup: Translate user message to English ---
+  let userMessageEnglish = message.trim();
+  let detectedLang = 'en';
+
+  try {
+    const translateUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(message.trim())}`;
+    const transRes = await fetch(translateUrl);
+    if (transRes.ok) {
+      const data = await transRes.json();
+      if (data && data[0]) {
+        userMessageEnglish = data[0].map((item: any) => item[0]).join("");
+      }
+      if (data && data[2]) {
+        detectedLang = data[2];
+      }
+    }
+  } catch (error) {
+    console.error("Failed to translate user message, falling back to original:", error);
+  }
+
   // Name is not passed to AI to avoid overuse or asking for name
   const nameToUse = "";
 
@@ -102,7 +122,7 @@ export async function POST(req: NextRequest) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       session_id: session?.user?.id ? `patient_${session.user.id}` : resolvedGuestToken ?? "",
-      message: message.trim(),
+      message: userMessageEnglish, // Sent to upstream in English
       user_name: nameToUse,
       generate_suggestions: typeof generate_suggestions === "boolean" ? generate_suggestions : true,
       past_assessments: pastAssessments.map((pa: any) => ({
@@ -130,8 +150,38 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const data = JSON.parse(text) as { reply?: string }
+    const data = JSON.parse(text) as { reply?: string, suggestions?: string[] }
     
+    // --- Multilingual Setup: Translate bot response back to user's native language ---
+    if (data.reply && detectedLang && detectedLang !== 'en') {
+      try {
+        const backTranslateUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${detectedLang}&dt=t&q=${encodeURIComponent(data.reply)}`;
+        const backTransRes = await fetch(backTranslateUrl);
+        if (backTransRes.ok) {
+          const transData = await backTransRes.json();
+          if (transData && transData[0]) {
+            data.reply = transData[0].map((item: any) => item[0]).join("");
+          }
+        }
+        
+        // Also translate suggestions if any
+        if (data.suggestions && Array.isArray(data.suggestions) && data.suggestions.length > 0) {
+          for (let i = 0; i < data.suggestions.length; i++) {
+             const suggUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${detectedLang}&dt=t&q=${encodeURIComponent(data.suggestions[i])}`;
+             const suggRes = await fetch(suggUrl);
+             if (suggRes.ok) {
+                const sData = await suggRes.json();
+                if (sData && sData[0]) {
+                   data.suggestions[i] = sData[0].map((item: any) => item[0]).join("");
+                }
+             }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to translate bot response, falling back to English:", error);
+      }
+    }
+
     // Save assistant reply to history
     if (data.reply && conversationId) {
       try {
