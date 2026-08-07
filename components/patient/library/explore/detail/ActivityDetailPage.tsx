@@ -141,12 +141,14 @@ export default function ActivityDetailPage({
               </div>
             </div>
 
+            {/* Mobile sticky begin button commented out to prevent duplicate button on mobile view
             <div className="md:hidden shrink-0 z-20 w-full bg-[#FFF9F8]/95 backdrop-blur-md border-t border-slate-100/80 px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
               <BeginButton
                 activityTitle={activity.title}
                 onBegin={beginSession}
               />
             </div>
+            */}
           </motion.div>
         )}
       </AnimatePresence>

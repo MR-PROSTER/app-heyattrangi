@@ -37,9 +37,7 @@ function ActivityCard({
       <h4 className="font-bold text-[15px] sm:text-[16px] text-slate-800 tracking-tight leading-snug mb-1.5">
         {activity.title}
       </h4>
-      <p className="text-slate-500 text-sm font-medium leading-relaxed mb-4 line-clamp-2 flex-grow">
-        {activity.description}
-      </p>
+
 
       <div className="flex flex-wrap items-center gap-2 mt-auto pt-1">
         <ActivityDuration duration={activity.duration} />

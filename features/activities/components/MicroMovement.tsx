@@ -42,7 +42,7 @@ interface MicroMovementProps {
 }
 
 export default function MicroMovement({ onBack, onDone }: MicroMovementProps = {}) {
-  const [screen, setScreen] = useState<"detail" | "exercise" | "complete">("detail")
+  const [screen, setScreen] = useState<"detail" | "exercise" | "complete">("exercise")
   const [currentStep, setCurrentStep] = useState<number>(0)
 
   const handleBegin = () => {
@@ -53,6 +53,8 @@ export default function MicroMovement({ onBack, onDone }: MicroMovementProps = {
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep((prev) => prev - 1)
+    } else if (onBack) {
+      onBack()
     }
   }
 
@@ -67,8 +69,11 @@ export default function MicroMovement({ onBack, onDone }: MicroMovementProps = {
   const handleDone = () => {
     if (onDone) {
       onDone()
+    } else if (onBack) {
+      onBack()
     } else {
-      setScreen("detail")
+      setScreen("exercise")
+      setCurrentStep(0)
     }
   }
 
@@ -181,6 +186,17 @@ export default function MicroMovement({ onBack, onDone }: MicroMovementProps = {
       {/* Screen 2: Exercise Screen */}
       {screen === "exercise" && (
         <div style={styles.card}>
+          {/* Back link */}
+          <div style={styles.topRow}>
+            <button
+              onClick={onBack}
+              className="mm-back-link"
+              style={styles.backLink}
+            >
+              ← BACK
+            </button>
+          </div>
+
           {/* Progress Dots */}
           <div style={styles.progressContainer}>
             {steps.map((_, idx) => {
@@ -215,9 +231,8 @@ export default function MicroMovement({ onBack, onDone }: MicroMovementProps = {
           <div style={styles.navRow}>
             <button
               className="mm-btn"
-              style={currentStep === 0 ? styles.disabledBtn : styles.secondaryBtn}
+              style={styles.secondaryBtn}
               onClick={handleBack}
-              disabled={currentStep === 0}
             >
               Back
             </button>
