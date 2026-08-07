@@ -269,7 +269,7 @@ export default function CenterColumn({
           </motion.div>
         )}
 
-        {/* Upcoming sessions */}
+        {/* Upcoming sessions commented out per user request
         <motion.section
           {...fadeUp}
           transition={{ duration: 0.45, delay: 0.12 }}
@@ -496,6 +496,7 @@ export default function CenterColumn({
             )}
           </div>
         </motion.section>
+        */}
 
         {/* Mood + reflection grid */}
         <motion.div
