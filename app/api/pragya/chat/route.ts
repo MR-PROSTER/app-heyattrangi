@@ -108,6 +108,8 @@ export async function POST(req: NextRequest) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       session_id: session?.user?.id ? `patient_${session.user.id}` : resolvedGuestToken ?? "",
+      user_id: session?.user?.id || resolvedGuestToken || "guest_user",
+      client_time: new Date().toISOString(),
       message: message.trim(),
       user_name: nameToUse,
       language: preferredLanguage,
