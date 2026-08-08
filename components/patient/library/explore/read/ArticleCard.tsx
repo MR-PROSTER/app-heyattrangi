@@ -31,49 +31,39 @@ function getArticleCardStyle(category: string) {
   switch (category) {
     case "Breathing":
       return {
-        bg: "bg-[#CBEB7A]",
-        text: "text-[#2C3A00]",
-        labelBg: "bg-[#B5D965]",
-        labelText: "text-[#2C3A00]",
-        border: "border-[#B1D560]",
-        circleBg: "bg-[#D9FA75]/70"
+        bg: "#CBEB7A",
+        text: "#2C3A00",
+        border: "#B1D560",
+        circleBg: "#D9FA75"
       }
     case "Academic stress":
       return {
-        bg: "bg-[#85A3F0]",
-        text: "text-[#001C5C]",
-        labelBg: "bg-[#7192EA]",
-        labelText: "text-[#001C5C]",
-        border: "border-[#6E8FE6]",
-        circleBg: "bg-[#6787DE]"
+        bg: "#85A3F0",
+        text: "#001C5C",
+        border: "#6E8FE6",
+        circleBg: "#6787DE"
       }
     case "Sleep":
       return {
-        bg: "bg-[#ED78D5]",
-        text: "text-[#400030]",
-        labelBg: "bg-[#D661BD]",
-        labelText: "text-[#400030]",
-        border: "border-[#D15DB8]",
-        circleBg: "bg-[#D65FBC]"
+        bg: "#ED78D5",
+        text: "#400030",
+        border: "#D15DB8",
+        circleBg: "#D65FBC"
       }
     case "Transition":
       return {
-        bg: "bg-[#F4A462]",
-        text: "text-[#733E0A]",
-        labelBg: "bg-[#E59351]",
-        labelText: "text-[#733E0A]",
-        border: "border-[#D58544]",
-        circleBg: "bg-[#F9B77E]"
+        bg: "#F4A462",
+        text: "#733E0A",
+        border: "#D58544",
+        circleBg: "#F9B77E"
       }
     default:
       // Calm, Habits, Feelings, Focus, Rest etc.
       return {
-        bg: "bg-[#82EED4]",
-        text: "text-[#003B2C]",
-        labelBg: "bg-[#6FD8BF]",
-        labelText: "text-[#003B2C]",
-        border: "border-[#67D0B7]",
-        circleBg: "bg-[#69CDB4]"
+        bg: "#82EED4",
+        text: "#003B2C",
+        border: "#67D0B7",
+        circleBg: "#69CDB4"
       }
   }
 }
@@ -146,7 +136,12 @@ export default function ArticleCard({
       ]
         .filter(Boolean)
         .join(", ")}
-      className={`group relative flex flex-col h-[200px] w-full text-left rounded-[32px] p-6 shadow-[0_6px_20px_rgba(0,0,0,0.04)] border ${style.bg} ${style.border} ${style.text} transition-all duration-300 ease-out overflow-hidden hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 ${className}`}
+      style={{
+        backgroundColor: style.bg,
+        borderColor: style.border,
+        color: style.text,
+      }}
+      className={`group relative flex flex-col h-[200px] w-full text-left rounded-[32px] p-6 shadow-[0_6px_20px_rgba(0,0,0,0.04)] border transition-all duration-300 ease-out overflow-hidden hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 ${className}`}
     >
       {/* Glow overlay */}
       <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none rounded-[32px] z-20" />
@@ -156,29 +151,47 @@ export default function ArticleCard({
         <span className="font-extrabold text-[20px] tracking-tight leading-tight line-clamp-3">
           {article.title}
         </span>
-        <span className="text-[14px] font-bold opacity-80 shrink-0">
+        <span className="flex items-center gap-1.5 text-[13px] font-bold opacity-80 shrink-0 mt-0.5">
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
           {readTime}
         </span>
       </div>
 
       {/* Bottom Circle with Cover Image or illustration inside */}
-      <div className={`absolute -bottom-20 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full ${style.circleBg} flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105 overflow-hidden`}>
-        <div className="mb-18 w-24 h-24 relative rounded-full overflow-hidden border-2 border-white/60 shadow-md">
-          {article.coverImage ? (
-            <Image
-              src={article.coverImage}
-              alt=""
-              fill
-              sizes="96px"
-              className="object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-white/20">
-              <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d={getIllustrationPath(article.cover)} />
-              </svg>
-            </div>
-          )}
+      <div 
+        style={{ backgroundColor: style.circleBg }}
+        className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105"
+      >
+        <div className="mb-18 w-24 h-24 relative rounded-full border-2 border-white/60 shadow-md">
+          <div className="w-full h-full rounded-full overflow-hidden relative">
+            {article.coverImage ? (
+              <Image
+                src={article.coverImage}
+                alt=""
+                fill
+                sizes="96px"
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-white/20">
+                <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d={getIllustrationPath(article.cover)} />
+                </svg>
+              </div>
+            )}
+          </div>
+          
+          {/* Small book icon badge overlaying the bottom right of the image circle */}
+          <div 
+            style={{ backgroundColor: style.text }}
+            className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white shadow-sm z-10 text-white"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
         </div>
       </div>
     </button>
