@@ -69,39 +69,11 @@ export default function ReadModePanel({
     <div className="animate-in fade-in duration-200">
       {/* —— Mobile: image-1 literary shelves —— */}
       <div className="md:hidden space-y-7">
-        <div
-          className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar"
-          role="tablist"
-          aria-label="Read categories"
-        >
-          {chips.map((chip) => {
-            const active = filter === chip
-            return (
-              <button
-                key={chip}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setFilter(chip)}
-                className={`shrink-0 min-h-10 rounded-full px-4 py-2 text-[13px] font-semibold transition-colors duration-150
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2
-                  ${
-                    active
-                      ? "bg-[#1A1A1A] text-white shadow-sm"
-                      : "bg-[#E8E0D4] text-[#3A3A3A] hover:bg-[#DDD4C6]"
-                  }`}
-              >
-                {chip}
-              </button>
-            )
-          })}
-        </div>
-
         {sections.map(({ category, items }) => (
           <section
             key={category}
             aria-labelledby={`read-mobile-${category}`}
-            className="space-y-3"
+            className="space-y-4"
           >
             <div className="flex items-end justify-between gap-3">
               <h2
@@ -110,53 +82,18 @@ export default function ReadModePanel({
               >
                 {category}
               </h2>
-              {!showAllForCategory ? (
-                <button
-                  type="button"
-                  onClick={() => setFilter(category)}
-                  className="shrink-0 text-[13px] font-semibold text-[#E8722A]
-                    hover:text-[#D45F1A] transition-colors
-                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 rounded-md px-1"
-                >
-                  See all
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setFilter("All")}
-                  className="shrink-0 text-[13px] font-semibold text-[#E8722A]
-                    hover:text-[#D45F1A] transition-colors
-                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 rounded-md px-1"
-                >
-                  Back
-                </button>
-              )}
             </div>
 
-            {showAllForCategory ? (
-              <div className="grid grid-cols-2 gap-x-3.5 gap-y-5">
-                {items.map((article) => (
-                  <ArticleCard
-                    key={article.id}
-                    article={article}
-                    onSelect={onSelectArticle}
-                    variant="shelf"
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="flex gap-3.5 overflow-x-auto pb-2 -mx-1 px-1 no-scrollbar snap-x">
-                {items.map((article) => (
-                  <div key={article.id} className="snap-start shrink-0 w-[148px]">
-                    <ArticleCard
-                      article={article}
-                      onSelect={onSelectArticle}
-                      variant="shelf"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="flex flex-col gap-3.5">
+              {items.map((article) => (
+                <ArticleCard
+                  key={article.id}
+                  article={article}
+                  onSelect={onSelectArticle}
+                  variant="row"
+                />
+              ))}
+            </div>
           </section>
         ))}
 

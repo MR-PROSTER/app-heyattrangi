@@ -134,48 +134,18 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
   }
 
   return (
-    <div className="space-y-6 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 w-full pb-20">
-      {/* Mobile literary header (image-1) for Read / Listen */}
-      {isShelfMode ? (
-        <div className="md:hidden space-y-4">
-          <div className="flex items-center justify-between">
-            <div
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-[#2C2C2C] text-[15px] font-bold text-white"
-              aria-hidden
-            >
-              {(session?.user?.name?.[0] || "U").toUpperCase()}
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowSearch((v) => !v)}
-              aria-label="Search"
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1A1A1A] text-white
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2"
-            >
-              <Bell className="h-5 w-5" strokeWidth={2} />
-            </button>
-          </div>
-          <div>
-            <p
-              className={`${exploreSerif.className} text-[28px] font-bold leading-tight text-[#1A1A1A]`}
-            >
-              Hey, <span className="text-[#E8722A]">{firstName}!</span>
-            </p>
-            <p
-              className={`${exploreSerif.className} mt-1 text-[26px] font-bold leading-snug text-[#1A1A1A]`}
-            >
-              {mode === "listen"
-                ? "What will you listen today?"
-                : "What will you read today?"}
-            </p>
-          </div>
-        </div>
-      ) : null}
+    <div className="space-y-6 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 w-full pb-28">
+      {/* Mobile Title Header (image-1 design) */}
+      <div className="md:hidden pt-4 pb-1">
+        <h1 className="text-[32px] font-black text-slate-900 tracking-tight">
+          Explore
+        </h1>
+      </div>
 
       {/* Default / desktop Explore header */}
       <div
         className={`flex items-start justify-between gap-4 ${
-          isShelfMode ? "hidden md:flex" : ""
+          isShelfMode ? "hidden md:flex" : "hidden md:flex"
         }`}
       >
         <div className="min-w-0">
@@ -242,20 +212,70 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
           </div>
         )}
 
-        {mode === "read" && filteredArticles.length > 0 && (
-          <ReadModePanel
-            articles={filteredArticles}
-            recentlyRead={recentlyRead}
-            onSelectArticle={handleSelectArticle}
-          />
-        )}
+        {(mode === "read" || mode === "listen") && (
+          <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200 space-y-6">
+            {/* Mobile: clean sub-toggle control between Articles and Audio */}
+            <div className="flex md:hidden items-center justify-center p-1 bg-[#EDE8E0] rounded-xl w-60 mx-auto border border-slate-200/40 shadow-inner">
+              <button
+                type="button"
+                onClick={() => setMode("read")}
+                className={`flex-1 py-1.5 text-xs font-black rounded-lg transition-all text-center ${
+                  mode === "read"
+                    ? "bg-white text-slate-800 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                Articles
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("listen")}
+                className={`flex-1 py-1.5 text-xs font-black rounded-lg transition-all text-center ${
+                  mode === "listen"
+                    ? "bg-white text-slate-800 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                Audio
+              </button>
+            </div>
 
-        {mode === "listen" && filteredListenTracks.length > 0 && (
-          <ListenModePanel
-            tracks={filteredListenTracks}
-            recentlyPlayed={recentlyPlayed}
-            onSelectTrack={handleSelectTrack}
-          />
+            {/* Mobile: show active sub-tab content */}
+            <div className="md:hidden">
+              {mode === "read" && filteredArticles.length > 0 && (
+                <ReadModePanel
+                  articles={filteredArticles}
+                  recentlyRead={recentlyRead}
+                  onSelectArticle={handleSelectArticle}
+                />
+              )}
+              {mode === "listen" && filteredListenTracks.length > 0 && (
+                <ListenModePanel
+                  tracks={filteredListenTracks}
+                  recentlyPlayed={recentlyPlayed}
+                  onSelectTrack={handleSelectTrack}
+                />
+              )}
+            </div>
+
+            {/* Desktop: show only the selected tab's content */}
+            <div className="hidden md:block">
+              {mode === "read" && filteredArticles.length > 0 && (
+                <ReadModePanel
+                  articles={filteredArticles}
+                  recentlyRead={recentlyRead}
+                  onSelectArticle={handleSelectArticle}
+                />
+              )}
+              {mode === "listen" && filteredListenTracks.length > 0 && (
+                <ListenModePanel
+                  tracks={filteredListenTracks}
+                  recentlyPlayed={recentlyPlayed}
+                  onSelectTrack={handleSelectTrack}
+                />
+              )}
+            </div>
+          </div>
         )}
 
         {mode === "assessments" && (
