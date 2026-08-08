@@ -37,6 +37,7 @@ model User {
   notifications  Notification[]
   conversations  Conversation[]
   assessmentAttempts AssessmentAttempt[]
+  memoryGraph UserMemoryGraph?
 
   @@map("users")
 }
@@ -661,4 +662,23 @@ enum AudioCategory {
     OCEAN
     NATURE
     INSTRUMENTAL
+}
+
+model UserMemoryGraph {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @unique @db.ObjectId
+
+  // 6 Clinical Memory Modules — stored as native MongoDB JSON
+  personal         Json     @default("{}")
+  clinical         Json     @default("[]")
+  relational       Json     @default("[]")
+  behavioral       Json     @default("{}")
+  wellness         Json     @default("{}")
+  sessionSummary   Json     @default("{}")
+
+  updatedAt      DateTime @updatedAt
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_memory_graphs")
 }
