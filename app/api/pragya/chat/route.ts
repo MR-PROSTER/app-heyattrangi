@@ -121,33 +121,43 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Call Hugging Face bot ──
-  const upstream = await fetch(`${getPragyaUpstreamBase()}/chat`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      session_id: session?.user?.id
-        ? `patient_${session.user.id}`
-        : resolvedGuestToken ?? "",
-      user_id: session?.user?.id
-        ? String(session.user.id)
-        : (resolvedGuestToken ? String(resolvedGuestToken) : String(conversationId)),
-      client_time: typeof client_time === "string" && client_time.trim()
-        ? client_time
-        : new Date().toISOString(),
-      message: message.trim(),
-      user_name: nameToUse,
-      language: preferredLanguage,
-      generate_suggestions:
-        typeof generate_suggestions === "boolean" ? generate_suggestions : true,
-      conversation_history: conversationHistory,
-      memory_graph: memoryGraph,
-      past_assessments: (pastAssessments as Array<{ assessmentId?: string; date?: string; results?: unknown }>).map((pa) => ({
-        assessmentId: pa.assessmentId,
-        date: pa.date,
-        results: pa.results,
-      })),
-    }),
-  })
+  let upstream: Response
+  try {
+    upstream = await fetch(`${getPragyaUpstreamBase()}/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(90_000), // 90s hard timeout
+      body: JSON.stringify({
+        session_id: session?.user?.id
+          ? `patient_${session.user.id}`
+          : resolvedGuestToken ?? "",
+        user_id: session?.user?.id
+          ? String(session.user.id)
+          : (resolvedGuestToken ? String(resolvedGuestToken) : String(conversationId)),
+        client_time: typeof client_time === "string" && client_time.trim()
+          ? client_time
+          : new Date().toISOString(),
+        message: message.trim(),
+        user_name: nameToUse,
+        language: preferredLanguage,
+        generate_suggestions:
+          typeof generate_suggestions === "boolean" ? generate_suggestions : true,
+        conversation_history: conversationHistory,
+        memory_graph: memoryGraph,
+        past_assessments: (pastAssessments as Array<{ assessmentId?: string; date?: string; results?: unknown }>).map((pa) => ({
+          assessmentId: pa.assessmentId,
+          date: pa.date,
+          results: pa.results,
+        })),
+      }),
+    })
+  } catch (fetchErr) {
+    console.error("Failed to reach Pragya upstream:", fetchErr)
+    return NextResponse.json(
+      { error: "Could not reach the assistant. Please try again in a moment." },
+      { status: 503 },
+    )
+  }
 
   const text = await upstream.text()
 
@@ -161,7 +171,15 @@ export async function POST(req: NextRequest) {
   try {
     const data = JSON.parse(text) as {
       reply?: string
+      blocks?: Array<{ text: string; phase?: string }>
+      expression?: string
+      suggestions?: string[]
       updated_memory_graph?: Record<string, unknown>
+    }
+
+    // HF Space returns blocks[0].text — normalise to reply for the frontend
+    if (!data.reply && data.blocks && data.blocks.length > 0) {
+      data.reply = data.blocks.map((b) => b.text).join(" ").trim()
     }
 
     // ── Save assistant reply to MongoDB ──
