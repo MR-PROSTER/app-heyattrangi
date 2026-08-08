@@ -10,6 +10,7 @@ import UpgradeOffersBanner from "./UpgradeOffersBanner"
 import { useRouter } from "next/navigation"
 import { DEFAULT_AVATAR } from "@/lib/avatar"
 import ProfileAvatar from "@/components/patient/ProfileAvatar"
+import MoodCheckInModal from "./MoodCheckInModal"
 
 const BreathingModule = dynamic(() => import("./BreathingModule"), {
   ssr: false,
@@ -79,6 +80,42 @@ export default function CenterColumn({
   const [timeFilter, setTimeFilter] = useState("All")
   const [selectedMood, setSelectedMood] = useState<string>("Good")
   const [isBreathingOpen, setIsBreathingOpen] = useState(false)
+
+  // Saved mood state
+  const [checkedInMood, setCheckedInMood] = useState<{ score: number; note: string } | null>(null)
+  const [isMoodModalOpen, setIsMoodModalOpen] = useState(false)
+  const [modalInitialScore, setModalInitialScore] = useState<number>(2)
+  const [modalInitialNote, setModalInitialNote] = useState<string>("")
+
+  useEffect(() => {
+    try {
+      const todayStr = new Date().toISOString().split("T")[0]
+      const saved = localStorage.getItem(`attrangi_mood_${todayStr}`)
+      if (saved) {
+        setCheckedInMood(JSON.parse(saved))
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }, [])
+
+  const handleOpenMoodModal = (initialScore: number) => {
+    if (checkedInMood) {
+      setModalInitialScore(checkedInMood.score)
+      setModalInitialNote(checkedInMood.note)
+    } else {
+      setModalInitialScore(initialScore)
+      setModalInitialNote("")
+    }
+    setIsMoodModalOpen(true)
+  }
+
+  const handleSubmitMood = (score: number, note: string) => {
+    const todayStr = new Date().toISOString().split("T")[0]
+    const val = { score, note }
+    setCheckedInMood(val)
+    localStorage.setItem(`attrangi_mood_${todayStr}`, JSON.stringify(val))
+  }
 
   useEffect(() => {
     const controller = new AbortController()
@@ -504,179 +541,131 @@ export default function CenterColumn({
           transition={{ duration: 0.45, delay: 0.16 }}
           className="grid grid-cols-1 xl:grid-cols-2 gap-5 sm:gap-6 w-full"
         >
-          {/* Mood card */}
-          <div className="bg-white rounded-[24px] sm:rounded-[28px] p-5 sm:p-6 shadow-[0_4px_28px_rgba(15,23,42,0.04)] border border-slate-100/90 flex flex-col relative">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1">
-                  Mood check-in
-                </p>
-                {isLoadingMood ? (
-                  <div className="h-10 w-24 bg-slate-100 rounded animate-pulse mb-2" />
+          {/* Left Column: Image 1 cards */}
+          <div className="flex flex-col gap-5 sm:gap-6">
+            {/* Card 1: Emojis check-in */}
+            <div
+              onClick={() => handleOpenMoodModal(2)}
+              className="bg-white rounded-[24px] sm:rounded-[28px] p-5 sm:p-6 shadow-[0_4px_28px_rgba(15,23,42,0.04)] border border-slate-100/90 flex items-center justify-between gap-4 cursor-pointer hover:shadow-md transition-shadow group"
+            >
+              <span className="font-extrabold text-[17px] sm:text-[18px] text-slate-800 tracking-tight leading-snug max-w-[150px] sm:max-w-none group-hover:text-slate-900 transition-colors">
+                {checkedInMood ? (
+                  checkedInMood.score === 0 ? "You're feeling sad today." :
+                  checkedInMood.score === 1 ? "Today's a bit tough." :
+                  checkedInMood.score === 2 ? "You're feeling okay today." :
+                  checkedInMood.score === 3 ? "You're feeling Good today!" :
+                  "You're feeling Happy today!"
                 ) : (
-                  <h3 className="font-extrabold text-[36px] sm:text-[42px] text-slate-900 leading-none mb-1 tabular-nums">
-                    {moodData.score}%
-                  </h3>
+                  "How’s today, so far?"
                 )}
-                <p className="text-[13px] sm:text-[14px] font-bold text-slate-500">
-                  {moodData.message}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-2 mb-6">
-              {["All", "Today", "Week"].map((filter) => (
-                <button
-                  key={filter}
-                  type="button"
-                  onClick={() => setTimeFilter(filter)}
-                  className={`px-4 py-1.5 rounded-full text-xs transition-all ${
-                    timeFilter === filter
-                      ? "bg-orange-500 text-white font-black shadow-md shadow-orange-200"
-                      : "bg-slate-50 text-slate-500 hover:bg-slate-100 font-bold"
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between mb-6 px-1">
-              <div className="flex flex-col gap-3">
+              </span>
+              <div className="flex items-center gap-2.5 sm:gap-3 shrink-0" onClick={(e) => e.stopPropagation()}>
                 {[
-                  { label: "Happy", color: "bg-[#ff8b59]", value: moodData.happy },
-                  { label: "Calm", color: "bg-[#fbbf24]", value: moodData.calm },
-                  { label: "Sad", color: "bg-[#82b863]", value: moodData.sad },
-                ].map((row) => (
-                  <div key={row.label} className="flex flex-col">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <div className={`w-2.5 h-2.5 rounded-full ${row.color}`} />
-                      <span className="text-[13px] font-black text-slate-800">
-                        {row.label}
-                      </span>
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-400 ml-4.5">
-                      {isLoadingMood ? "..." : `${row.value}%`}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="relative w-36 h-36">
-                <svg
-                  viewBox="0 0 100 100"
-                  className={`w-full h-full transform -rotate-90 drop-shadow-md transition-opacity duration-500 ${
-                    isLoadingMood ? "opacity-50" : "opacity-100"
-                  }`}
-                >
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    fill="none"
-                    stroke="#ff8b59"
-                    strokeWidth="16"
-                    strokeDasharray={`${happyLen} ${c}`}
-                    className="transition-all duration-1000 ease-out"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    fill="none"
-                    stroke="#fbbf24"
-                    strokeWidth="16"
-                    strokeDasharray={`${calmLen} ${c}`}
-                    strokeDashoffset={calmOffset}
-                    className="transition-all duration-1000 ease-out"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    fill="none"
-                    stroke="#82b863"
-                    strokeWidth="16"
-                    strokeDasharray={`${sadLen} ${c}`}
-                    strokeDashoffset={sadOffset}
-                    className="transition-all duration-1000 ease-out"
-                  />
-                </svg>
-                <div className="absolute inset-0 m-auto w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-inner">
-                  <span className="text-3xl" aria-hidden>
-                    {moodOptions.find((m) => m.name === selectedMood)?.emoji ||
-                      "😊"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-auto">
-              <button
-                type="button"
-                onClick={() => setIsBreathingOpen(true)}
-                className="bg-[#e8f6f0] rounded-[20px] p-4 relative overflow-hidden flex flex-col justify-between group hover:scale-[1.01] transition-transform cursor-pointer shadow-sm min-h-[110px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
-              >
-                <div className="flex gap-3 items-center">
-                  <div className="w-12 h-12 bg-[#f47b85] rounded-full shrink-0 flex items-center justify-center shadow-sm">
-                    <span className="text-xl" aria-hidden>
-                      😵‍💫
-                    </span>
-                  </div>
-                  <div>
-                    <h4 className="font-black text-[14px] text-[#2c4c3b] leading-tight mb-0.5">
-                      Relieve stress
-                    </h4>
-                    <p className="text-[10px] font-bold text-[#558268]">
-                      Breathing practice
-                    </p>
-                  </div>
-                </div>
-                <span className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/60 text-[#2c4c3b] text-[10px] font-black uppercase tracking-wider rounded-full w-fit">
-                  15 min
-                </span>
-              </button>
-
-              <div className="bg-gradient-to-b from-[#fff5e0] to-[#ffe5be] rounded-[20px] p-4 flex flex-col justify-between shadow-sm min-h-[110px]">
-                <h4 className="font-black text-[12px] text-[#a04e22] leading-tight text-center mb-2">
-                  How are you feeling today?
-                </h4>
-                {moodData.lastUpdated && (
-                  <p className="text-[9px] font-bold text-[#d67240]/80 text-center mb-2">
-                    Updated{" "}
-                    {formatDistanceToNow(new Date(moodData.lastUpdated), {
-                      addSuffix: true,
-                    })}
-                  </p>
-                )}
-                <div className="overflow-x-auto flex items-center gap-1 no-scrollbar -mx-1 px-1">
-                  {moodOptions.map((mood) => (
+                  { name: "Stressed", emoji: "https://res.cloudinary.com/dbjv95prc/image/upload/v1786189447/emoji-target-4_qrmjbc.png", score: 1 },
+                  { name: "Reflective", emoji: "https://res.cloudinary.com/dbjv95prc/image/upload/v1786189506/emoji-target-2_bxmloe.png", score: 2 },
+                  { name: "Safety", emoji: "https://res.cloudinary.com/dbjv95prc/image/upload/v1786189540/emoji-target-3_hoyche.png", score: 3 },
+                ].map((mood) => {
+                  const isSelected = checkedInMood && checkedInMood.score === mood.score
+                  const isAnySelected = checkedInMood !== null
+                  return (
                     <button
                       key={mood.name}
                       type="button"
-                      onClick={async () => {
-                        setSelectedMood(mood.name)
-                        await fetch("/api/patient/journal", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            content: `Feeling ${mood.name.toLowerCase()} today.`,
-                            moodScore: mood.score,
-                          }),
-                        })
-                        router.refresh()
-                      }}
-                      className={`shrink-0 px-3 py-1.5 rounded-full text-[10px] font-black transition-all ${
-                        selectedMood === mood.name
-                          ? "bg-white text-[#a04e22] shadow-sm"
-                          : "text-[#d67240] hover:text-[#a04e22]"
+                      onClick={() => handleOpenMoodModal(mood.score)}
+                      className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden active:scale-95 transition-all shadow-sm shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 ${
+                        isAnySelected
+                          ? isSelected
+                            ? "scale-110 ring-2 ring-orange-500 shadow-md opacity-100"
+                            : "opacity-25 scale-90"
+                          : "hover:scale-105 opacity-100"
                       }`}
+                      title={`Feel ${mood.name}`}
                     >
-                      {mood.emoji} {mood.name}
+                      <Image
+                        src={mood.emoji}
+                        alt={mood.name}
+                        width={56}
+                        height={56}
+                        className="object-cover w-full h-full"
+                      />
                     </button>
-                  ))}
-                </div>
+                  )
+                })}
               </div>
+            </div>
+
+            {/* Card 2: Location Notification */}
+            <div className="bg-[#EBF2E5] rounded-[24px] sm:rounded-[28px] p-5 sm:p-6 border border-[#DCE4D5] shadow-[0_4px_28px_rgba(15,23,42,0.02)] flex items-center justify-between gap-4 min-h-[170px]">
+              <div className="flex-1 flex flex-col justify-between h-full space-y-4">
+                <div>
+                  <h4 className="font-extrabold text-[17px] text-[#1A1A1A] leading-snug">
+                    Notification
+                  </h4>
+                  <p className="text-[13px] text-[#555555] font-semibold leading-relaxed mt-1 max-w-[220px]">
+                    Turn on location service to discover campsites closest to you
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => alert("Location services enabled (demo)")}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#4C6A3C] text-white text-[13px] font-bold hover:bg-[#3F5931] shadow-[0_4px_12px_rgba(76,106,60,0.2)] transition-all w-fit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    className="w-4 h-4"
+                  >
+                    <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <span>Turn on location</span>
+                </button>
+              </div>
+
+              {/* Campsite Map Illustration on the Right */}
+              <div className="shrink-0 w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-[#9AD1D4] border border-[#85BAC0] shadow-inner flex items-center justify-center overflow-hidden">
+                <svg viewBox="0 0 100 120" className="w-[84px] h-[100px] select-none pointer-events-none">
+                  {/* Phone shell */}
+                  <rect x="18" y="10" width="64" height="100" rx="12" fill="#FFFFFF" stroke="#2D3A37" strokeWidth="3" />
+                  {/* Notch */}
+                  <rect x="42" y="10" width="16" height="5" rx="2" fill="#2D3A37" />
+                  {/* Map path (dotted line) */}
+                  <path d="M 30,90 Q 40,55 58,50 T 62,25" fill="none" stroke="#E07A5F" strokeWidth="4" strokeLinecap="round" strokeDasharray="6 5" />
+                  {/* Campsite tent */}
+                  <polygon points="44,52 64,52 54,34" fill="#E07A5F" />
+                  <polygon points="54,52 64,52 54,34" fill="#C35F44" />
+                  {/* Start point circle */}
+                  <circle cx="30" cy="90" r="6" fill="#4C6A3C" stroke="#FFFFFF" strokeWidth="1.5" />
+                  {/* Pin mark */}
+                  <path d="M 54,34 L 54,20" stroke="#2D3A37" strokeWidth="2" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Recommendation header */}
+            <div className="flex items-center justify-between gap-4 mt-2">
+              <h3 className="font-extrabold text-[22px] text-slate-800 tracking-tight leading-none">
+                Recommendation
+              </h3>
+              <Link
+                href="/patient/library"
+                className="inline-flex items-center gap-1.5 px-4.5 py-2 bg-[#222222] text-white text-[13px] font-bold rounded-full hover:bg-black transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+              >
+                <span>Explore</span>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="w-3.5 h-3.5"
+                >
+                  <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+                  <line x1="9" y1="3" x2="9" y2="18" />
+                  <line x1="15" y1="6" x2="15" y2="21" />
+                </svg>
+              </Link>
             </div>
           </div>
 
@@ -749,6 +738,14 @@ export default function CenterColumn({
       <BreathingModule
         isOpen={isBreathingOpen}
         onClose={() => setIsBreathingOpen(false)}
+      />
+
+      <MoodCheckInModal
+        isOpen={isMoodModalOpen}
+        onClose={() => setIsMoodModalOpen(false)}
+        initialScore={modalInitialScore}
+        initialNote={modalInitialNote}
+        onSubmit={handleSubmitMood}
       />
     </div>
   )

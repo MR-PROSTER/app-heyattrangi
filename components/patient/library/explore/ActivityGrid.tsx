@@ -40,7 +40,7 @@ function ActivityGrid({ activities, onSelectActivity }: ActivityGridProps) {
       </div>
 
       {/* Desktop view: Standard Grid */}
-      <div className="hidden md:grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
+      <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
         <AnimatePresence mode="popLayout">
           {activities.map((activity) => (
             <motion.div

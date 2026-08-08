@@ -15,11 +15,11 @@ interface ActivityCardProps {
   isMobileStack?: boolean
 }
 
-function CuteCharacter({ id }: { id: string }) {
+function CuteCharacter({ id, className = "w-40 h-40" }: { id: string; className?: string }) {
   if (id === "breathing") {
     return (
       <motion.svg
-        className="w-40 h-40 select-none pointer-events-none"
+        className={`${className} select-none pointer-events-none`}
         viewBox="0 0 100 100"
         animate={{ scale: [1, 1.08, 1], y: [0, -2, 0] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
@@ -54,7 +54,7 @@ function CuteCharacter({ id }: { id: string }) {
   if (id === "grounding-54321") {
     return (
       <motion.svg
-        className="w-40 h-40 select-none pointer-events-none"
+        className={`${className} select-none pointer-events-none`}
         viewBox="0 0 100 100"
         animate={{ y: [0, -4, 0], rotate: [0, 2, -2, 0] }}
         transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
@@ -83,7 +83,7 @@ function CuteCharacter({ id }: { id: string }) {
   if (id === "micro-movement") {
     return (
       <motion.svg
-        className="w-40 h-40 select-none pointer-events-none"
+        className={`${className} select-none pointer-events-none`}
         viewBox="0 0 100 100"
         animate={{ y: [0, -5, 0] }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -109,7 +109,7 @@ function CuteCharacter({ id }: { id: string }) {
   if (id === "progressive-muscle-relaxation") {
     return (
       <motion.svg
-        className="w-40 h-40 select-none pointer-events-none"
+        className={`${className} select-none pointer-events-none`}
         viewBox="0 0 100 100"
         animate={{ scaleX: [1, 0.95, 1.05, 1], scaleY: [1, 1.05, 0.95, 1] }}
         transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
@@ -134,7 +134,7 @@ function CuteCharacter({ id }: { id: string }) {
   if (id === "journal-reflection") {
     return (
       <motion.svg
-        className="w-40 h-40 select-none pointer-events-none"
+        className={`${className} select-none pointer-events-none`}
         viewBox="0 0 100 100"
         animate={{ rotate: [0, -3, 3, 0] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
@@ -179,31 +179,35 @@ function getMobileStackCardStyle(id: string) {
         text: "text-[#2C3A00]",
         labelBg: "bg-[#B5D965]",
         labelText: "text-[#2C3A00]",
-        border: "border-[#B1D560]"
+        border: "border-[#B1D560]",
+        circleBg: "bg-[#D9FA75]/70"
       }
     case "grounding-54321":
       return {
-        bg: "bg-[#F99BE0]",
-        text: "text-[#400030]",
-        labelBg: "bg-[#E682CD]",
-        labelText: "text-[#400030]",
-        border: "border-[#E178C7]"
+        bg: "bg-[#F58F54]",
+        text: "text-[#401800]",
+        labelBg: "bg-[#E68143]",
+        labelText: "text-[#401800]",
+        border: "border-[#E17C3F]",
+        circleBg: "bg-[#EA7F43]"
       }
     case "micro-movement":
       return {
-        bg: "bg-[#8EB0FF]",
+        bg: "bg-[#85A3F0]",
         text: "text-[#001C5C]",
-        labelBg: "bg-[#799CEF]",
+        labelBg: "bg-[#7192EA]",
         labelText: "text-[#001C5C]",
-        border: "border-[#7195EA]"
+        border: "border-[#6E8FE6]",
+        circleBg: "bg-[#6787DE]"
       }
     case "progressive-muscle-relaxation":
       return {
-        bg: "bg-[#FFD875]",
-        text: "text-[#403000]",
-        labelBg: "bg-[#ECB751]",
-        labelText: "text-[#403000]",
-        border: "border-[#E6B046]"
+        bg: "bg-[#ED78D5]",
+        text: "text-[#400030]",
+        labelBg: "bg-[#D661BD]",
+        labelText: "text-[#400030]",
+        border: "border-[#D15DB8]",
+        circleBg: "bg-[#D65FBC]"
       }
     case "journal-reflection":
       return {
@@ -211,7 +215,8 @@ function getMobileStackCardStyle(id: string) {
         text: "text-[#003B2C]",
         labelBg: "bg-[#6FD8BF]",
         labelText: "text-[#003B2C]",
-        border: "border-[#67D0B7]"
+        border: "border-[#67D0B7]",
+        circleBg: "bg-[#69CDB4]"
       }
     default:
       return {
@@ -219,9 +224,23 @@ function getMobileStackCardStyle(id: string) {
         text: "text-[#2C3A00]",
         labelBg: "bg-[#B5D965]",
         labelText: "text-[#2C3A00]",
-        border: "border-[#B1D560]"
+        border: "border-[#B1D560]",
+        circleBg: "bg-[#D9FA75]/70"
       }
   }
+}
+
+const ICON_PATHS: Record<string, string> = {
+  box: "M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z",
+  clock: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+  wind: "M12 3c-1.5 3-4 5-4 8a4 4 0 008 0c0-3-2.5-5-4-8z M4.5 12.5c1.5-.5 3 0 4.5 1.5M19.5 12.5c-1.5-.5-3 0-4.5 1.5",
+  sigh: "M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3",
+  senses: "M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z",
+  move: "M13 10V3L4 14h7v7l9-11h-7z",
+  scan: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z",
+  muscle: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",
+  journal: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z",
+  moon: "M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z",
 }
 
 /** Reusable Explore activity card — keyboard accessible, hover elevation. */
@@ -231,16 +250,16 @@ function ActivityCard({
   className = "",
   isMobileStack = false,
 }: ActivityCardProps) {
+  const style = getMobileStackCardStyle(activity.id)
+
   if (isMobileStack) {
-    const style = getMobileStackCardStyle(activity.id)
     return (
       <button
         type="button"
         onClick={() => onSelect?.(activity)}
         aria-label={`${activity.title}, ${activity.duration}`}
-        className={`relative flex flex-col h-[200px] w-full text-left rounded-[32px] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] border ${style.bg} ${style.border} ${style.text} transition-all duration-300 overflow-hidden active:shadow-[0_16px_32px_rgba(0,0,0,0.12)]`}
+        className={`relative flex flex-col h-[200px] w-full text-left rounded-[32px] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] border ${style.bg} ${style.border} ${style.text} transition-all duration-300 overflow-hidden active:shadow-[0_16px_32px_rgba(0,0,0,0.12)] ${className}`}
       >
-        {/* Glow overlay that lights up on active/press */}
         <span className="absolute inset-0 bg-white/20 opacity-0 active:opacity-100 transition-opacity duration-75 pointer-events-none rounded-[32px] z-20" />
 
         <div className="flex items-start justify-between w-full z-10">
@@ -252,38 +271,42 @@ function ActivityCard({
           </span>
         </div>
 
-        <div className="absolute right-0 bottom-0 z-0">
+        <div className="absolute right-0 bottom-0 z-0 select-none pointer-events-none">
           <CuteCharacter id={activity.id} />
         </div>
       </button>
     )
   }
 
+  // Desktop Card Design
   return (
     <button
       type="button"
       onClick={() => onSelect?.(activity)}
-      aria-label={`${activity.title}, ${activity.duration}, ${EXPLORE_CATEGORY_LABELS[activity.category]}`}
-      className={`group relative flex flex-col h-full w-full text-left rounded-[22px] bg-white border border-slate-100/90 p-4 sm:p-5 shadow-[0_4px_16px_rgba(15,23,42,0.04)] transition-all duration-300 ease-out cursor-pointer hover:scale-[1.02] hover:shadow-[0_14px_32px_rgba(15,23,42,0.09)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 motion-reduce:hover:scale-100 ${className}`}
+      aria-label={`${activity.title}, ${activity.duration}`}
+      className={`group relative flex flex-col h-[200px] w-full text-left rounded-[32px] p-6 shadow-[0_6px_20px_rgba(0,0,0,0.04)] border ${style.bg} ${style.border} ${style.text} transition-all duration-300 ease-out overflow-hidden hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 ${className}`}
     >
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <ActivityIcon icon={activity.icon} category={activity.category} />
-        <ChevronRight
-          className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors shrink-0 mt-1"
-          aria-hidden
-        />
+      {/* Glow overlay */}
+      <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none rounded-[32px] z-20" />
+
+      {/* Title & Duration */}
+      <div className="flex items-start justify-between w-full z-10 gap-3">
+        <span className="font-extrabold text-[20px] tracking-tight leading-tight">
+          {activity.title}
+        </span>
+        <span className="text-[14px] font-bold opacity-80 shrink-0">
+          {activity.duration}
+        </span>
       </div>
 
-      <h4 className="font-bold text-[15px] sm:text-[16px] text-slate-800 tracking-tight leading-snug mb-1.5">
-        {activity.title}
-      </h4>
-
-      <div className="flex flex-wrap items-center gap-2 mt-auto pt-1">
-        <ActivityDuration duration={activity.duration} />
+      {/* Bottom Circle with Cute Character inside */}
+      <div className={`absolute -bottom-20 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full ${style.circleBg} flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105`}>
+        <div className="mb-18">
+          <CuteCharacter id={activity.id} className="w-[110px] h-[110px]" />
+        </div>
       </div>
     </button>
   )
 }
 
 export default memo(ActivityCard)
-

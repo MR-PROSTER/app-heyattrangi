@@ -70,10 +70,14 @@ export default function ListenPlayerProvider({
   const playlistRef = useRef<ListenTrack[]>([])
   const isRepeatingRef = useRef<boolean>(false)
   const currentTrackRef = useRef<ListenTrack | null>(null)
+  const currentTimeRef = useRef<number>(0)
+  const isPlayingRef = useRef<boolean>(false)
 
   playlistRef.current = playlist
   isRepeatingRef.current = isRepeating
   currentTrackRef.current = currentTrack
+  currentTimeRef.current = currentTime
+  isPlayingRef.current = isPlaying
 
   useEffect(() => {
     if (playlistRef.current.length === 0) {
@@ -112,13 +116,21 @@ export default function ListenPlayerProvider({
 
       const isSame = currentTrackRef.current?.id === track.id
       if (!isSame) {
+        console.log("[AudioPlayer] Loading new track:", track.id, "URL:", track.audioSrc)
+        if (track.audioSrc.startsWith("http://") || track.audioSrc.startsWith("https://")) {
+          audio.crossOrigin = "anonymous"
+        } else {
+          audio.removeAttribute("crossorigin")
+        }
         audio.src = track.audioSrc
+        audio.load()
         setCurrentTrack(track)
         setCurrentTime(0)
         setDuration(0)
       }
 
-      void audio.play().catch(() => {
+      void audio.play().catch((err) => {
+        console.warn("[AudioPlayer] Playback failed/blocked:", err)
         setIsPlaying(false)
       })
     },
@@ -196,8 +208,14 @@ export default function ListenPlayerProvider({
         }
       }
     }
-    const onError = () => {
+    const onError = (e: Event) => {
       setIsPlaying(false)
+      const err = audio.error
+      console.error("[ListenPlayer] Audio error event details:", {
+        code: err?.code,
+        message: err?.message,
+        src: audio.src,
+      })
       if (process.env.NODE_ENV !== "production") {
         console.warn("[ListenPlayer] Audio failed to load")
       }
@@ -212,17 +230,46 @@ export default function ListenPlayerProvider({
     audio.addEventListener("error", onError)
 
     const pending = pendingTrackRef.current
+    const active = currentTrackRef.current
+
     if (pending) {
       pendingTrackRef.current = null
+      console.log("[AudioPlayer] Loading pending track:", pending.id, "URL:", pending.audioSrc)
+      if (pending.audioSrc.startsWith("http://") || pending.audioSrc.startsWith("https://")) {
+        audio.crossOrigin = "anonymous"
+      } else {
+        audio.removeAttribute("crossorigin")
+      }
       audio.src = pending.audioSrc
+      audio.load()
       setCurrentTrack(pending)
       setCurrentTime(0)
       setDuration(0)
-      void audio.play().catch(() => setIsPlaying(false))
+      void audio.play().catch((err) => {
+        console.warn("[AudioPlayer] Pending playback failed/blocked:", err)
+        setIsPlaying(false)
+      })
+    } else if (active) {
+      console.log("[AudioPlayer] Restoring active track:", active.id, "URL:", active.audioSrc)
+      if (active.audioSrc.startsWith("http://") || active.audioSrc.startsWith("https://")) {
+        audio.crossOrigin = "anonymous"
+      } else {
+        audio.removeAttribute("crossorigin")
+      }
+      audio.src = active.audioSrc
+      audio.load()
+      audio.currentTime = currentTimeRef.current
+      if (isPlayingRef.current) {
+        void audio.play().catch((err) => {
+          console.warn("[AudioPlayer] Restored active playback failed:", err)
+          setIsPlaying(false)
+        })
+      }
     }
 
     return () => {
-      audio.pause()
+      // Remove event listeners first so cleanup actions (pause, setting src to "")
+      // do not trigger callbacks that mutate our React state or log errors.
       audio.removeEventListener("timeupdate", onTime)
       audio.removeEventListener("loadedmetadata", onMeta)
       audio.removeEventListener("durationchange", onMeta)
@@ -230,6 +277,12 @@ export default function ListenPlayerProvider({
       audio.removeEventListener("pause", onPause)
       audio.removeEventListener("ended", onEnded)
       audio.removeEventListener("error", onError)
+
+      audio.pause()
+      audio.src = ""
+      try {
+        audio.load()
+      } catch {}
       audioRef.current = null
     }
   }, [])

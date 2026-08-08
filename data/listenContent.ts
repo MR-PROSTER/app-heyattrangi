@@ -29,6 +29,7 @@ export interface ListenTrack {
   displayOrder: number
   audioAvailable: boolean
   coverIllustration: ListenCoverIllustration
+  coverImage?: string
   /** Local placeholder until Cloudinary hosting */
   audioSrc: string
 }

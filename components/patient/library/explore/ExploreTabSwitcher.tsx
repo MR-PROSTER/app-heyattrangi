@@ -25,27 +25,16 @@ export default function ExploreTabSwitcher({
 }: ExploreTabSwitcherProps) {
   const tabs = ALL_TABS.filter((tab) => !hiddenTabs.includes(tab.id))
   
-  const mobileTabs = [
-    { id: "activities", label: "Activities" },
-    { id: "read_listen", label: "Read & Listen" },
-    { id: "assessments", label: "Assessments" },
-  ]
-
   return (
     <>
       {/* Mobile Tab Switcher */}
       <div
         role="tablist"
         aria-label="Explore sections"
-        className="flex md:hidden relative bg-[#EDE8E0] rounded-full p-1 items-center gap-0.5 w-full shadow-inner"
+        className="flex md:hidden relative bg-[#EDE8E0] rounded-full p-1 items-center gap-0.5 w-full shadow-inner overflow-x-auto no-scrollbar"
       >
-        {mobileTabs.map((tab) => {
-          const active =
-            tab.id === "activities"
-              ? value === "activities"
-              : tab.id === "assessments"
-              ? value === "assessments"
-              : value === "read" || value === "listen"
+        {tabs.map((tab) => {
+          const active = value === tab.id
 
           return (
             <button
@@ -53,8 +42,8 @@ export default function ExploreTabSwitcher({
               type="button"
               role="tab"
               aria-selected={active}
-              onClick={() => onChange(tab.id === "read_listen" ? "read" : (tab.id as any))}
-              className={`relative z-[1] flex-1 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors duration-200 text-center ${
+              onClick={() => onChange(tab.id)}
+              className={`relative z-[1] flex-1 py-2 px-2.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-colors duration-200 text-center ${
                 active
                   ? "text-slate-800"
                   : "text-slate-500 hover:text-slate-700"

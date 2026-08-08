@@ -38,8 +38,8 @@ const ReadModePanel = dynamic(
   { loading: () => <ArticleGridSkeleton />, ssr: false }
 )
 
-const ListenModePanel = dynamic(
-  () => import("@/components/patient/library/explore/listen/ListenModePanel"),
+const ListenTabPanel = dynamic(
+  () => import("@/components/patient/library/explore/listen/ListenTabPanel"),
   { loading: () => <ListenGridSkeleton />, ssr: false }
 )
 
@@ -234,69 +234,19 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
           </div>
         )}
 
-        {(mode === "read" || mode === "listen") && (
-          <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200 space-y-6">
-            {/* Mobile: clean sub-toggle control between Articles and Audio */}
-            <div className="flex md:hidden items-center justify-center p-1 bg-[#EDE8E0] rounded-xl w-60 mx-auto border border-slate-200/40 shadow-inner">
-              <button
-                type="button"
-                onClick={() => setMode("read")}
-                className={`flex-1 py-1.5 text-xs font-black rounded-lg transition-all text-center ${
-                  mode === "read"
-                    ? "bg-white text-slate-800 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                Articles
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("listen")}
-                className={`flex-1 py-1.5 text-xs font-black rounded-lg transition-all text-center ${
-                  mode === "listen"
-                    ? "bg-white text-slate-800 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                Audio
-              </button>
-            </div>
+        {mode === "read" && (
+          <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200">
+            <ReadModePanel
+              articles={filteredArticles}
+              recentlyRead={recentlyRead}
+              onSelectArticle={handleSelectArticle}
+            />
+          </div>
+        )}
 
-            {/* Mobile: show active sub-tab content */}
-            <div className="md:hidden">
-              {mode === "read" && filteredArticles.length > 0 && (
-                <ReadModePanel
-                  articles={filteredArticles}
-                  recentlyRead={recentlyRead}
-                  onSelectArticle={handleSelectArticle}
-                />
-              )}
-              {mode === "listen" && filteredListenTracks.length > 0 && (
-                <ListenModePanel
-                  tracks={filteredListenTracks}
-                  recentlyPlayed={recentlyPlayed}
-                  onSelectTrack={handleSelectTrack}
-                />
-              )}
-            </div>
-
-            {/* Desktop: show only the selected tab's content */}
-            <div className="hidden md:block">
-              {mode === "read" && filteredArticles.length > 0 && (
-                <ReadModePanel
-                  articles={filteredArticles}
-                  recentlyRead={recentlyRead}
-                  onSelectArticle={handleSelectArticle}
-                />
-              )}
-              {mode === "listen" && filteredListenTracks.length > 0 && (
-                <ListenModePanel
-                  tracks={filteredListenTracks}
-                  recentlyPlayed={recentlyPlayed}
-                  onSelectTrack={handleSelectTrack}
-                />
-              )}
-            </div>
+        {mode === "listen" && (
+          <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200">
+            <ListenTabPanel />
           </div>
         )}
 

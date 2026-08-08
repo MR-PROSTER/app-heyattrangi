@@ -156,12 +156,11 @@ export default function ListenModePanel({
   return (
     <div className="animate-in fade-in duration-200">
       <div className="md:hidden space-y-7">
-
         {sections.map(({ category, items }) => (
           <section
             key={category}
             aria-labelledby={`listen-mobile-${category}`}
-            className="space-y-4"
+            className="space-y-3"
           >
             <div className="flex items-end justify-between gap-3">
               <h2
@@ -170,18 +169,48 @@ export default function ListenModePanel({
               >
                 {category}
               </h2>
+              {!showAllForCategory ? (
+                <button
+                  type="button"
+                  onClick={() => setFilter(category)}
+                  className="shrink-0 text-[13px] font-semibold text-[#E8722A]
+                    hover:text-[#D45F1A] transition-colors
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 rounded-md px-1"
+                >
+                  See all
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setFilter("All")}
+                  className="shrink-0 text-[13px] font-semibold text-[#E8722A]
+                    hover:text-[#D45F1A] transition-colors
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 rounded-md px-1"
+                >
+                  Back
+                </button>
+              )}
             </div>
 
-            <div className="flex flex-col gap-3.5">
-              {items.map((track) => (
-                <ListenShelfCard
-                  key={track.id}
-                  track={track}
-                  onSelect={onSelectTrack}
-                  variant="row"
-                />
-              ))}
-            </div>
+            {showAllForCategory ? (
+              <div className="grid grid-cols-2 gap-x-3.5 gap-y-5">
+                {items.map((track) => (
+                  <ListenShelfCard
+                    key={track.id}
+                    track={track}
+                    onSelect={onSelectTrack}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex gap-3.5 overflow-x-auto pb-2 -mx-1 px-1 no-scrollbar snap-x">
+                {items.map((track) => (
+                  <div key={track.id} className="snap-start shrink-0 w-[148px]">
+                    <ListenShelfCard track={track} onSelect={onSelectTrack} />
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         ))}
       </div>
