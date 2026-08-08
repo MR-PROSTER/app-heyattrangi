@@ -494,9 +494,7 @@ function ListenTabPanel({ customCdnBase }: ListenTabPanelProps) {
                   </span>
                 </div>
                 
-                <p className="mt-3 text-xs font-bold opacity-75 max-w-[65%] z-10 leading-snug">
-                  {category.description}
-                </p>
+
 
                 <div className="absolute right-0 bottom-0 z-0 select-none pointer-events-none">
                   <CuteCategoryCharacter categoryName={category.name} />
@@ -535,9 +533,7 @@ function ListenTabPanel({ customCdnBase }: ListenTabPanelProps) {
                   </span>
                 </div>
                 
-                <p className="mt-2 text-xs font-bold opacity-75 max-w-[70%] z-10 leading-snug">
-                  {category.description}
-                </p>
+
 
                 {/* Bottom Circle with Cute Character inside */}
                 <div className={`absolute -bottom-20 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full ${theme.circleBg} flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105`}>
