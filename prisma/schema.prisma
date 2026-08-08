@@ -36,9 +36,11 @@ model User {
   journalEntries JournalEntry[]
   notifications  Notification[]
   conversations  Conversation[]
+  assessmentAttempts AssessmentAttempt[]
 
   @@map("users")
 }
+
 
 model Organization {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -603,4 +605,60 @@ model WellnessActivity {
   updatedAt         DateTime                 @updatedAt
 
   @@map("wellness_activities")
+}
+
+
+model AssessmentAttempt {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @db.ObjectId
+  assessmentKey String
+  status        AttemptStatus
+  score         Int?
+  severity      String?
+  interpretation String?
+  startedAt     DateTime @default(now())
+  completedAt   DateTime?
+  user User @relation(fields:[userId], references:[id])
+  responses AssessmentResponse[]
+  @@index([userId])
+  @@index([assessmentKey])
+  @@map("assessment_attempts")
+}
+
+enum AttemptStatus{
+    COMPLETED
+    INCOMPLETE
+}
+
+model AssessmentResponse {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  attemptId String @db.ObjectId
+  questionId String
+  selectedValue Int
+  createdAt DateTime @default(now())
+  attempt AssessmentAttempt @relation(fields:[attemptId], references:[id])
+  @@index([attemptId])
+  @@map("assessment_responses")
+}
+
+
+model AudioTrack {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String?
+  category    AudioCategory
+  audioUrl    String
+  imageUrl    String?
+  duration    Int?      // seconds
+  isPremium   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  @@map("audio_tracks")
+}
+
+enum AudioCategory {
+    RAIN
+    OCEAN
+    NATURE
+    INSTRUMENTAL
 }

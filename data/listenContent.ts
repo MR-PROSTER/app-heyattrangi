@@ -29,11 +29,12 @@ export interface ListenTrack {
   displayOrder: number
   audioAvailable: boolean
   coverIllustration: ListenCoverIllustration
+  coverImage?: string
   /** Local placeholder until Cloudinary hosting */
   audioSrc: string
 }
 
-const PLACEHOLDER = "/audio/calm-placeholder.wav"
+const PLACEHOLDER = "/audio/sample-3s.wav"
 
 function coverForCategory(
   category: ListenCategory,
@@ -152,7 +153,7 @@ export const LISTEN_TRACKS: ListenTrack[] = RAW_TRACKS.map((row, index) => ({
   displayOrder: row.displayOrder,
   audioAvailable: true,
   coverIllustration: coverForCategory(row.category, index),
-  audioSrc: PLACEHOLDER,
+  audioSrc: encodeURI(`/media/audio/${row.title}.mp3`),
 })).sort((a, b) => a.displayOrder - b.displayOrder)
 
 /** Prefer available tracks only for browse/play. */

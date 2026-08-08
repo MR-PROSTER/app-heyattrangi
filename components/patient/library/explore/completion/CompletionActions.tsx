@@ -12,10 +12,10 @@ export default function CompletionActions({
   onDone,
   onTryAnother,
 }: CompletionActionsProps) {
-  const doneRef = useRef<HTMLButtonElement>(null)
+  const tryAnotherRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
-    doneRef.current?.focus()
+    tryAnotherRef.current?.focus()
   }, [])
 
   return (
@@ -26,15 +26,7 @@ export default function CompletionActions({
       transition={{ duration: 0.4, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
     >
       <button
-        ref={doneRef}
-        type="button"
-        onClick={onDone}
-        aria-label="Done, return to Explore"
-        className="w-full rounded-2xl bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-[16px] py-4 px-6 shadow-[0_10px_28px_rgba(249,115,22,0.28)] transition-all duration-300 hover:scale-[1.02] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2"
-      >
-        Done
-      </button>
-      <button
+        ref={tryAnotherRef}
         type="button"
         onClick={onTryAnother}
         aria-label="Try another activity, return to Activity Library"

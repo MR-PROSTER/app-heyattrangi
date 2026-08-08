@@ -8,12 +8,12 @@ import SubscriptionSettings from "@/components/settings/subscription/Subscriptio
 async function Content() {
   const user = await getCurrentUser()
   if (!user || user.role !== "PATIENT") redirect("/auth/unauthorized")
-  return <SubscriptionSettings />
+  return <SubscriptionSettings user={user} />
 }
 
 export default function SubscriptionSettingsPage() {
   return (
-    <SettingsLayout title="Subscription" backHref="/dashboard/settings">
+    <SettingsLayout title="Subscription" backHref="/dashboard/settings" maxWidthClass="max-w-6xl">
       <Suspense fallback={<LoadingSkeleton rows={1} />}>
         <Content />
       </Suspense>

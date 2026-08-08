@@ -15,7 +15,7 @@ interface ArticleCardProps {
   onSelect?: (article: ReadArticle) => void
   className?: string
   /** shelf = image-1 mobile card (title + author); grid = title only */
-  variant?: "shelf" | "grid"
+  variant?: "shelf" | "grid" | "row"
 }
 
 /**
@@ -31,6 +31,51 @@ export default function ArticleCard({
     article.estimatedReadTime?.trim() || article.readTime?.trim() || ""
   const author = article.author?.trim() || ""
   const isShelf = variant === "shelf"
+
+  if (variant === "row") {
+    return (
+      <button
+        type="button"
+        onClick={() => onSelect?.(article)}
+        aria-label={[
+          article.title,
+          author ? `by ${author}` : "",
+          readTime ? `${readTime} read` : "",
+        ]
+          .filter(Boolean)
+          .join(", ")}
+        className={`group flex w-full items-center gap-4 text-left p-3.5 rounded-[22px] bg-white border border-slate-100/90 shadow-[0_6px_20px_rgba(40,30,20,0.03)] transition-all hover:translate-y-[-1px] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] ${className}`}
+      >
+        <div className="w-16 shrink-0">
+          <ArticleCover
+            illustration={article.cover}
+            coverImage={article.coverImage}
+            title={article.title}
+          />
+        </div>
+        <div className="flex-1 min-w-0 py-0.5 flex flex-col justify-between h-full">
+          <div className="space-y-1">
+            <h3 className="line-clamp-2 text-[14px] font-black leading-snug text-[#1A1A1A] group-hover:text-slate-800">
+              {article.title}
+            </h3>
+            {author && (
+              <p className="truncate text-[11px] font-bold text-slate-400">
+                {author}
+              </p>
+            )}
+          </div>
+          {readTime && (
+            <div className="mt-2.5 flex items-center gap-1 text-[10px] font-black text-orange-500 uppercase tracking-wider">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{readTime} read</span>
+            </div>
+          )}
+        </div>
+      </button>
+    )
+  }
 
   return (
     <button

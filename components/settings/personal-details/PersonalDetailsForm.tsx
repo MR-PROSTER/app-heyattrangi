@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { toast, Toaster } from "sonner"
 import SettingsInput from "../SettingsInput"
 import { validateName, validatePhone } from "@/components/profile/identity/identityUtils"
@@ -33,6 +34,7 @@ interface PersonalDetailsFormProps {
  */
 export default function PersonalDetailsForm({ initial }: PersonalDetailsFormProps) {
   const router = useRouter()
+  const { update } = useSession()
   const [name, setName] = useState(initial.name || "")
   const [phone, setPhone] = useState("")
   const email = initial.email || ""
@@ -90,6 +92,7 @@ export default function PersonalDetailsForm({ initial }: PersonalDetailsFormProp
           throw new Error((data as { error?: string }).error || "Failed to save name")
         }
         setName(draft.trim())
+        await update()
         toast.success("Name saved")
         router.refresh()
       } else if (editing === "phone") {

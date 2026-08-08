@@ -283,7 +283,7 @@ export const screeners: Record<string, Screener> = {
         ],
         scoring: [
             { min: 0, max: 4, severity: "Minimal", recommendations: ["No specific action needed"] },
-            { min: 5, max: 9, severity: "Mild", recommendations: ["Try grounding techniques (5-4-3-2-1)", "Breathing exercises"] },
+            { min: 5, max: 9, severity: "Mild", recommendations: ["Try grounding techniques (Object Focus)", "Breathing exercises"] },
             { min: 10, max: 14, severity: "Moderate", recommendations: ["Start daily meditation", "Consider talking to a counselor"] },
             { min: 15, max: 21, severity: "Severe", recommendations: ["Recommend therapist session", "Anxiety management protocol"] }
         ]

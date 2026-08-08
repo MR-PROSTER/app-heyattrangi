@@ -30,10 +30,51 @@ interface ListenModePanelProps {
 function ListenShelfCard({
   track,
   onSelect,
+  variant = "shelf",
 }: {
   track: ListenTrack
   onSelect?: (track: ListenTrack) => void
+  variant?: "shelf" | "row"
 }) {
+  if (variant === "row") {
+    return (
+      <button
+        type="button"
+        onClick={() => onSelect?.(track)}
+        aria-label={`Play ${track.title}, ${track.duration || ""}`}
+        className="group flex w-full items-center gap-4 text-left p-3.5 rounded-[22px] bg-white border border-slate-100/90 shadow-[0_6px_20px_rgba(40,30,20,0.03)] transition-all hover:translate-y-[-1px] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
+      >
+        <div className="w-16 shrink-0">
+          <ListenCover
+            illustration={track.coverIllustration}
+            size="portrait"
+            title={track.title}
+          />
+        </div>
+        <div className="flex-1 min-w-0 py-0.5 flex flex-col justify-between h-full">
+          <div className="space-y-1">
+            <h3 className="line-clamp-2 text-[14px] font-black leading-snug text-[#1A1A1A] group-hover:text-slate-800">
+              {track.title}
+            </h3>
+            {track.artist && (
+              <p className="truncate text-[11px] font-bold text-slate-400">
+                {track.artist}
+              </p>
+            )}
+          </div>
+          {track.duration && (
+            <div className="mt-2.5 flex items-center gap-1 text-[10px] font-black text-orange-500 uppercase tracking-wider">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{track.duration} listen</span>
+            </div>
+          )}
+        </div>
+      </button>
+    )
+  }
+
   return (
     <button
       type="button"
@@ -115,34 +156,6 @@ export default function ListenModePanel({
   return (
     <div className="animate-in fade-in duration-200">
       <div className="md:hidden space-y-7">
-        <div
-          className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar"
-          role="tablist"
-          aria-label="Listen categories"
-        >
-          {chips.map((chip) => {
-            const active = filter === chip
-            return (
-              <button
-                key={chip}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setFilter(chip)}
-                className={`shrink-0 min-h-10 rounded-full px-4 py-2 text-[13px] font-semibold transition-colors duration-150
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2
-                  ${
-                    active
-                      ? "bg-[#1A1A1A] text-white shadow-sm"
-                      : "bg-[#E8E0D4] text-[#3A3A3A] hover:bg-[#DDD4C6]"
-                  }`}
-              >
-                {chip}
-              </button>
-            )
-          })}
-        </div>
-
         {sections.map(({ category, items }) => (
           <section
             key={category}

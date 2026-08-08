@@ -47,6 +47,7 @@ export const config = {
     "/dashboard/:path*",
     "/read/:path*",
     "/listen/:path*",
+    "/explore/:path*",
   ],
 }
 

@@ -309,6 +309,7 @@ export default function Sidebar() {
                     {drawerItems.map((item) => renderNavLink(item, { expanded: true, onNavigate: () => setIsMobileOpen(false) }))}
                 </nav>
 
+                {/* Profile Drawer Link commented out
                 <Link
                     href="/patient/profile"
                     onClick={() => setIsMobileOpen(false)}
@@ -337,6 +338,7 @@ export default function Sidebar() {
                         </span>
                     </div>
                 </Link>
+                */}
             </aside>
         </div>
 
@@ -451,31 +453,9 @@ export default function Sidebar() {
                     </nav>
                 </div>
 
-                {/* Notifications Button */}
-                <div className={`mb-3 ${isCollapsed ? "mx-auto w-full flex justify-center px-2" : "mx-4"}`}>
-                    <button
-                        onClick={() => setIsNotifOpen(true)}
-                        className={`flex items-center rounded-2xl transition-all duration-300 font-bold relative group
-                            ${isCollapsed ? "w-12 h-12 justify-center" : "px-4 py-3 justify-between w-full"}
-                            hover:bg-white/10 text-orange-100/60 hover:text-white
-                        `}
-                        title={isCollapsed ? "Notifications" : undefined}
-                    >
-                        <div className={`flex items-center ${isCollapsed ? "justify-center w-full" : "gap-3"}`}>
-                            <div className="flex items-center justify-center">
-                                <BellIcon />
-                            </div>
-                            {!isCollapsed && <span className="text-sm whitespace-nowrap">Notifications</span>}
-                        </div>
-                        {unreadCount > 0 && (
-                            <div className={`bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full shadow-sm absolute ${isCollapsed ? "top-1 right-1 w-4 h-4" : "right-3 w-5 h-5"}`}>
-                                {unreadCount > 9 ? '9+' : unreadCount}
-                            </div>
-                        )}
-                    </button>
-                </div>
+                {/* Notifications Button commented out per user request */}
 
-                {/* Profile Card / Button — bottom of sidebar (same as before) */}
+                {/* Profile Card / Button commented out per user request
                 {!isCollapsed ? (
                     <div className="mt-auto mb-6 mx-4">
                         <Link
@@ -528,6 +508,7 @@ export default function Sidebar() {
                         </Link>
                     </div>
                 )}
+                */}
 
                 {/* Bottom CTA */}
                 {/* {!isCollapsed && (

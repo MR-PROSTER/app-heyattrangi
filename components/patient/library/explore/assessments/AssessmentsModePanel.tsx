@@ -5,6 +5,7 @@ import AssessmentsCatalog from "@/components/patient/library/explore/assessments
 
 interface AssessmentsModePanelProps {
   enabled?: boolean
+  searchQuery?: string
   onNavigateLibraryTab: (tab: string) => void
 }
 
@@ -13,6 +14,7 @@ interface AssessmentsModePanelProps {
  */
 export default function AssessmentsModePanel({
   enabled = true,
+  searchQuery = "",
   onNavigateLibraryTab,
 }: AssessmentsModePanelProps) {
   if (!enabled) {
@@ -21,7 +23,10 @@ export default function AssessmentsModePanel({
 
   return (
     <div className="animate-in fade-in duration-200 w-full">
-      <AssessmentsCatalog onNavigateLibraryTab={onNavigateLibraryTab} />
+      <AssessmentsCatalog
+        onNavigateLibraryTab={onNavigateLibraryTab}
+        searchQuery={searchQuery}
+      />
     </div>
   )
 }

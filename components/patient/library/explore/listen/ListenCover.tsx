@@ -42,6 +42,7 @@ const COVER_STYLES: Record<
 
 interface ListenCoverProps {
   illustration: ListenCoverIllustration
+  coverImage?: string
   /** sm/md/lg for player & mini-player; portrait for listing grid */
   size?: "sm" | "md" | "lg" | "portrait"
   className?: string
@@ -68,17 +69,17 @@ const ICON_SIZES = {
  */
 export default function ListenCover({
   illustration,
+  coverImage,
   size = "md",
   className = "",
   title,
 }: ListenCoverProps) {
-  const style = COVER_STYLES[illustration]
+  const style = COVER_STYLES[illustration] || COVER_STYLES["waves"]
   const isPortrait = size === "portrait"
 
   return (
     <div
-      className={`${SIZES[size]} flex items-center justify-center shrink-0
-        bg-gradient-to-br ${style.gradient}
+      className={`${SIZES[size]} relative overflow-hidden flex items-center justify-center shrink-0
         ${
           isPortrait
             ? "shadow-[0_10px_28px_rgba(40,30,20,0.14)] ring-1 ring-black/[0.04]"
@@ -89,25 +90,36 @@ export default function ListenCover({
       role={title ? "img" : undefined}
       aria-label={title}
     >
-      <svg
-        className={`${ICON_SIZES[size]} ${isPortrait ? "text-white/70" : "text-slate-600/50"}`}
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.4}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d={style.motif}
+      {coverImage ? (
+        <img
+          src={coverImage}
+          alt={title || ""}
+          className="absolute inset-0 w-full h-full object-cover"
         />
-      </svg>
-      {isPortrait ? (
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/25 to-transparent"
-          aria-hidden
-        />
-      ) : null}
+      ) : (
+        <>
+          <div className={`absolute inset-0 bg-gradient-to-br ${style.gradient}`} />
+          <svg
+            className={`${ICON_SIZES[size]} relative z-10 ${isPortrait ? "text-white/70" : "text-slate-600/50"}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.4}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d={style.motif}
+            />
+          </svg>
+          {isPortrait ? (
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/25 to-transparent z-10"
+              aria-hidden
+            />
+          ) : null}
+        </>
+      )}
     </div>
   )
 }

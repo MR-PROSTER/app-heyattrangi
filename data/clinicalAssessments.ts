@@ -73,6 +73,7 @@ export const CLINICAL_ASSESSMENTS: ClinicalAssessment[] = [
     image: "/assessments/anxiety.png",
     href: "/patient/assessments/gad-2",
   },
+  /*
   {
     id: "phq-2",
     title: "PHQ-2 — Patient Health Questionnaire-2",
@@ -83,6 +84,7 @@ export const CLINICAL_ASSESSMENTS: ClinicalAssessment[] = [
     image: "/assessments/depression.png",
     href: "/patient/assessments/phq-2",
   },
+  */
   {
     id: "pss-10",
     title: "PSS-10 — Perceived Stress Scale",

@@ -69,34 +69,6 @@ export default function ReadModePanel({
     <div className="animate-in fade-in duration-200">
       {/* —— Mobile: image-1 literary shelves —— */}
       <div className="md:hidden space-y-7">
-        <div
-          className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar"
-          role="tablist"
-          aria-label="Read categories"
-        >
-          {chips.map((chip) => {
-            const active = filter === chip
-            return (
-              <button
-                key={chip}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setFilter(chip)}
-                className={`shrink-0 min-h-10 rounded-full px-4 py-2 text-[13px] font-semibold transition-colors duration-150
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2
-                  ${
-                    active
-                      ? "bg-[#1A1A1A] text-white shadow-sm"
-                      : "bg-[#E8E0D4] text-[#3A3A3A] hover:bg-[#DDD4C6]"
-                  }`}
-              >
-                {chip}
-              </button>
-            )
-          })}
-        </div>
-
         {sections.map(({ category, items }) => (
           <section
             key={category}

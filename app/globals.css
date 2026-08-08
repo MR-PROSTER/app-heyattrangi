@@ -42,6 +42,9 @@
   --leading-tight: 1.25;
   --leading-base:  1.6;
   --leading-loose: 1.8;
+
+  /* Box breathing glow / SVG fill */
+  --color-accent-breath: #0fb69a;
 }
 
 @theme inline {
@@ -49,6 +52,32 @@
   --color-foreground: var(--color-text-primary);
   --font-sans: var(--font-quicksand), var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Activity / Explore session tokens */
+  --color-canvas: #fdf6f0;
+  --color-surface: #ffffff;
+  --color-ink: #14213d;
+  --color-ink-muted: #6b7a99;
+  /* Bumped from #94A3B8 for WCAG AA on white/canvas */
+  --color-ink-subtle: #64748b;
+  --color-accent: #0fb69a;
+  --color-accent-soft: #e6f7f1;
+  --color-brand: #f97316;
+  --color-hairline: #ede4db;
+  --color-shell: #2a1810;
+}
+
+/* Visually hidden but available to assistive tech */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
 body {

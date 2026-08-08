@@ -2,6 +2,7 @@
 
 import Sidebar from "@/components/patient/Sidebar"
 import LoadingBar from "@/components/ui/LoadingBar"
+import { QuickBreatheButton } from "@/features/activities/components/QuickBreatheButton"
 import { usePathname } from "next/navigation"
 
 /**
@@ -20,6 +21,7 @@ export default function PatientShell({ children }: { children: React.ReactNode }
       <div className="flex-1 min-w-0 h-full flex flex-col relative overflow-hidden">
         {children}
       </div>
+      <QuickBreatheButton />
     </div>
   )
 }

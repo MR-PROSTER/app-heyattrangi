@@ -65,6 +65,7 @@ export default function ListenPlayerScreen({
           <div className="flex flex-col items-center text-center">
             <ListenCover
               illustration={track.coverIllustration}
+              coverImage={track.coverImage}
               size="lg"
               title={track.title}
               className="!h-[min(72vw,280px)] !w-[min(72vw,280px)] shadow-[0_16px_40px_rgba(40,30,20,0.16)]"
@@ -107,6 +108,7 @@ export default function ListenPlayerScreen({
           <div className="flex flex-col items-center text-center">
             <ListenCover
               illustration={track.coverIllustration}
+              coverImage={track.coverImage}
               size="lg"
               title={track.title}
             />

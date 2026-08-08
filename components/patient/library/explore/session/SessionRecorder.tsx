@@ -13,6 +13,12 @@ import RecorderHeader from "@/components/patient/library/explore/session/Recorde
 import RecorderBody from "@/components/patient/library/explore/session/RecorderBody"
 import RecorderControls from "@/components/patient/library/explore/session/RecorderControls"
 import ActivityRenderer from "@/components/patient/library/explore/engines/ActivityRenderer"
+import GroundingExercise from "@/features/activities/components/GroundingExercise"
+import MicroMovement from "@/features/activities/components/MicroMovement"
+import ProgressiveMuscleRelaxation from "@/features/activities/components/ProgressiveMuscleRelaxation"
+import JournalReflection from "@/features/activities/components/JournalReflection"
+import BellyBreathing from "@/features/activities/components/BellyBreathing"
+import FourSevenEightBreathing from "@/features/activities/components/FourSevenEightBreathing"
 
 export type { SessionState, SessionPhase }
 
@@ -90,6 +96,57 @@ export default function SessionRecorder({
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [handleExit, handleTogglePause])
+
+  if (activity.slug === "5-4-3-2-1-grounding" || activity.slug === "grounding-54321") {
+    return (
+      <div className="relative min-h-[100dvh] w-full bg-[#f8fafc] flex flex-col items-center justify-center p-4">
+        {/* Top Header Row with Close button */}
+        <div className="absolute top-6 left-6 right-6 flex items-center justify-between">
+          <button
+            onClick={handleExit}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500 hover:text-slate-800 hover:border-slate-300 shadow-sm transition-all"
+            aria-label="Exit session"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <GroundingExercise onExit={handleExit} onDone={handleFinish} />
+      </div>
+    )
+  }
+
+  if (activity.slug === "micro-movement") {
+    return (
+      <MicroMovement onBack={handleExit} onDone={handleFinish} />
+    )
+  }
+
+  if (activity.slug === "progressive-muscle-relaxation" || activity.slug === "pmr") {
+    return (
+      <ProgressiveMuscleRelaxation onBack={handleExit} onDone={handleFinish} />
+    )
+  }
+
+  if (activity.slug === "journal-reflection") {
+    return (
+      <JournalReflection onBack={handleExit} onDone={handleFinish} />
+    )
+  }
+
+  if (activity.slug === "belly-breathing") {
+    return (
+      <BellyBreathing onBack={handleExit} onDone={handleFinish} />
+    )
+  }
+
+  if (activity.slug === "breathing-4-7-8") {
+    return (
+      <FourSevenEightBreathing onBack={handleExit} onDone={handleFinish} />
+    )
+  }
 
   return (
     <AnimatePresence mode="wait">
