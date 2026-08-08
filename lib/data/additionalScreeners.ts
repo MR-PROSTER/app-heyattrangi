@@ -15,7 +15,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
     "description": "Over the last 2 weeks, how often have you been bothered by the following problems?",
     "questions": [
       {
-        "id": 1,
+        "id": "gad-2_1",
         "text": "Feeling nervous, anxious, or on edge",
         "options": [
           {
@@ -37,7 +37,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 2,
+        "id": "gad-2_2",
         "text": "Not being able to stop or control worrying",
         "options": [
           {
@@ -85,7 +85,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
     "description": "Over the last 2 weeks, how often have you been bothered by the following problems?",
     "questions": [
       {
-        "id": 1,
+        "id": "phq-2_1",
         "text": "Little interest or pleasure in doing things",
         "options": [
           {
@@ -107,7 +107,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 2,
+        "id": "phq-2_2",
         "text": "Feeling down, depressed, or hopeless",
         "options": [
           {
@@ -155,7 +155,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
     "description": "In the last month, how often have you experienced the following?",
     "questions": [
       {
-        "id": 1,
+        "id": "pss-10_1",
         "text": "In the last month, how often have you been upset because of something that happened unexpectedly?",
         "options": [
           {
@@ -182,7 +182,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 2,
+        "id": "pss-10_2",
         "text": "In the last month, how often have you felt that you were unable to control the important things in your life?",
         "options": [
           {
@@ -209,7 +209,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 3,
+        "id": "pss-10_3",
         "text": "In the last month, how often have you felt nervous and stressed?",
         "options": [
           {
@@ -236,7 +236,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 4,
+        "id": "pss-10_4",
         "text": "In the last month, how often have you felt confident about your ability to handle your personal problems?",
         "options": [
           {
@@ -263,7 +263,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": true,
       },
       {
-        "id": 5,
+        "id": "pss-10_5",
         "text": "In the last month, how often have you felt that things were going your way?",
         "options": [
           {
@@ -290,7 +290,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": true,
       },
       {
-        "id": 6,
+        "id": "pss-10_6",
         "text": "In the last month, how often have you found that you could not cope with all the things that you had to do?",
         "options": [
           {
@@ -317,7 +317,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 7,
+        "id": "pss-10_7",
         "text": "In the last month, how often have you been able to control irritations in your life?",
         "options": [
           {
@@ -344,7 +344,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": true,
       },
       {
-        "id": 8,
+        "id": "pss-10_8",
         "text": "In the last month, how often have you felt that you were on top of things?",
         "options": [
           {
@@ -371,7 +371,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": true,
       },
       {
-        "id": 9,
+        "id": "pss-10_9",
         "text": "In the last month, how often have you been angered because of things that happened that were outside of your control?",
         "options": [
           {
@@ -398,7 +398,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 10,
+        "id": "pss-10_10",
         "text": "In the last month, how often have you felt difficulties were piling up so high that you could not overcome them?",
         "options": [
           {
@@ -459,7 +459,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
     "description": "Please indicate which is closest to how you have been feeling over the last two weeks.",
     "questions": [
       {
-        "id": 1,
+        "id": "who-5_1",
         "text": "I have felt cheerful and in good spirits",
         "options": [
           {
@@ -489,7 +489,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 2,
+        "id": "who-5_2",
         "text": "I have felt calm and relaxed",
         "options": [
           {
@@ -519,7 +519,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 3,
+        "id": "who-5_3",
         "text": "I have felt active and vigorous",
         "options": [
           {
@@ -549,7 +549,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 4,
+        "id": "who-5_4",
         "text": "I woke up feeling fresh and rested",
         "options": [
           {
@@ -579,7 +579,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 5,
+        "id": "who-5_5",
         "text": "My daily life has been filled with things that interest me",
         "options": [
           {
@@ -643,7 +643,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
     },
     "questions": [
       {
-        "id": 1,
+        "id": "c-ssrs_1",
         "text": "Have you wished you were dead or wished you could go to sleep and not wake up? (Past month)",
         "options": [
           {
@@ -657,7 +657,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 2,
+        "id": "c-ssrs_2",
         "text": "Have you actually had any thoughts about killing yourself? (Past month)",
         "options": [
           {
@@ -671,7 +671,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 3,
+        "id": "c-ssrs_3",
         "text": "Have you been thinking about how you might do this? (Past month)",
         "options": [
           {
@@ -685,7 +685,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 4,
+        "id": "c-ssrs_4",
         "text": "Have you had these thoughts and had some intention of acting on them? (Past month)",
         "options": [
           {
@@ -699,7 +699,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 5,
+        "id": "c-ssrs_5",
         "text": "Have you started to work out or worked out the details of how to kill yourself? Did you intend to carry out this plan? (Past month)",
         "options": [
           {
@@ -713,7 +713,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 6,
+        "id": "c-ssrs_6",
         "text": "Have you done anything, started to do anything, or prepared to do anything to end your life? (Examples: took pills, tried to shoot yourself, cut yourself, tried to hang yourself, or collected pills, obtained a gun, gave away valuables, wrote a will or suicide note, etc.) — always ask",
         "options": [
           {
@@ -772,7 +772,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
     },
     "questions": [
       {
-        "id": 1,
+        "id": "asq_1",
         "text": "In the past few weeks, have you wished you were dead?",
         "options": [
           {
@@ -786,7 +786,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 2,
+        "id": "asq_2",
         "text": "In the past few weeks, have you felt that you or your family would be better off if you were dead?",
         "options": [
           {
@@ -800,7 +800,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 3,
+        "id": "asq_3",
         "text": "In the past week, have you been having thoughts about killing yourself?",
         "options": [
           {
@@ -814,7 +814,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 4,
+        "id": "asq_4",
         "text": "Have you ever tried to kill yourself? (if yes, note most recent attempt: within last 12 months / over 1 year ago)",
         "options": [
           {
@@ -832,7 +832,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 5,
+        "id": "asq_5",
         "text": "Acuity question — ask ONLY if Yes to any of 1-4: Are you having thoughts of killing yourself right now?",
         "options": [
           {
@@ -876,7 +876,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
     "description": "Instructions: below is a list of statements dealing with your general feelings about yourself. Indicate how much you agree or disagree with each.",
     "questions": [
       {
-        "id": 1,
+        "id": "rses_1",
         "text": "On the whole, I am satisfied with myself.",
         "options": [
           {
@@ -899,7 +899,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 2,
+        "id": "rses_2",
         "text": "At times, I think I am no good at all.",
         "options": [
           {
@@ -922,7 +922,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": true,
       },
       {
-        "id": 3,
+        "id": "rses_3",
         "text": "I feel that I have a number of good qualities.",
         "options": [
           {
@@ -945,7 +945,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 4,
+        "id": "rses_4",
         "text": "I am able to do things as well as most other people.",
         "options": [
           {
@@ -968,7 +968,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 5,
+        "id": "rses_5",
         "text": "I feel I do not have much to be proud of.",
         "options": [
           {
@@ -991,7 +991,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": true,
       },
       {
-        "id": 6,
+        "id": "rses_6",
         "text": "I certainly feel useless at times.",
         "options": [
           {
@@ -1014,7 +1014,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": true,
       },
       {
-        "id": 7,
+        "id": "rses_7",
         "text": "I feel that I'm a person of worth, at least on an equal plane with others.",
         "options": [
           {
@@ -1037,7 +1037,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 8,
+        "id": "rses_8",
         "text": "I wish I could have more respect for myself.",
         "options": [
           {
@@ -1060,7 +1060,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": true,
       },
       {
-        "id": 9,
+        "id": "rses_9",
         "text": "All in all, I am inclined to feel that I am a failure.",
         "options": [
           {
@@ -1083,7 +1083,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": true,
       },
       {
-        "id": 10,
+        "id": "rses_10",
         "text": "I take a positive attitude toward myself.",
         "options": [
           {
@@ -1140,7 +1140,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
     "description": "Alcohol Use Disorders Identification Test (WHO).",
     "questions": [
       {
-        "id": 1,
+        "id": "audit_1",
         "text": "How often do you have a drink containing alcohol?",
         "options": [
           {
@@ -1166,7 +1166,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 2,
+        "id": "audit_2",
         "text": "How many drinks containing alcohol do you have on a typical day when you are drinking?",
         "options": [
           {
@@ -1192,7 +1192,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 3,
+        "id": "audit_3",
         "text": "How often do you have six or more drinks on one occasion?",
         "options": [
           {
@@ -1218,7 +1218,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 4,
+        "id": "audit_4",
         "text": "How often during the last year have you found that you were not able to stop drinking once you had started?",
         "options": [
           {
@@ -1244,7 +1244,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 5,
+        "id": "audit_5",
         "text": "How often during the last year have you failed to do what was normally expected of you because of drinking?",
         "options": [
           {
@@ -1270,7 +1270,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 6,
+        "id": "audit_6",
         "text": "How often during the last year have you needed a first drink in the morning to get yourself going after a heavy drinking session?",
         "options": [
           {
@@ -1296,7 +1296,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 7,
+        "id": "audit_7",
         "text": "How often during the last year have you had a feeling of guilt or remorse after drinking?",
         "options": [
           {
@@ -1322,7 +1322,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 8,
+        "id": "audit_8",
         "text": "How often during the last year have you been unable to remember what happened the night before because you had been drinking?",
         "options": [
           {
@@ -1348,7 +1348,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 9,
+        "id": "audit_9",
         "text": "Have you or someone else been injured as a result of your drinking?",
         "options": [
           {
@@ -1366,7 +1366,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 10,
+        "id": "audit_10",
         "text": "Has a relative, friend, doctor, or other health worker been concerned about your drinking or suggested you cut down?",
         "options": [
           {
@@ -1424,7 +1424,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
     "description": "First 3 items of AUDIT. Sex at administration affects cutoff (women ≥3, men ≥4).",
     "questions": [
       {
-        "id": 0,
+        "id": "audit-c_1",
         "text": "Sex at administration (affects cutoff)",
         "options": [
           {
@@ -1439,7 +1439,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "scored": false,
       },
       {
-        "id": 1,
+        "id": "audit-c_2",
         "text": "How often do you have a drink containing alcohol?",
         "options": [
           {
@@ -1465,7 +1465,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 2,
+        "id": "audit-c_3",
         "text": "How many drinks containing alcohol do you have on a typical day when you are drinking?",
         "options": [
           {
@@ -1491,7 +1491,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 3,
+        "id": "audit-c_4",
         "text": "How often do you have six or more drinks on one occasion?",
         "options": [
           {
@@ -1547,7 +1547,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
     "description": "Eating disorders screening questionnaire.",
     "questions": [
       {
-        "id": 1,
+        "id": "scoff_1",
         "text": "Do you make yourself Sick because you feel uncomfortably full?",
         "options": [
           {
@@ -1561,7 +1561,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 2,
+        "id": "scoff_2",
         "text": "Do you worry you have lost Control over how much you eat?",
         "options": [
           {
@@ -1575,7 +1575,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 3,
+        "id": "scoff_3",
         "text": "Have you recently lost more than One stone (about 6.35 kg / 14 lbs) in a 3-month period?",
         "options": [
           {
@@ -1589,7 +1589,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 4,
+        "id": "scoff_4",
         "text": "Do you believe yourself to be Fat when others say you are too thin?",
         "options": [
           {
@@ -1603,7 +1603,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         ],
       },
       {
-        "id": 5,
+        "id": "scoff_5",
         "text": "Would you say that Food dominates your life?",
         "options": [
           {
@@ -1643,7 +1643,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
     "description": "Definition: a state of prolonged physical and psychological exhaustion. Use the term that fits your context (patients, users, students, etc.) in place of \"clients.\"",
     "questions": [
       {
-        "id": 1,
+        "id": "cbi_1",
         "text": "How often do you feel tired?",
         "options": [
           {
@@ -1671,7 +1671,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 2,
+        "id": "cbi_2",
         "text": "How often are you physically exhausted?",
         "options": [
           {
@@ -1699,7 +1699,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 3,
+        "id": "cbi_3",
         "text": "How often are you emotionally exhausted?",
         "options": [
           {
@@ -1727,7 +1727,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 4,
+        "id": "cbi_4",
         "text": "How often do you think: \"I can't take it anymore\"?",
         "options": [
           {
@@ -1755,7 +1755,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 5,
+        "id": "cbi_5",
         "text": "How often do you feel worn out?",
         "options": [
           {
@@ -1783,7 +1783,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 6,
+        "id": "cbi_6",
         "text": "How often do you feel weak and susceptible to illness?",
         "options": [
           {
@@ -1811,7 +1811,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 7,
+        "id": "cbi_7",
         "text": "Is your work emotionally exhausting?",
         "options": [
           {
@@ -1839,7 +1839,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 8,
+        "id": "cbi_8",
         "text": "Do you feel burnt out because of your work?",
         "options": [
           {
@@ -1867,7 +1867,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 9,
+        "id": "cbi_9",
         "text": "Does your work frustrate you?",
         "options": [
           {
@@ -1895,7 +1895,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 10,
+        "id": "cbi_10",
         "text": "Do you feel worn out at the end of the working day?",
         "options": [
           {
@@ -1923,7 +1923,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 11,
+        "id": "cbi_11",
         "text": "Are you exhausted in the morning at the thought of another day at work?",
         "options": [
           {
@@ -1951,7 +1951,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 12,
+        "id": "cbi_12",
         "text": "Do you feel that every working hour is tiring for you?",
         "options": [
           {
@@ -1979,7 +1979,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 13,
+        "id": "cbi_13",
         "text": "Do you have enough energy for family and friends during leisure time?",
         "options": [
           {
@@ -2007,7 +2007,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": true,
       },
       {
-        "id": 14,
+        "id": "cbi_14",
         "text": "Do you find it hard to work with clients?",
         "options": [
           {
@@ -2035,7 +2035,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 15,
+        "id": "cbi_15",
         "text": "Do you find it frustrating to work with clients?",
         "options": [
           {
@@ -2063,7 +2063,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 16,
+        "id": "cbi_16",
         "text": "Does it drain your energy to work with clients?",
         "options": [
           {
@@ -2091,7 +2091,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 17,
+        "id": "cbi_17",
         "text": "Do you feel that you give more than you get back when you work with clients?",
         "options": [
           {
@@ -2119,7 +2119,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 18,
+        "id": "cbi_18",
         "text": "Are you tired of working with clients?",
         "options": [
           {
@@ -2147,7 +2147,7 @@ export const ADDITIONAL_SCREENERS: Record<string, any> = {
         "reverseScored": false,
       },
       {
-        "id": 19,
+        "id": "cbi_19",
         "text": "Do you sometimes wonder how long you will be able to continue working with clients?",
         "options": [
           {

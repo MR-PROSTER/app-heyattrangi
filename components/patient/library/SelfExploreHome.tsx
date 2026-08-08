@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState, memo } from "react"
+import React, { useMemo, useState, useEffect, memo } from "react"
 import dynamic from "next/dynamic"
 import { useSession } from "next-auth/react"
 import { Bell, Search, SlidersHorizontal } from "lucide-react"
@@ -74,11 +74,31 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
   const { recentlyPlayedIds, playTrack } = useListenPlayer()
   const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [dbListenTracks, setDbListenTracks] = useState<ListenTrack[]>([])
 
   const firstName = session?.user?.name?.trim().split(/\s+/)[0] || "there"
   const isShelfMode = mode === "read" || mode === "listen"
 
-  const listenTracks = useMemo(() => getBrowsableListenTracks(), [])
+  useEffect(() => {
+    async function fetchTracks() {
+      try {
+        const res = await fetch("/api/library/audio-tracks")
+        if (res.ok) {
+          const data = await res.json()
+          if (Array.isArray(data.tracks) && data.tracks.length > 0) {
+            setDbListenTracks(data.tracks)
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load audio tracks from DB", err)
+      }
+    }
+    fetchTracks()
+  }, [])
+
+  const listenTracks = useMemo(() => {
+    return dbListenTracks.length > 0 ? dbListenTracks : getBrowsableListenTracks()
+  }, [dbListenTracks])
 
   const filteredActivities = useMemo(() => {
     const base = filterExploreActivities(category)
@@ -107,14 +127,16 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
     return listenTracks.filter(
       (t) =>
         t.title.toLowerCase().includes(q) ||
-        t.description.toLowerCase().includes(q)
+        (t.description || "").toLowerCase().includes(q)
     )
   }, [listenTracks, searchQuery])
 
-  const recentlyPlayed = useMemo(
-    () => getListenTracksByIds(recentlyPlayedIds),
-    [recentlyPlayedIds]
-  )
+  const recentlyPlayed = useMemo(() => {
+    const map = new Map(listenTracks.map((t) => [t.id, t]))
+    return recentlyPlayedIds
+      .map((id) => map.get(id))
+      .filter((t): t is ListenTrack => t != null && t.audioAvailable)
+  }, [recentlyPlayedIds, listenTracks])
 
   const handleSelectActivity = (activity: ExploreActivity) => {
     openActivity(activity.slug)

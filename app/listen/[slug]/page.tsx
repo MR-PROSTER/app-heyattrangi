@@ -1,24 +1,18 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import {
-  getBrowsableListenTracks,
-  getListenTrackBySlug,
-} from "@/data/listenContent"
+import { getListenTrackBySlug } from "@/data/listenContent"
+import { getAudioTrackByIdOrSlug } from "@/app/data/audioTracks"
 import ListenTrackClient from "./ListenTrackClient"
 
 interface ListenTrackPageProps {
   params: Promise<{ slug: string }>
 }
 
-export function generateStaticParams() {
-  return getBrowsableListenTracks().map((track) => ({ slug: track.slug }))
-}
-
 export async function generateMetadata({
   params,
 }: ListenTrackPageProps): Promise<Metadata> {
   const { slug } = await params
-  const track = getListenTrackBySlug(slug)
+  const track = (await getAudioTrackByIdOrSlug(slug)) || getListenTrackBySlug(slug)
   if (!track) {
     return { title: "Track not found" }
   }
@@ -30,7 +24,7 @@ export async function generateMetadata({
 
 export default async function ListenTrackPage({ params }: ListenTrackPageProps) {
   const { slug } = await params
-  const track = getListenTrackBySlug(slug)
+  const track = (await getAudioTrackByIdOrSlug(slug)) || getListenTrackBySlug(slug)
 
   if (!track) {
     notFound()
@@ -38,3 +32,4 @@ export default async function ListenTrackPage({ params }: ListenTrackPageProps) 
 
   return <ListenTrackClient track={track} />
 }
+
