@@ -106,7 +106,7 @@ export default function ReadModePanel({
             </div>
 
             {showAllForCategory ? (
-              <div className="grid grid-cols-2 gap-x-3.5 gap-y-5">
+              <div className="grid grid-cols-1 gap-4">
                 {items.map((article) => (
                   <ArticleCard
                     key={article.id}
@@ -119,7 +119,7 @@ export default function ReadModePanel({
             ) : (
               <div className="flex gap-3.5 overflow-x-auto pb-2 -mx-1 px-1 no-scrollbar snap-x">
                 {items.map((article) => (
-                  <div key={article.id} className="snap-start shrink-0 w-[148px]">
+                  <div key={article.id} className="snap-start shrink-0 w-[280px]">
                     <ArticleCard
                       article={article}
                       onSelect={onSelectArticle}
