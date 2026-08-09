@@ -261,6 +261,40 @@ export const useSessionStore = create<SessionStore>()(
           typeof crypto !== "undefined" && "randomUUID" in crypto
             ? crypto.randomUUID()
             : `session-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+
+        // Map the client activitySlug to the DB-compatible slug
+        const slugMap: Record<string, string> = {
+          "sigh": "physiological-sigh",
+          "physiological-sigh": "physiological-sigh",
+          "478": "breathing-4-7-8",
+          "breathing-4-7-8": "breathing-4-7-8",
+          "belly": "belly-breathing",
+          "belly-breathing": "belly-breathing",
+          "box-breathing": "box-breathing",
+          "5-4-3-2-1-grounding": "grounding-54321",
+          "grounding-54321": "grounding-54321",
+          "pmr": "pmr",
+          "progressive-muscle-relaxation": "pmr",
+          "journal-reflection": "open-reflection",
+          "open-reflection": "open-reflection",
+          "prompted-reflection": "prompted-reflection",
+          "micro-movement": "micro-movement",
+          "body-scan": "body-scan",
+        };
+        const dbSlug = slugMap[r.activitySlug] || r.activitySlug;
+
+        // Perform async DB logging via Next.js API route
+        fetch("/api/wellness-activities/log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            wellnessActivitySlug: dbSlug,
+            durationMs: r.durationMs,
+          }),
+        }).catch((err) => {
+          console.error("[useSessionStore] Failed to log activity completion to DB:", err);
+        });
+
         set((state) => ({
           history: [
             { ...r, id, kind: r.kind ?? "paced" },

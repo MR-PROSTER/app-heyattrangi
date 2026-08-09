@@ -17,16 +17,16 @@ import MoodHistory from "./MoodHistory"
 export type MoodEntryRow = {
   id: string
   mood: string
-  mood_score: number
+  moodScore: number
   tags: string[]
   note: string | null
-  energy_level: number
-  stress_level: number
-  sleep_quality: number
+  energyLevel: number
+  stressLevel: number
+  sleepQuality: number
   craving: boolean
-  craving_intensity: number | null
-  craving_trigger: string[]
-  created_at: string
+  cravingIntensity: number | null
+  cravingTrigger: string[]
+  timestamp: string
 }
 
 type Props = {

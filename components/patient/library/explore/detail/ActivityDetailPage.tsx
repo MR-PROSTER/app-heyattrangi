@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import dynamic from "next/dynamic"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
 import { ArrowLeft } from "lucide-react"
 import type { ExploreActivity } from "@/data/exploreActivities"
@@ -74,9 +74,50 @@ export default function ActivityDetailPage({
     setView("detail")
   }
 
+  const searchParams = useSearchParams()
+
   const finishSession = (state: SessionState) => {
     setCompletedSession(state)
     setView("complete")
+
+    const mode = searchParams.get("mode")
+    let dbSlug = activity.slug
+
+    if (activity.slug === "breathing") {
+      if (mode === "478") {
+        dbSlug = "breathing-4-7-8"
+      } else if (mode === "belly") {
+        dbSlug = "belly-breathing"
+      } else if (mode === "sigh") {
+        dbSlug = "physiological-sigh"
+      } else {
+        dbSlug = "box-breathing"
+      }
+    } else if (activity.slug === "5-4-3-2-1-grounding") {
+      dbSlug = "grounding-54321"
+    } else if (activity.slug === "progressive-muscle-relaxation") {
+      dbSlug = "pmr"
+    } else if (activity.slug === "journal-reflection") {
+      dbSlug = "open-reflection"
+    }
+
+    // Log activity completion to DB
+    fetch("/api/wellness-activities/log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        wellnessActivitySlug: dbSlug,
+        durationMs: state.elapsedMs,
+      }),
+    })
+      .then(res => {
+        if (!res.ok) {
+          return res.json().then(err => {
+            console.error("Failed to log wellness activity:", err);
+          });
+        }
+      })
+      .catch(err => console.error("Network error logging wellness activity:", err));
   }
 
   const goToExplore = () => {
