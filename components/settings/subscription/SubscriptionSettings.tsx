@@ -225,9 +225,9 @@ export default function SubscriptionSettings({ user, isTestMode = false }: Subsc
   }
 
   return (
-    <div className="w-full py-8 lg:py-16 select-none animate-in fade-in duration-300">
+    <div className="w-full pt-0 pb-8 lg:pt-0 lg:pb-16 select-none animate-in fade-in duration-300">
       {/* Parent Card Container */}
-      <div className="bg-white rounded-[24px] shadow-[0_2px_20px_-5px_rgba(0,0,0,0.05)] border border-gray-100 overflow-visible w-full mt-4">
+      <div className="bg-white rounded-[24px] shadow-[0_2px_20px_-5px_rgba(0,0,0,0.05)] border border-gray-100 overflow-visible w-full mt-0">
         {/* Header & Toggle Switch inside the card */}
         <div className="p-8 border-b border-gray-50 flex flex-col items-center text-center">
           <h2 className="text-3xl font-black text-gray-900 mb-2">Compare plans</h2>

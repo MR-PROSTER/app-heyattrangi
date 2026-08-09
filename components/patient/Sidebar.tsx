@@ -241,8 +241,8 @@ export default function Sidebar() {
 
     return (
         <>
-        {/* Mobile hamburger — hidden on Profile (uses in-page back control) */}
-        {pathname !== "/patient/profile" ? (
+        {/* Mobile hamburger — hidden on Profile and Dashboard */}
+        {pathname !== "/patient/profile" && pathname !== "/patient/dashboard" ? (
         <button
             type="button"
             onClick={() => setIsMobileOpen(true)}

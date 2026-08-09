@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useMemo, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getBotAvatar } from "@/lib/avatar";
 
 interface ChatMessage {
@@ -269,6 +269,7 @@ export default function TryPragyaChat({
 }) {
     const { status } = useSession();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const isAuthenticated = status === "authenticated";
     const isGuestSession = !sessionId;
 
@@ -377,6 +378,7 @@ export default function TryPragyaChat({
     useEffect(() => {
         if (initialChatCount !== undefined) setChatCount(initialChatCount);
     }, [initialChatCount]);
+
 
     const hasUserMessages = useMemo(
         () => messages.some((m) => m.role === "user"),
@@ -578,6 +580,25 @@ export default function TryPragyaChat({
             setIsLoading(false);
         }
     };
+
+    const queryMessage = searchParams ? searchParams.get("q") : null;
+    const initAttemptedRef = useRef(false);
+
+    useEffect(() => {
+        if (
+            queryMessage &&
+            queryMessage.trim() &&
+            !initAttemptedRef.current &&
+            guestTrialHydrated &&
+            !limitData.isLimitReached
+        ) {
+            initAttemptedRef.current = true;
+            setHasStarted(true);
+            setLastUserMessage(queryMessage);
+            setMessages([{ role: "user", content: queryMessage }]);
+            sendMessage(undefined, queryMessage);
+        }
+    }, [queryMessage, guestTrialHydrated, limitData.isLimitReached]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInputMessage(e.target.value);

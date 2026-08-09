@@ -11,6 +11,10 @@ import { useRouter } from "next/navigation"
 import { DEFAULT_AVATAR } from "@/lib/avatar"
 import ProfileAvatar from "@/components/patient/ProfileAvatar"
 import MoodCheckInModal from "./MoodCheckInModal"
+import { EXPLORE_ACTIVITIES } from "@/data/exploreActivities"
+import { READ_ARTICLES } from "@/data/readArticles"
+import { LISTEN_TRACKS } from "@/data/listenContent"
+import { CLINICAL_ASSESSMENTS } from "@/data/clinicalAssessments"
 
 const BreathingModule = dynamic(() => import("./BreathingModule"), {
   ssr: false,
@@ -29,16 +33,55 @@ function getGreeting() {
   return "Good evening"
 }
 
+function renderEmojiFace(name: string, isSelected: boolean) {
+  const getImagePath = () => {
+    switch (name) {
+      case "Low":
+        return "/images/moods/low.png"
+      case "Heavy":
+        return "/images/moods/heavy.png"
+      case "Okay":
+        return "/images/moods/okay.png"
+      case "Good":
+        return "/images/moods/good.png"
+      case "Bright":
+        return "/images/moods/bright.png"
+      default:
+        return "/images/moods/okay.png"
+    }
+  }
+
+  const imagePath = getImagePath()
+  
+  return (
+    <div 
+      className={`w-12 h-12 flex items-center justify-center transition-transform duration-200 ${
+        isSelected ? "scale-110 ring-2 ring-orange-400 rounded-2xl shadow-md" : "hover:scale-105"
+      }`}
+    >
+      <Image 
+        src={imagePath} 
+        alt={name} 
+        width={48} 
+        height={48} 
+        className="w-full h-full object-contain rounded-2xl"
+      />
+    </div>
+  )
+}
+
 export default function CenterColumn({
   displayName,
   plan,
   upcomingAppointments,
   dailyTasks = [],
+  userImage,
 }: {
   displayName: string
   plan?: string
   upcomingAppointments: any[]
   dailyTasks?: any[]
+  userImage?: string | null
 }) {
   const router = useRouter()
   const normalizedPlan = plan || "FREE"
@@ -80,6 +123,67 @@ export default function CenterColumn({
   const [timeFilter, setTimeFilter] = useState("All")
   const [selectedMood, setSelectedMood] = useState<string>("Good")
   const [isBreathingOpen, setIsBreathingOpen] = useState(false)
+  const [mindText, setMindText] = useState("")
+  const [suggestions, setSuggestions] = useState<{
+    activity: any
+    read: any
+    listen: any
+    assessment: any
+  } | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<"activity" | "read" | "listen" | "assessment" | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const randomActivity = EXPLORE_ACTIVITIES[Math.floor(Math.random() * EXPLORE_ACTIVITIES.length)]
+      const randomRead = READ_ARTICLES[Math.floor(Math.random() * READ_ARTICLES.length)]
+      const randomListen = LISTEN_TRACKS[Math.floor(Math.random() * LISTEN_TRACKS.length)]
+      const randomAssessment = CLINICAL_ASSESSMENTS[Math.floor(Math.random() * CLINICAL_ASSESSMENTS.length)]
+      
+      setSuggestions({
+        activity: randomActivity,
+        read: randomRead,
+        listen: randomListen,
+        assessment: randomAssessment,
+      })
+
+      const categories: Array<"activity" | "read" | "listen" | "assessment"> = [
+        "activity",
+        "read",
+        "listen",
+        "assessment",
+      ]
+      const lastCategory = localStorage.getItem("attrangi_last_category")
+      const availableCategories = lastCategory
+        ? categories.filter((cat) => cat !== lastCategory)
+        : categories
+      const chosenCategory = availableCategories[Math.floor(Math.random() * availableCategories.length)]
+      setSelectedCategory(chosenCategory)
+      localStorage.setItem("attrangi_last_category", chosenCategory)
+    }
+  }, [])
+
+  const handleMindSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (mindText.trim()) {
+      router.push(`/patient/ai-bot?q=${encodeURIComponent(mindText)}`)
+    } else {
+      router.push("/patient/ai-bot")
+    }
+  }
+
+  const handleActivityClick = (activity: any) => {
+    if (
+      activity &&
+      (activity.slug === "breathing" ||
+        activity.slug === "box-breathing" ||
+        activity.slug === "breathing-4-7-8" ||
+        activity.slug === "belly-breathing")
+    ) {
+      setIsBreathingOpen(true)
+    } else {
+      router.push("/patient/library?mode=activities")
+    }
+  }
 
   // Saved mood state
   const [checkedInMood, setCheckedInMood] = useState<{ score: number; note: string } | null>(null)
@@ -199,540 +303,654 @@ export default function CenterColumn({
       href: "/patient/journal",
       title: "Journal",
       subtitle: "Clear your mind",
-      accent: "from-amber-500 to-orange-600",
-      bg: "bg-amber-50 border-amber-100",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
-          <path d="M12 20h9" />
-          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-        </svg>
-      ),
     },
   ]
 
-  return (
-    <div className="flex-1 h-full overflow-y-auto w-full relative bg-[#fff8f4] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
-      {/* Soft atmosphere */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-90"
-        aria-hidden
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 50% at 10% -10%, rgba(251,146,60,0.18), transparent 55%), radial-gradient(ellipse 60% 40% at 90% 0%, rgba(251,191,36,0.12), transparent 50%), linear-gradient(180deg, #fffaf6 0%, #fff8f4 40%, #fafdfc 100%)",
-        }}
-      />
+  const desktopCalendarDays = [
+    { type: "text", value: "1", bg: "#EBF0F2", color: "#64748B" },
+    { type: "text", value: "2", bg: "#EBF0F2", color: "#64748B" },
+    { type: "emoji", bg: "#FFE5C4", color: "#D97706" },
+    { type: "text", value: "4", bg: "#EBF0F2", color: "#64748B" },
+    { type: "wave", bg: "#C6F2D5", color: "#16A34A" },
+    { type: "text", value: "6", bg: "#EBF0F2", color: "#64748B" },
+    { type: "exercise", bg: "#FDD3D3", color: "#DC2626" },
 
-      <div className="relative z-10 px-4 sm:px-6 md:px-8 xl:px-12 pt-12 pb-8 sm:pb-10 md:pt-8 md:pb-12 max-w-6xl mx-auto w-full">
-        {/* Hero */}
-        <motion.header
-          {...fadeUp}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col sm:flex-row items-start gap-5 sm:gap-6 mb-8 sm:mb-10"
-        >
-          <div className="relative shrink-0">
-            <div className="absolute -inset-2 rounded-[28px] bg-gradient-to-br from-orange-200/50 to-amber-100/30 blur-md" aria-hidden />
-            <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-[24px] overflow-hidden bg-white shadow-[0_8px_30px_rgba(234,88,12,0.12)] border border-orange-100/80">
-              <img
-                src={DEFAULT_AVATAR}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
+    { type: "text", value: "8", bg: "#EBF0F2", color: "#64748B" },
+    { type: "text", value: "9", bg: "#EBF0F2", color: "#64748B" },
+    { type: "close", bg: "#D5CEEB", color: "#6B4FBB" },
+    { type: "text", value: "11", bg: "#EBF0F2", color: "#64748B" },
+    { type: "text", value: "12", bg: "#EBF0F2", color: "#64748B" },
+    { type: "emoji", bg: "#FFE5C4", color: "#D97706" },
+    { type: "text", value: "14", bg: "#EBF0F2", color: "#64748B" },
 
-          <div className="flex-1 min-w-0 pt-0.5">
-            <p className="text-[11px] sm:text-xs font-black uppercase tracking-[0.2em] text-orange-600/80 mb-1.5">
-              {getGreeting()} · {format(new Date(), "EEEE, MMM d")}
-            </p>
-            <h1 className="text-[26px] sm:text-[32px] md:text-[36px] font-black text-slate-900 tracking-tight leading-[1.15] mb-2">
-              Hello, {firstName}
-            </h1>
-            <p className="text-slate-500 font-medium text-[14px] sm:text-[15px] leading-relaxed max-w-xl">
-              I&apos;m here to listen and support you between sessions. Small
-              check-ins can make a real difference.
-            </p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center rounded-full bg-white border border-orange-100 text-orange-700 px-3 py-1 text-[11px] font-bold uppercase tracking-wider shadow-sm">
-                {planLabelMap[normalizedPlan] ?? normalizedPlan.replace(/_/g, " ")}{" "}
-                plan
-              </span>
-              <span className="text-[12px] font-semibold text-slate-400">
-                Let&apos;s track your health daily
-              </span>
-            </div>
-          </div>
+    { type: "text", value: "15", bg: "#EBF0F2", color: "#64748B" },
+    { type: "wave", bg: "#C6F2D5", color: "#16A34A" },
+    { type: "text", value: "17", bg: "#EBF0F2", color: "#64748B" },
+    { type: "text", value: "18", bg: "#EBF0F2", color: "#64748B" },
+    { type: "exercise", bg: "#FDD3D3", color: "#DC2626" },
+    { type: "text", value: "20", bg: "#EBF0F2", color: "#64748B" },
+    { type: "text", value: "21", bg: "#EBF0F2", color: "#64748B" },
 
-          <ProfileAvatar
-            name={displayName}
-            className="absolute top-3 right-4 sm:static sm:ml-auto sm:mt-1"
-          />
-        </motion.header>
+    { type: "emoji", bg: "#FFE5C4", color: "#D97706" },
+    { type: "text", value: "23", bg: "#EBF0F2", color: "#64748B" },
+    { type: "text", value: "24", bg: "#EBF0F2", color: "#64748B" },
+    { type: "close", bg: "#D5CEEB", color: "#6B4FBB" },
+    { type: "text", value: "26", bg: "#EBF0F2", color: "#64748B" },
+    { type: "wave", bg: "#C6F2D5", color: "#16A34A" },
+    { type: "text", value: "28", bg: "#EBF0F2", color: "#64748B" },
+  ]
 
-        {/* Quick actions — fills space after right-rail removal */}
-        <motion.section
-          {...fadeUp}
-          transition={{ duration: 0.45, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
-          className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-8"
-          aria-label="Quick actions"
-        >
-          {quickActions.map((action) => (
-            <Link
-              key={action.href}
-              href={action.href}
-              className={`group relative overflow-hidden rounded-[20px] border ${action.bg} p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(15,23,42,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2`}
-            >
-              <div
-                className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br ${action.accent} text-white shadow-md`}
-              >
-                {action.icon}
-              </div>
-              <h3 className="font-black text-[14px] sm:text-[15px] text-slate-900 tracking-tight mb-0.5 group-hover:text-orange-700 transition-colors">
-                {action.title}
-              </h3>
-              <p className="text-[11px] sm:text-xs font-medium text-slate-500 leading-snug">
-                {action.subtitle}
-              </p>
-            </Link>
-          ))}
-        </motion.section>
-
-        {normalizedPlan === "FREE" && (
-          <motion.div
-            {...fadeUp}
-            transition={{ duration: 0.45, delay: 0.1 }}
-            className="mb-8 w-full"
-          >
-            <UpgradeOffersBanner />
-          </motion.div>
+  const renderCalendarCircle = (item: any) => {
+    return (
+      <div 
+        style={{ backgroundColor: item.bg, color: item.color }}
+        className="w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-105 shadow-sm shrink-0"
+      >
+        {item.type === "text" && (
+          <span className="text-[12px] font-bold">{item.value}</span>
         )}
+        {item.type === "emoji" && (
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+            <line x1="8" y1="14" x2="16" y2="14" strokeLinecap="round" />
+            <circle cx="9" cy="9" r="1.5" fill="currentColor" stroke="none" />
+            <circle cx="15" cy="9" r="1.5" fill="currentColor" stroke="none" />
+          </svg>
+        )}
+        {item.type === "wave" && (
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
+            <path d="M5 8c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 5 0" />
+            <path d="M5 12c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 5 0" />
+            <path d="M5 16c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 5 0" />
+          </svg>
+        )}
+        {item.type === "exercise" && (
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
+            <line x1="6.5" y1="6.5" x2="17.5" y2="17.5" />
+            <line x1="5" y1="9" x2="9" y2="5" />
+            <line x1="15" y1="19" x2="19" y2="15" />
+            <line x1="3.5" y1="7.5" x2="7.5" y2="3.5" />
+            <line x1="16.5" y1="20.5" x2="20.5" y2="16.5" />
+          </svg>
+        )}
+        {item.type === "close" && (
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
+            <circle cx="12" cy="12" r="8" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+          </svg>
+        )}
+      </div>
+    )
+  }
 
-        {/* Upcoming sessions commented out per user request
-        <motion.section
-          {...fadeUp}
-          transition={{ duration: 0.45, delay: 0.12 }}
-          className="mb-8 w-full"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-black text-slate-900 tracking-tight">
-              Upcoming sessions
-            </h2>
-            <Link
-              href="/patient/appointments"
-              className="text-[13px] font-bold text-orange-500 hover:text-orange-600 transition-colors"
-            >
-              View more →
-            </Link>
-          </div>
-
-          <div className="flex flex-row gap-4 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
-            {upcomingAppointments && upcomingAppointments.length > 0 ? (
-              upcomingAppointments.map((apt, index) => {
-                const aptTime = new Date(apt.appointmentDate).getTime()
-                const now = new Date().getTime()
-                const diffMinutes = (aptTime - now) / (1000 * 60)
-                const isJoinable = diffMinutes <= 15
-                const isBlurred = index >= 2
-
-                return (
-                  <div
-                    key={apt.id || index}
-                    className="min-w-[280px] sm:min-w-[340px] md:min-w-[420px] bg-white shadow-[0_4px_24px_rgba(15,23,42,0.04)] border border-slate-100 relative overflow-hidden group rounded-[22px] shrink-0 flex min-h-[230px]"
-                  >
-                    <div
-                      className={`flex-1 p-4 flex flex-col relative z-10 ${
-                        isBlurred ? "blur-[3px] opacity-40 pointer-events-none" : ""
-                      }`}
-                    >
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <div className="w-3.5 h-3.5 rounded-full bg-[#22c55e] flex items-center justify-center text-white shrink-0">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                            className="w-[8px] h-[8px]"
-                          >
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        </div>
-                        <span className="text-[#16a34a] font-extrabold text-[9px] tracking-wide uppercase">
-                          Confirmed
-                        </span>
-                      </div>
-
-                      <h3 className="text-[17px] font-black text-slate-900 mb-0.5 tracking-tight leading-tight">
-                        Session scheduled
-                      </h3>
-
-                      <div className="flex items-center gap-1 text-[#2563eb] mb-3">
-                        <svg
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                          className="w-[12px] h-[12px] shrink-0"
-                        >
-                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                        </svg>
-                        <span className="font-bold text-[11px]">
-                          {apt.meetLink ? "Online Video" : "In-Person"}
-                        </span>
-                      </div>
-
-                      <div className="bg-slate-50 rounded-xl p-2.5 flex items-center gap-3 mb-3 border border-slate-100">
-                        <div className="w-7 h-7 rounded-lg bg-orange-100 flex items-center justify-center shrink-0">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            className="w-3.5 h-3.5 text-orange-600"
-                          >
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-                            <line x1="3" y1="10" x2="21" y2="10" />
-                          </svg>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[11px] text-slate-900 font-extrabold leading-tight">
-                            {format(new Date(apt.appointmentDate), "MMM d, yyyy")}
-                          </span>
-                          <span className="text-[10px] text-orange-600 font-bold">
-                            {format(new Date(apt.appointmentDate), "h:mm a")}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 mb-3">
-                        <div className="w-6 h-6 rounded-full bg-orange-50 flex items-center justify-center">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            className="w-3 h-3 text-orange-500"
-                          >
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                            <circle cx="12" cy="7" r="4" />
-                          </svg>
-                        </div>
-                        <span className="text-[11px] font-bold text-slate-500">
-                          with{" "}
-                          <span className="text-slate-900 font-extrabold">
-                            {apt.doctor?.user?.name || "Doctor"}
-                          </span>
-                        </span>
-                      </div>
-
-                      <div className="mt-auto flex items-center gap-2">
-                        {isJoinable && apt.meetLink ? (
-                          <Link
-                            href={apt.meetLink}
-                            target="_blank"
-                            className="px-4 py-2 bg-orange-500 text-white rounded-lg font-bold text-[11px] hover:bg-orange-600 shadow-md transition-all"
-                          >
-                            Join Session
-                          </Link>
-                        ) : (
-                          <button
-                            disabled
-                            className="px-4 py-2 bg-slate-50 text-slate-400 border border-slate-100 rounded-lg font-bold text-[11px] cursor-not-allowed"
-                          >
-                            Join Session
-                          </button>
-                        )}
-                        <Link
-                          href={`/patient/appointments/${apt.id}`}
-                          className="px-4 py-2 border border-orange-100 text-orange-600 rounded-lg font-bold text-[11px] hover:bg-orange-50 transition-all"
-                        >
-                          View Details
-                        </Link>
-                      </div>
-                    </div>
-
-                    <div
-                      className={`w-[130px] relative hidden md:block shrink-0 ${
-                        isBlurred ? "blur-[4px] opacity-30" : ""
-                      }`}
-                    >
-                      <Image
-                        src={
-                          apt.doctor?.user?.image || "/images/promo_doctor.png"
-                        }
-                        alt={apt.doctor?.user?.name || "Doctor"}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-
-                    {isBlurred && (
-                      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[4px]">
-                        <Link
-                          href="/patient/appointments"
-                          className="flex flex-col items-center gap-3"
-                        >
-                          <div className="w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center border border-slate-100">
-                            <svg
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="#ea580c"
-                              strokeWidth="3.5"
-                              className="w-5 h-5"
-                            >
-                              <polyline points="9 18 15 12 9 6" />
-                            </svg>
-                          </div>
-                          <span className="text-[11px] font-black text-orange-600 tracking-tight uppercase">
-                            View all
-                          </span>
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                )
-              })
-            ) : (
-              <div className="w-full rounded-[24px] border border-dashed border-orange-200/80 bg-gradient-to-br from-white to-orange-50/60 p-8 sm:p-10 flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
-                <div className="w-16 h-16 rounded-[20px] bg-orange-100 flex items-center justify-center shrink-0">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    className="w-8 h-8 text-orange-500"
-                  >
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                    <line x1="16" y1="2" x2="16" y2="6" />
-                    <line x1="8" y1="2" x2="8" y2="6" />
-                    <line x1="3" y1="10" x2="21" y2="10" />
-                  </svg>
-                </div>
-                <div className="flex-1 text-center sm:text-left min-w-0">
-                  <h3 className="font-black text-[17px] text-slate-900 mb-1">
-                    No sessions on the calendar yet
-                  </h3>
-                  <p className="text-[13px] text-slate-500 font-medium leading-relaxed mb-4 max-w-md">
-                    When you&apos;re ready, book a verified therapist. You can
-                    also talk to Attrangi anytime between sessions.
-                  </p>
-                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-                    <Link
-                      href="/patient/therapists"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-orange-500 text-white text-[13px] font-bold hover:bg-orange-600 shadow-[0_8px_20px_rgba(249,115,22,0.25)] transition-all"
-                    >
-                      Find a therapist
-                    </Link>
-                    <Link
-                      href="/patient/ai-bot"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-orange-100 text-orange-700 text-[13px] font-bold hover:bg-orange-50 transition-all"
-                    >
-                      Chat with Attrangi
-                    </Link>
-                  </div>
-                </div>
+  return (
+    <div className="flex-1 h-full overflow-y-auto w-full bg-[#FAF8F5] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] relative pb-28">
+      {/* Phone container style on desktop, wider on larger screens */}
+      <div className="w-full max-w-[480px] md:max-w-[1200px] mx-auto min-h-full flex flex-col bg-[#FAF8F5] relative px-0 md:px-6 md:py-8">
+        
+        {/* MOBILE VIEW (block md:hidden) */}
+        <div className="block md:hidden w-full flex flex-col">
+          {/* Blue Rounded Header Area */}
+          <div className="w-full px-6 pt-10 pb-14 flex flex-col gap-6 relative">
+            {/* Background & Robot Wrapper (Clipped by rounded bottom) */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#8BDDEE] via-[#A6E8F6] to-[#D7F5FC] rounded-b-[42px] overflow-hidden pointer-events-none shadow-[0_8px_30px_rgba(139,221,238,0.12)]">
+              {/* Peeking Robot Image */}
+              <div className="absolute left-0 bottom-10 w-[95px] h-[135px] pointer-events-none">
+                <Image
+                  src="/images/robot_peeking.png"
+                  alt="Peeking Robot"
+                  fill
+                  className="object-contain object-left-bottom"
+                />
               </div>
-            )}
-          </div>
-        </motion.section>
-        */}
+            </div>
 
-        {/* Mood + reflection grid */}
-        <motion.div
-          {...fadeUp}
-          transition={{ duration: 0.45, delay: 0.16 }}
-          className="grid grid-cols-1 xl:grid-cols-2 gap-5 sm:gap-6 w-full"
-        >
-          {/* Left Column: Image 1 cards */}
-          <div className="flex flex-col gap-5 sm:gap-6">
-            {/* Card 1: Emojis check-in */}
-            <div
-              onClick={() => handleOpenMoodModal(2)}
-              className="bg-white rounded-[24px] sm:rounded-[28px] p-5 sm:p-6 shadow-[0_4px_28px_rgba(15,23,42,0.04)] border border-slate-100/90 flex items-center justify-between gap-4 cursor-pointer hover:shadow-md transition-shadow group"
-            >
-              <span className="font-extrabold text-[17px] sm:text-[18px] text-slate-800 tracking-tight leading-snug max-w-[150px] sm:max-w-none group-hover:text-slate-900 transition-colors">
-                {checkedInMood ? (
-                  checkedInMood.score === 0 ? "You're feeling sad today." :
-                  checkedInMood.score === 1 ? "Today's a bit tough." :
-                  checkedInMood.score === 2 ? "You're feeling okay today." :
-                  checkedInMood.score === 3 ? "You're feeling Good today!" :
-                  "You're feeling Happy today!"
-                ) : (
-                  "How’s today, so far?"
-                )}
-              </span>
-              <div className="flex items-center gap-2.5 sm:gap-3 shrink-0" onClick={(e) => e.stopPropagation()}>
+            {/* Header Row: Title & Avatar */}
+            <div className="flex items-center justify-between w-full z-10 relative">
+              <div className="flex flex-col pl-4">
+                <h1 className="text-[28px] font-black text-white tracking-tight leading-none">
+                  Hello, {firstName}
+                </h1>
+              </div>
+              <div className="shrink-0">
+                <ProfileAvatar
+                  name={displayName}
+                  image={userImage}
+                  className="w-11 h-11 border-2 border-white/80 shadow-sm"
+                />
+              </div>
+            </div>
+
+            {/* Spacing to push down the form */}
+            <div className="h-4" />
+
+            {/* Voice Input Chat Bar (overlapping bottom edge) */}
+            <form onSubmit={handleMindSubmit} className="w-full bg-white rounded-full p-1.5 pl-5 pr-1.5 shadow-[0_12px_24px_rgba(0,0,0,0.08)] flex items-center justify-between gap-3 border border-white z-10 relative translate-y-9">
+              <input
+                type="text"
+                value={mindText}
+                onChange={(e) => setMindText(e.target.value)}
+                placeholder="Tell me what's on your mind..."
+                className="flex-1 bg-transparent border-none text-[14px] font-medium placeholder-slate-400 text-slate-700 focus:outline-none"
+              />
+              <button
+                type="submit"
+                className="bg-[#F99254] hover:bg-[#E87E3E] text-white px-5 py-2.5 rounded-full font-bold text-[13px] flex items-center gap-1.5 transition-all shadow-sm active:scale-95 shrink-0"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round">
+                  <line x1="7" y1="10" x2="7" y2="14" />
+                  <line x1="12" y1="6" x2="12" y2="18" />
+                  <line x1="17" y1="10" x2="17" y2="14" />
+                </svg>
+                <span>Speak</span>
+              </button>
+            </form>
+          </div>
+          {/* Compensation spacing for the overlap */}
+          <div className="h-8" />
+
+          {/* Body content cards grid */}
+          <div className="flex-1 px-5 pt-6 pb-12 flex flex-col gap-5">
+            
+            {/* Card 1: How's today, so far? */}
+            <div className="bg-white rounded-[32px] p-6 border border-slate-100/90 shadow-[0_4px_24px_rgba(15,23,42,0.015)]">
+              <h4 className="text-slate-800 text-[15px] font-extrabold mb-4 tracking-tight">How&apos;s today, so far?</h4>
+              <div className="flex justify-between items-center w-full px-0.5">
                 {[
-                  { name: "Stressed", emoji: "https://res.cloudinary.com/dbjv95prc/image/upload/v1786189447/emoji-target-4_qrmjbc.png", score: 1 },
-                  { name: "Reflective", emoji: "https://res.cloudinary.com/dbjv95prc/image/upload/v1786189506/emoji-target-2_bxmloe.png", score: 2 },
-                  { name: "Safety", emoji: "https://res.cloudinary.com/dbjv95prc/image/upload/v1786189540/emoji-target-3_hoyche.png", score: 3 },
+                  { name: "Low", score: 0 },
+                  { name: "Heavy", score: 1 },
+                  { name: "Okay", score: 2 },
+                  { name: "Good", score: 3 },
+                  { name: "Bright", score: 4 },
                 ].map((mood) => {
                   const isSelected = checkedInMood && checkedInMood.score === mood.score
-                  const isAnySelected = checkedInMood !== null
                   return (
                     <button
                       key={mood.name}
                       type="button"
                       onClick={() => handleOpenMoodModal(mood.score)}
-                      className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden active:scale-95 transition-all shadow-sm shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 ${
-                        isAnySelected
-                          ? isSelected
-                            ? "scale-110 ring-2 ring-orange-500 shadow-md opacity-100"
-                            : "opacity-25 scale-90"
-                          : "hover:scale-105 opacity-100"
-                      }`}
-                      title={`Feel ${mood.name}`}
+                      className="flex flex-col items-center focus-visible:outline-none"
                     >
-                      <Image
-                        src={mood.emoji}
-                        alt={mood.name}
-                        width={56}
-                        height={56}
-                        className="object-cover w-full h-full"
-                      />
+                      {renderEmojiFace(mood.name, !!isSelected)}
                     </button>
                   )
                 })}
               </div>
             </div>
 
-            {/* Card 2: Location Notification */}
-            <div className="bg-[#EBF2E5] rounded-[24px] sm:rounded-[28px] p-5 sm:p-6 border border-[#DCE4D5] shadow-[0_4px_28px_rgba(15,23,42,0.02)] flex items-center justify-between gap-4 min-h-[170px]">
-              <div className="flex-1 flex flex-col justify-between h-full space-y-4">
-                <div>
-                  <h4 className="font-extrabold text-[17px] text-[#1A1A1A] leading-snug">
-                    Notification
-                  </h4>
-                  <p className="text-[13px] text-[#555555] font-semibold leading-relaxed mt-1 max-w-[220px]">
-                    Turn on location service to discover campsites closest to you
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => alert("Location services enabled (demo)")}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#4C6A3C] text-white text-[13px] font-bold hover:bg-[#3F5931] shadow-[0_4px_12px_rgba(76,106,60,0.2)] transition-all w-fit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    className="w-4 h-4"
-                  >
-                    <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                  <span>Turn on location</span>
-                </button>
-              </div>
-
-              {/* Campsite Map Illustration on the Right */}
-              <div className="shrink-0 w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-[#9AD1D4] border border-[#85BAC0] shadow-inner flex items-center justify-center overflow-hidden">
-                <svg viewBox="0 0 100 120" className="w-[84px] h-[100px] select-none pointer-events-none">
-                  {/* Phone shell */}
-                  <rect x="18" y="10" width="64" height="100" rx="12" fill="#FFFFFF" stroke="#2D3A37" strokeWidth="3" />
-                  {/* Notch */}
-                  <rect x="42" y="10" width="16" height="5" rx="2" fill="#2D3A37" />
-                  {/* Map path (dotted line) */}
-                  <path d="M 30,90 Q 40,55 58,50 T 62,25" fill="none" stroke="#E07A5F" strokeWidth="4" strokeLinecap="round" strokeDasharray="6 5" />
-                  {/* Campsite tent */}
-                  <polygon points="44,52 64,52 54,34" fill="#E07A5F" />
-                  <polygon points="54,52 64,52 54,34" fill="#C35F44" />
-                  {/* Start point circle */}
-                  <circle cx="30" cy="90" r="6" fill="#4C6A3C" stroke="#FFFFFF" strokeWidth="1.5" />
-                  {/* Pin mark */}
-                  <path d="M 54,34 L 54,20" stroke="#2D3A37" strokeWidth="2" />
-                </svg>
+            {/* Card 2: Your rhythm this week */}
+            <div className="bg-white rounded-[32px] p-6 border border-slate-100/90 shadow-[0_4px_24px_rgba(15,23,42,0.015)]">
+              <div className="flex justify-between items-center px-1">
+                {[
+                  { day: "M", type: "text", value: "13", bg: "#EBF0F2", color: "#64748B" },
+                  { day: "T", type: "text", value: "14", bg: "#EBF0F2", color: "#64748B" },
+                  { day: "W", type: "emoji", bg: "#FFE5C4", color: "#D97706" },
+                  { day: "T", type: "wave", bg: "#C6F2D5", color: "#16A34A" },
+                  { day: "F", type: "text", value: "17", bg: "#EBF0F2", color: "#64748B" },
+                  { day: "S", type: "exercise", bg: "#FDD3D3", color: "#DC2626" },
+                  { day: "S", type: "close", bg: "#D5CEEB", color: "#6B4FBB" },
+                ].map((item, index) => (
+                  <div key={index} className="flex flex-col items-center gap-2">
+                    <div 
+                      style={{ backgroundColor: item.bg, color: item.color }}
+                      className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-105 shadow-sm shrink-0"
+                    >
+                      {item.type === "text" && (
+                        <span className="text-[14px] font-bold">{item.value}</span>
+                      )}
+                      {item.type === "emoji" && (
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                          <line x1="8" y1="14" x2="16" y2="14" strokeLinecap="round" />
+                          <circle cx="9" cy="9" r="1.5" fill="currentColor" stroke="none" />
+                          <circle cx="15" cy="9" r="1.5" fill="currentColor" stroke="none" />
+                        </svg>
+                      )}
+                      {item.type === "wave" && (
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
+                          <path d="M5 8c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 5 0" />
+                          <path d="M5 12c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 5 0" />
+                          <path d="M5 16c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 5 0" />
+                        </svg>
+                      )}
+                      {item.type === "exercise" && (
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
+                          <line x1="6.5" y1="6.5" x2="17.5" y2="17.5" />
+                          <line x1="5" y1="9" x2="9" y2="5" />
+                          <line x1="15" y1="19" x2="19" y2="15" />
+                          <line x1="3.5" y1="7.5" x2="7.5" y2="3.5" />
+                          <line x1="16.5" y1="20.5" x2="20.5" y2="16.5" />
+                        </svg>
+                      )}
+                      {item.type === "close" && (
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
+                          <circle cx="12" cy="12" r="8" />
+                          <line x1="9" y1="9" x2="15" y2="15" />
+                          <line x1="15" y1="9" x2="9" y2="15" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">{item.day}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Recommendation header */}
-            <div className="flex items-center justify-between gap-4 mt-2">
-              <h3 className="font-extrabold text-[22px] text-slate-800 tracking-tight leading-none">
-                Recommendation
+            {/* Card 3: Something I Noticed */}
+            <div className="bg-[#FEF6F0] rounded-[32px] p-6 border border-[#FBE6D8] shadow-[0_4px_24px_rgba(15,23,42,0.01)] flex flex-col gap-2">
+              <span className="text-[11.5px] font-black uppercase tracking-[0.15em] text-[#E8722A]">
+                Something I Noticed
+              </span>
+              <p className="text-[15px] font-medium text-slate-700 leading-relaxed">
+                You&apos;ve mentioned exam stress a few times lately. If it helps, we can unpack what&apos;s weighing heaviest before it builds up.
+              </p>
+            </div>
+
+            {/* What you can do now Section */}
+            <div className="flex flex-col gap-4 mt-2">
+              <h3 className="text-[19px] font-black text-slate-800 tracking-tight leading-none mb-1">
+               What you can do now
               </h3>
-              <Link
-                href="/patient/library"
-                className="inline-flex items-center gap-1.5 px-4.5 py-2 bg-[#222222] text-white text-[13px] font-bold rounded-full hover:bg-black transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+              
+              {suggestions && selectedCategory && (
+                <div className="flex flex-col gap-4">
+                  {/* Card 1: Activity */}
+                  {selectedCategory === "activity" && (
+                    <div 
+                      onClick={() => handleActivityClick(suggestions.activity)}
+                      className="bg-[#F0ECF8] rounded-[32px] p-5 border border-[#E3DCF1] flex items-center justify-between cursor-pointer hover:scale-[1.01] transition-all group"
+                    >
+                      <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
+                        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                          <svg className="w-6 h-6 text-[#6B4FBB]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                          </svg>
+                        </div>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                            {suggestions.activity.title}
+                          </span>
+                          <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2">
+                            {suggestions.activity.description}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-[#6B4FBB] text-[13px] font-bold shrink-0 pr-1">
+                        <span>Try</span>
+                        <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Card 2: Read */}
+                  {selectedCategory === "read" && (
+                    <Link 
+                      href={`/read/${suggestions.read.slug}`}
+                      className="bg-[#E6F4F8] rounded-[32px] p-5 border border-[#CDE5EE] flex items-center justify-between hover:scale-[1.01] transition-all group"
+                    >
+                      <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
+                        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                          <svg className="w-6 h-6 text-[#00829B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                          </svg>
+                        </div>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                            {suggestions.read.title}
+                          </span>
+                          <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2">
+                            {suggestions.read.description}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-[#00829B] text-[13px] font-bold shrink-0 pr-1">
+                        <span>Read</span>
+                        <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </Link>
+                  )}
+
+                  {/* Card 3: Listen */}
+                  {selectedCategory === "listen" && (
+                    <Link 
+                      href={`/listen/${suggestions.listen.slug}`}
+                      className="bg-[#EAF6EC] rounded-[32px] p-5 border border-[#D2EBD7] flex items-center justify-between hover:scale-[1.01] transition-all group"
+                    >
+                      <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
+                        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                          <svg className="w-6 h-6 text-[#1E8A37]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                          </svg>
+                        </div>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                            {suggestions.listen.title}
+                          </span>
+                          <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2">
+                            {suggestions.listen.description}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-[#1E8A37] text-[13px] font-bold shrink-0 pr-1">
+                        <span>Listen</span>
+                        <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </Link>
+                  )}
+
+                  {/* Card 4: Assessment */}
+                  {selectedCategory === "assessment" && (
+                    <Link 
+                      href={suggestions.assessment.href}
+                      className="bg-[#FEF5ED] rounded-[32px] p-5 border border-[#FCE3CF] flex items-center justify-between hover:scale-[1.01] transition-all group"
+                    >
+                      <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
+                        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                          <svg className="w-6 h-6 text-[#D97736]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                            {suggestions.assessment.title}
+                          </span>
+                          <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2">
+                            {suggestions.assessment.description}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-[#D97736] text-[13px] font-bold shrink-0 pr-1">
+                        <span>Check</span>
+                        <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </Link>
+                  )}
+                </div>
+              )}
+            </div>
+
+          </div>
+        </div>
+
+        {/* DESKTOP VIEW (hidden md:flex flex-col gap-6) */}
+        <div className="hidden md:flex flex-col gap-6 w-full pb-16">
+          {/* Blue Rounded Header Area (Desktop) */}
+          <div className="w-full bg-gradient-to-b from-[#8BDDEE] via-[#A6E8F6] to-[#D7F5FC] rounded-[42px] p-8 flex flex-col gap-6 shadow-[0_8px_30px_rgba(139,221,238,0.12)]">
+            <div className="flex items-center justify-between w-full">
+              <div className="flex flex-col">
+                <h1 className="text-[36px] font-black text-white tracking-tight leading-none">
+                  Hello, {firstName}
+                </h1>
+                <span className="text-[#00829B] text-[16px] font-semibold mt-4">
+                  Wanna talk about the conversation that we left ??
+                </span>
+              </div>
+              <div className="shrink-0">
+                <ProfileAvatar
+                  name={displayName}
+                  image={userImage}
+                  className="w-14 h-14 border-2 border-white/80 shadow-sm"
+                />
+              </div>
+            </div>
+
+            {/* Voice Input Chat Bar (Desktop) */}
+            <form onSubmit={handleMindSubmit} className="w-full bg-white rounded-full p-2.5 pl-6 pr-2.5 shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex items-center justify-between gap-3 border border-white">
+              <input
+                type="text"
+                value={mindText}
+                onChange={(e) => setMindText(e.target.value)}
+                placeholder="Tell me what's on your mind..."
+                className="flex-1 bg-transparent border-none text-[15px] font-medium placeholder-slate-400 text-slate-700 focus:outline-none"
+              />
+              <button
+                type="submit"
+                className="bg-[#F99254] hover:bg-[#E87E3E] text-white px-6 py-3 rounded-full font-bold text-[14px] flex items-center gap-1.5 transition-all shadow-sm active:scale-95 shrink-0"
               >
-                <span>Explore</span>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="w-3.5 h-3.5"
-                >
-                  <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
-                  <line x1="9" y1="3" x2="9" y2="18" />
-                  <line x1="15" y1="6" x2="15" y2="21" />
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round">
+                  <line x1="7" y1="10" x2="7" y2="14" />
+                  <line x1="12" y1="6" x2="12" y2="18" />
+                  <line x1="17" y1="10" x2="17" y2="14" />
                 </svg>
+                <span>Speak</span>
+              </button>
+            </form>
+          </div>
+
+          {/* Grid Layout (Desktop) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Card 1: How's today, so far? */}
+            <div className="bg-white rounded-[32px] p-6 border border-slate-100/90 shadow-[0_4px_24px_rgba(15,23,42,0.015)] flex flex-col justify-between h-[230px]">
+              <h4 className="text-slate-800 text-[16px] font-extrabold tracking-tight">How&apos;s today, so far?</h4>
+              <div className="flex justify-between items-center w-full px-0.5 mt-2">
+                {[
+                  { name: "Low", score: 0 },
+                  { name: "Heavy", score: 1 },
+                  { name: "Okay", score: 2 },
+                  { name: "Good", score: 3 },
+                  { name: "Bright", score: 4 },
+                ].map((mood) => {
+                  const isSelected = checkedInMood && checkedInMood.score === mood.score
+                  return (
+                    <button
+                      key={mood.name}
+                      type="button"
+                      onClick={() => handleOpenMoodModal(mood.score)}
+                      className="flex flex-col items-center focus-visible:outline-none transition-transform hover:scale-105"
+                    >
+                      {renderEmojiFace(mood.name, !!isSelected)}
+                      <span className="text-[11px] font-bold mt-2 text-slate-400">{mood.name}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Card 2: Your Rhythm (Monthly Grid) */}
+            <div className="bg-white rounded-[32px] p-6 border border-slate-100/90 shadow-[0_4px_24px_rgba(15,23,42,0.015)] h-[230px] flex flex-col justify-between">
+              <div className="grid grid-cols-7 gap-y-2 gap-x-1.5 justify-items-center">
+                {desktopCalendarDays.map((item, index) => (
+                  <div key={index}>
+                    {renderCalendarCircle(item)}
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 justify-items-center mt-3 pt-2 border-t border-slate-100">
+                {["M", "T", "W", "T", "F", "S", "S"].map((day, i) => (
+                  <span key={i} className="text-[11px] font-bold text-slate-400 uppercase">{day}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Something I Noticed (Desktop) */}
+          <div className="bg-[#FEF6F0] rounded-[32px] p-8 border border-[#FBE6D8] shadow-[0_4px_24px_rgba(15,23,42,0.01)] flex flex-col gap-4">
+            <span className="text-[12px] font-black uppercase tracking-[0.15em] text-[#E8722A]">
+              Something I Noticed
+            </span>
+            <p className="text-[16px] font-medium text-slate-700 leading-relaxed">
+              You&apos;ve mentioned exam stress a few times lately. If it helps, we can unpack what&apos;s weighing heaviest before it builds up.
+            </p>
+            <div className="flex items-center gap-4 mt-2">
+              <Link 
+                href="/patient/ai-bot"
+                className="bg-[#F99254] hover:bg-[#E87E3E] text-white px-6 py-2.5 rounded-full font-bold text-[14px] shadow-sm transition-all active:scale-95"
+              >
+                Let&apos;s talk
+              </Link>
+              <Link 
+                href="/patient/library"
+                className="text-[#F99254] hover:underline font-bold text-[14px] flex items-center gap-1"
+              >
+                Know more &rarr;
               </Link>
             </div>
           </div>
 
-          {/* Journal + quote */}
-          <div className="flex flex-col gap-5">
-            <div className="bg-gradient-to-br from-orange-50 via-white to-amber-50 rounded-[28px] p-6 sm:p-7 shadow-[0_4px_28px_rgba(15,23,42,0.04)] border border-orange-100/70 flex flex-col flex-1 min-h-[260px] relative overflow-hidden group">
-              <div
-                className="absolute right-0 top-0 w-40 h-40 bg-orange-200/25 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"
-                aria-hidden
-              />
-              <div className="flex justify-between items-start mb-5 relative z-10">
-                <div className="w-11 h-11 bg-white rounded-2xl shadow-sm border border-orange-50 flex items-center justify-center text-orange-500">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    className="w-5 h-5"
+          {/* What you can do now Section (Desktop) */}
+          <div className="flex flex-col gap-4">
+            <h3 className="text-[20px] font-black text-slate-800 tracking-tight leading-none mb-1">
+              What you can do now
+            </h3>
+            
+            {suggestions && selectedCategory && (
+              <div className="flex flex-col gap-4">
+                {/* Card 1: Activity */}
+                {selectedCategory === "activity" && (
+                  <div 
+                    onClick={() => handleActivityClick(suggestions.activity)}
+                    className="bg-[#F0ECF8] rounded-[32px] p-5 border border-[#E3DCF1] flex items-center justify-between cursor-pointer hover:scale-[1.01] transition-all group"
                   >
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                  </svg>
-                </div>
-                <span className="bg-white/70 border border-orange-100 text-orange-600 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full">
-                  Daily reflection
-                </span>
-              </div>
+                    <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
+                      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                        <svg className="w-6 h-6 text-[#6B4FBB]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                      </div>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                          {suggestions.activity.title}
+                        </span>
+                        <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2">
+                          {suggestions.activity.description}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-[#6B4FBB] text-[13px] font-bold shrink-0 pr-1">
+                      <span>Try</span>
+                      <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                )}
 
-              <div className="flex-1 relative z-10">
-                <h3 className="font-black text-[20px] sm:text-[22px] text-slate-900 mb-1.5 tracking-tight">
-                  Start today&apos;s journal
-                </h3>
-                <p className="text-[12px] font-bold text-orange-600/80 mb-3 uppercase tracking-wide">
-                  {format(new Date(), "EEEE, do MMMM yyyy")}
-                </p>
-                <p className="text-slate-500 font-medium text-[14px] leading-relaxed max-w-[92%]">
-                  Write freely — a few lines is enough. Clear space for what
-                  you&apos;re carrying today.
-                </p>
-              </div>
+                {/* Card 2: Read */}
+                {selectedCategory === "read" && (
+                  <Link 
+                    href={`/read/${suggestions.read.slug}`}
+                    className="bg-[#E6F4F8] rounded-[32px] p-5 border border-[#CDE5EE] flex items-center justify-between hover:scale-[1.01] transition-all group"
+                  >
+                    <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
+                      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                        <svg className="w-6 h-6 text-[#00829B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                      </div>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                          {suggestions.read.title}
+                        </span>
+                        <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2">
+                          {suggestions.read.description}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-[#00829B] text-[13px] font-bold shrink-0 pr-1">
+                      <span>Read</span>
+                      <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </Link>
+                )}
 
-              <div className="mt-auto flex justify-end relative z-10 pt-4">
-                <Link
-                  href="/patient/journal"
-                  className="px-7 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black text-[13px] rounded-full hover:shadow-lg hover:shadow-orange-500/25 transition-all hover:-translate-y-0.5"
-                >
-                  Open journal
-                </Link>
-              </div>
-            </div>
+                {/* Card 3: Listen */}
+                {selectedCategory === "listen" && (
+                  <Link 
+                    href={`/listen/${suggestions.listen.slug}`}
+                    className="bg-[#EAF6EC] rounded-[32px] p-5 border border-[#D2EBD7] flex items-center justify-between hover:scale-[1.01] transition-all group"
+                  >
+                    <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
+                      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                        <svg className="w-6 h-6 text-[#1E8A37]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                        </svg>
+                      </div>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                          {suggestions.listen.title}
+                        </span>
+                        <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2">
+                          {suggestions.listen.description}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-[#1E8A37] text-[13px] font-bold shrink-0 pr-1">
+                      <span>Listen</span>
+                      <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </Link>
+                )}
 
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-[24px] p-6 sm:p-7 border border-orange-100/60 relative overflow-hidden">
-              <svg
-                className="absolute top-2 left-3 w-14 h-14 text-orange-200/70"
-                fill="currentColor"
-                viewBox="0 0 32 32"
-                aria-hidden
-              >
-                <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
-              </svg>
-              <p className="text-orange-900/85 font-bold text-[15px] sm:text-[16px] text-center leading-relaxed italic relative z-10 px-4 py-1">
-                &ldquo;Your feelings are valid, and brighter days can begin with
-                one small step.&rdquo;
-              </p>
-            </div>
+                {/* Card 4: Assessment */}
+                {selectedCategory === "assessment" && (
+                  <Link 
+                    href={suggestions.assessment.href}
+                    className="bg-[#FEF5ED] rounded-[32px] p-5 border border-[#FCE3CF] flex items-center justify-between hover:scale-[1.01] transition-all group"
+                  >
+                    <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
+                      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                        <svg className="w-6 h-6 text-[#D97736]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                          {suggestions.assessment.title}
+                        </span>
+                        <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2">
+                          {suggestions.assessment.description}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-[#D97736] text-[13px] font-bold shrink-0 pr-1">
+                      <span>Check</span>
+                      <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
-        </motion.div>
+        </div>
+      </div>
+
+      {/* Mobile Navigation Tab Bar */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-100/80 flex justify-around items-center py-3.5 shadow-[0_-8px_30px_rgba(0,0,0,0.03)]">
+        <Link href="/patient/dashboard" className="flex flex-col items-center gap-1 text-[#E8722A]">
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+          </svg>
+          <span className="text-[10px] font-bold">Home</span>
+        </Link>
+        
+        <Link href="/patient/library" className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+            <line x1="9" y1="3" x2="9" y2="18" />
+            <line x1="15" y1="6" x2="15" y2="21" />
+          </svg>
+          <span className="text-[10px] font-bold">Explore</span>
+        </Link>
+        
+        <Link href="/patient/journal" className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          <span className="text-[10px] font-bold">Journey</span>
+        </Link>
       </div>
 
       <BreathingModule

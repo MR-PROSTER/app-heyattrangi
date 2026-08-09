@@ -37,13 +37,11 @@ export default function ProfileStreakCard({
     >
       <div className="flex items-center justify-between gap-3 mb-4">
         <h3 className="text-base font-bold text-gray-900">Streak</h3>
-        <Link
-          href="#membership"
-          className="text-sm font-medium text-gray-400 hover:text-gray-600 transition-colors duration-150
-            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
+        <span
+          className="text-sm font-medium text-gray-400"
         >
           This month ›
-        </Link>
+        </span>
       </div>
 
       <div className="flex items-center gap-5">
