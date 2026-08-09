@@ -38,6 +38,8 @@ model User {
   conversations  Conversation[]
   assessmentAttempts AssessmentAttempt[]
   memoryGraph UserMemoryGraph?
+  activityLogs UserActivityLog[]
+  moodEntries MoodEntry[]
 
   @@map("users")
 }
@@ -604,6 +606,7 @@ model WellnessActivity {
   isAvailable       Boolean                  @default(true)
   createdAt         DateTime                 @default(now())
   updatedAt         DateTime                 @updatedAt
+  userLogs          UserActivityLog[]
 
   @@map("wellness_activities")
 }
@@ -647,7 +650,7 @@ model AudioTrack {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String?
-  category    AudioCategory
+  category    String
   audioUrl    String
   imageUrl    String?
   duration    Int?      // seconds
@@ -655,13 +658,6 @@ model AudioTrack {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   @@map("audio_tracks")
-}
-
-enum AudioCategory {
-    RAIN
-    OCEAN
-    NATURE
-    INSTRUMENTAL
 }
 
 model UserMemoryGraph {
@@ -681,4 +677,37 @@ model UserMemoryGraph {
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_memory_graphs")
+}
+
+model UserActivityLog {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String   @db.ObjectId
+  wellnessActivityId String   @db.ObjectId
+  durationMs         Int?     // session duration in ms
+  timestamp          DateTime @default(now())
+
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wellnessActivity WellnessActivity @relation(fields: [wellnessActivityId], references: [id])
+
+  @@map("user_activity_logs")
+}
+
+model MoodEntry {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String   @db.ObjectId
+  mood             String   // e.g., "Happy", "Sad"
+  moodScore        Int?     // 1-10 intensity
+  note             String?  @db.String
+  tags             String[] @default([])
+  energyLevel      Int?     // 1-10
+  stressLevel      Int?     // 1-10
+  sleepQuality     Int?     // 1-10
+  craving          Boolean  @default(false)
+  cravingIntensity Int?
+  cravingTrigger   String[] @default([])
+  timestamp        DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("mood_entries")
 }
