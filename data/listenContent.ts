@@ -3,7 +3,20 @@
  * UI fields (description, duration, coverIllustration) stay for existing components.
  */
 
-export type ListenCategory = "Rain" | "Ocean" | "Nature" | "Instrumental"
+export type ListenCategory =
+  | "Calm Down"
+  | "Comfort"
+  | "Emotional Release"
+  | "Focus"
+  | "Ground & Breathe"
+  | "Lift Your Mood"
+  | "Reflect"
+  | "Sleep & Wind Down"
+  | "Rain"
+  | "Ocean"
+  | "Nature"
+  | "Instrumental"
+
 
 export type ListenCoverIllustration =
   | "waves"
@@ -30,6 +43,7 @@ export interface ListenTrack {
   audioAvailable: boolean
   coverIllustration: ListenCoverIllustration
   coverImage?: string
+  imageUrl?: string | null
   /** Local placeholder until Cloudinary hosting */
   audioSrc: string
 }
@@ -45,8 +59,16 @@ function coverForCategory(
     Ocean: ["waves"],
     Nature: ["leaves", "sun"],
     Instrumental: ["moon", "stone"],
+    "Calm Down": ["cloud", "rain"],
+    "Comfort": ["sun", "stone"],
+    "Emotional Release": ["cloud", "rain"],
+    "Focus": ["moon", "stone"],
+    "Ground & Breathe": ["leaves", "sun"],
+    "Lift Your Mood": ["sun", "leaves"],
+    "Reflect": ["moon", "stone"],
+    "Sleep & Wind Down": ["moon", "cloud"],
   }
-  const options = byCategory[category]
+  const options = byCategory[category] || ["rain"]
   return options[index % options.length] ?? "rain"
 }
 

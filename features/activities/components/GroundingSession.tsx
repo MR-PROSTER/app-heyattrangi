@@ -1,8 +1,10 @@
 "use client"
 
+import { useRef } from "react"
 import type { Activity } from "../types"
 import GroundingExercise from "./GroundingExercise"
 import Link from "next/link"
+import { useSessionStore } from "../store/useSessionStore"
 
 interface GroundingSessionProps {
   activity: Activity
@@ -10,6 +12,23 @@ interface GroundingSessionProps {
 }
 
 export function GroundingSession({ activity, backHref = "/patient/library" }: GroundingSessionProps) {
+  const addSession = useSessionStore((s) => s.addSession)
+  const startedAtRef = useRef(new Date().toISOString())
+  const startMsRef = useRef(Date.now())
+
+  const handleDone = () => {
+    const durationMs = Date.now() - startMsRef.current
+    addSession({
+      activitySlug: activity.slug,
+      startedAt: startedAtRef.current,
+      durationMs,
+      cyclesCompleted: 0,
+      cyclesPlanned: 0,
+      completed: true,
+      kind: "stepped",
+    })
+  }
+
   return (
     <div className="relative min-h-[100dvh] bg-[#f8fafc] flex flex-col items-center justify-center p-4">
       {/* Top Header Row with Close button */}
@@ -25,7 +44,7 @@ export function GroundingSession({ activity, backHref = "/patient/library" }: Gr
         </Link>
       </div>
 
-      <GroundingExercise />
+      <GroundingExercise onDone={handleDone} />
     </div>
   )
 }

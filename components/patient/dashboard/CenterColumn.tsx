@@ -214,9 +214,34 @@ export default function CenterColumn({
     setIsMoodModalOpen(true)
   }
 
-  const handleSubmitMood = (score: number, note: string) => {
+  const handleSubmitMood = async (score: number, note: string) => {
     const todayStr = new Date().toISOString().split("T")[0]
     const val = { score, note }
+
+    // Map score to mood name for the API
+    const moodMap: Record<number, string> = {
+      0: "SAD",
+      1: "BAD",
+      2: "NOT BAD",
+      3: "GOOD",
+      4: "HAPPY",
+    }
+    const moodName = moodMap[score] || "Neutral"
+
+    try {
+      await fetch("/api/patient/mood", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mood: moodName,
+          mood_score: score,
+          note,
+        }),
+      })
+    } catch (err) {
+      console.error("Failed to log mood check-in:", err)
+    }
+
     setCheckedInMood(val)
     localStorage.setItem(`attrangi_mood_${todayStr}`, JSON.stringify(val))
   }

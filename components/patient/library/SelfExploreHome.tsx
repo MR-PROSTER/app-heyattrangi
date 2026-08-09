@@ -246,7 +246,7 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
 
         {mode === "listen" && (
           <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200">
-            <ListenTabPanel />
+            <ListenTabPanel initialTracks={listenTracks} />
           </div>
         )}
 
