@@ -49,10 +49,19 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const context = await resolveChatContext({
-    userId: session?.user?.id ?? null,
-    guestToken: req.cookies.get(PRAGYA_GUEST_TOKEN_COOKIE)?.value ?? null,
-  })
+  let context: Awaited<ReturnType<typeof resolveChatContext>>
+  try {
+    context = await resolveChatContext({
+      userId: session?.user?.id ?? null,
+      guestToken: req.cookies.get(PRAGYA_GUEST_TOKEN_COOKIE)?.value ?? null,
+    })
+  } catch (ctxErr) {
+    console.error("resolveChatContext failed:", ctxErr)
+    return NextResponse.json(
+      { error: "Could not reach the assistant. Please try again in a moment." },
+      { status: 503 },
+    )
+  }
 
   if (context.kind === "user") {
     conversationId = context.user.conversationId
