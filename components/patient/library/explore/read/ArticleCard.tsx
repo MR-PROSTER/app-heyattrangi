@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import type { ReadArticle, ReadCoverIllustration } from "@/data/readArticles"
 import ArticleCover from "@/components/patient/library/explore/read/ArticleCover"
 
@@ -12,19 +11,88 @@ interface ArticleCardProps {
   variant?: "shelf" | "grid" | "row"
 }
 
-function getIllustrationPath(illustration: ReadCoverIllustration): string {
-  const paths: Record<ReadCoverIllustration, string> = {
-    pause: "M12 6v6l4 2",
-    heart: "M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z",
-    moon: "M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z",
-    seed: "M12 22c4-4 6-8 6-12a6 6 0 10-12 0c0 4 2 8 6 12z",
-    focus: "M12 12m-3 0a3 3 0 106 0 3 3 0 10-6 0",
-    rest: "M3 12h18 M3 6h18 M3 18h12",
-    walk: "M13 4a2 2 0 11-4 0 2 2 0 014 0z",
-    voice: "M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z",
-    sunrise: "M12 2v4 M12 10a6 6 0 016 6H6a6 6 0 016-6z",
+function renderIllustrationIcon(illustration: ReadCoverIllustration) {
+  const props = {
+    className: "w-11 h-11 text-white/95",
+    fill: "none",
+    viewBox: "0 0 24 24",
+    stroke: "currentColor",
+    strokeWidth: 2.5,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
   }
-  return paths[illustration] || "M12 6v6l4 2"
+  
+  switch (illustration) {
+    case "pause": // Clock/Breathing
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 6v6l4 2" />
+        </svg>
+      )
+    case "heart": // Transition/Emotion
+      return (
+        <svg {...props}>
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+        </svg>
+      )
+    case "moon": // Sleep
+      return (
+        <svg {...props}>
+          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+        </svg>
+      )
+    case "seed": // Growth/Calm
+      return (
+        <svg {...props}>
+          <path d="M12 22c4-4 6-8 6-12a6 6 0 1 0-12 0c0 4 2 8 6 12z" />
+        </svg>
+      )
+    case "focus": // Target/Academic stress
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="10" />
+          <circle cx="12" cy="12" r="6" />
+          <circle cx="12" cy="12" r="2" />
+        </svg>
+      )
+    case "rest": // Sleep/Rest lines
+      return (
+        <svg {...props}>
+          <path d="M3 12h18 M3 6h18 M3 18h12" />
+        </svg>
+      )
+    case "walk": // Walking/Nature
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="5" r="1" />
+          <path d="m18 22-4-8 1.5-2.5c.8-1.3.4-3.1-.9-3.9l-2.4-1.4c-.6-.4-1.3-.4-1.9 0L6.5 8.7c-1.3.8-1.7 2.6-.9 3.9L7 15" />
+          <path d="m14 14-3 8-4-4" />
+        </svg>
+      )
+    case "voice": // Voice/Mic
+      return (
+        <svg {...props}>
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+          <line x1="12" x2="12" y1="19" y2="22" />
+        </svg>
+      )
+    case "sunrise": // Sun
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+        </svg>
+      )
+    default:
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 6v6l4 2" />
+        </svg>
+      )
+  }
 }
 
 function getArticleCardStyle(category: string) {
@@ -159,39 +227,13 @@ export default function ArticleCard({
         </span>
       </div>
 
-      {/* Bottom Circle with Cover Image or illustration inside */}
+      {/* Bottom Circle with category illustration inside */}
       <div 
         style={{ backgroundColor: style.circleBg }}
         className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105"
       >
-        <div className="mb-18 w-24 h-24 relative rounded-full border-2 border-white/60 shadow-md">
-          <div className="w-full h-full rounded-full overflow-hidden relative">
-            {article.coverImage ? (
-              <Image
-                src={article.coverImage}
-                alt=""
-                fill
-                sizes="96px"
-                className="object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-white/20">
-                <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d={getIllustrationPath(article.cover)} />
-                </svg>
-              </div>
-            )}
-          </div>
-          
-          {/* Small book icon badge overlaying the bottom right of the image circle */}
-          <div 
-            style={{ backgroundColor: style.text }}
-            className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white shadow-sm z-10 text-white"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-          </div>
+        <div className="mb-18 flex items-center justify-center">
+          {renderIllustrationIcon(article.cover)}
         </div>
       </div>
     </button>

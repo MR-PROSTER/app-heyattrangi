@@ -8,8 +8,6 @@ import {
 import ProfileHeader from "./components/ProfileHeader"
 import IdentityCard from "./components/IdentityCard"
 import StreakCard from "./components/StreakCard"
-import SignOutSection from "./components/SignOutSection"
-import DeleteAccountSection from "./components/DeleteAccountSection"
 import ProfileLoading from "./loading"
 
 /**
@@ -49,10 +47,6 @@ async function ProfileContent() {
                         </div>
                     </div>
 
-                    <div className="mt-5 space-y-4">
-                        <SignOutSection />
-                        <DeleteAccountSection />
-                    </div>
                 </div>
             </div>
         </main>

@@ -77,6 +77,7 @@ async function DashboardContent() {
         plan={plan}
         upcomingAppointments={upcomingAppointments}
         dailyTasks={dailyTasks}
+        userImage={user.image}
       />
     </div>
   )
