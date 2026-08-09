@@ -8,12 +8,7 @@ export interface DbAudioTrack extends ListenTrack {
 }
 
 function mapCategory(dbCat: string): ListenCategory {
-  const upper = (dbCat || '').toUpperCase();
-  if (upper === 'RAIN') return 'Rain';
-  if (upper === 'OCEAN') return 'Ocean';
-  if (upper === 'NATURE') return 'Nature';
-  if (upper === 'INSTRUMENTAL') return 'Instrumental';
-  return 'Rain';
+  return dbCat as ListenCategory;
 }
 
 function mapCoverIllustration(category: ListenCategory, index: number): ListenCoverIllustration {
@@ -22,6 +17,14 @@ function mapCoverIllustration(category: ListenCategory, index: number): ListenCo
     Ocean: ['waves'],
     Nature: ['leaves', 'sun'],
     Instrumental: ['moon', 'stone'],
+    "Calm Down": ['cloud', 'rain'],
+    "Comfort": ['sun', 'stone'],
+    "Emotional Release": ['cloud', 'rain'],
+    "Focus": ['moon', 'stone'],
+    "Ground & Breathe": ['leaves', 'sun'],
+    "Lift Your Mood": ['sun', 'leaves'],
+    "Reflect": ['moon', 'stone'],
+    "Sleep & Wind Down": ['moon', 'cloud'],
   };
   const list = byCategory[category] || ['rain'];
   return list[index % list.length];
