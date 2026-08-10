@@ -34,6 +34,7 @@ function ActivityGrid({ activities, onSelectActivity }: ActivityGridProps) {
               activity={activity}
               onSelect={onSelectActivity}
               isMobileStack
+              index={index}
             />
           </motion.div>
         ))}
@@ -42,7 +43,7 @@ function ActivityGrid({ activities, onSelectActivity }: ActivityGridProps) {
       {/* Desktop view: Standard Grid */}
       <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
         <AnimatePresence mode="popLayout">
-          {activities.map((activity) => (
+          {activities.map((activity, index) => (
             <motion.div
               key={activity.id}
               layout={!reduced}
@@ -57,6 +58,7 @@ function ActivityGrid({ activities, onSelectActivity }: ActivityGridProps) {
               <ActivityCard
                 activity={activity}
                 onSelect={onSelectActivity}
+                index={index}
               />
             </motion.div>
           ))}

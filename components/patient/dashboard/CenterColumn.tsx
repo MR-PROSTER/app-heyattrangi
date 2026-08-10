@@ -172,14 +172,10 @@ export default function CenterColumn({
   }
 
   const handleActivityClick = (activity: any) => {
-    if (
-      activity &&
-      (activity.slug === "breathing" ||
-        activity.slug === "box-breathing" ||
-        activity.slug === "breathing-4-7-8" ||
-        activity.slug === "belly-breathing")
-    ) {
+    if (activity && activity.slug === "breathing") {
       setIsBreathingOpen(true)
+    } else if (activity) {
+      router.push(`/explore/activities/${activity.slug}`)
     } else {
       router.push("/patient/library?mode=activities")
     }
@@ -204,11 +200,10 @@ export default function CenterColumn({
   }, [])
 
   const handleOpenMoodModal = (initialScore: number) => {
-    if (checkedInMood) {
-      setModalInitialScore(checkedInMood.score)
+    setModalInitialScore(initialScore)
+    if (checkedInMood && checkedInMood.score === initialScore) {
       setModalInitialNote(checkedInMood.note)
     } else {
-      setModalInitialScore(initialScore)
       setModalInitialNote("")
     }
     setIsMoodModalOpen(true)
@@ -374,10 +369,24 @@ export default function CenterColumn({
     const sizeClass = isMobile ? "w-6 h-6" : "w-7 h-7"
     const borderClass = (isText && isMobile) ? "border border-[#64748B]" : ""
 
+    const handleClick = () => {
+      if (item.type === "emoji") {
+        handleOpenMoodModal(3)
+      } else if (item.type === "wave") {
+        setIsBreathingOpen(true)
+      } else if (item.type === "exercise") {
+        router.push("/explore/activities/progressive-muscle-relaxation")
+      } else if (item.type === "close") {
+        handleOpenMoodModal(2)
+      }
+    }
+
     return (
-      <div 
+      <button 
+        type="button"
+        onClick={handleClick}
         style={circleStyle}
-        className={`${sizeClass} rounded-full flex items-center justify-center transition-transform hover:scale-105 shadow-sm shrink-0 ${borderClass}`}
+        className={`${sizeClass} rounded-full flex items-center justify-center transition-transform hover:scale-110 active:scale-95 shadow-sm shrink-0 cursor-pointer focus-visible:outline-none ${borderClass}`}
       >
         {item.type === "text" && (
           <span className={`${isMobile ? "text-[10px]" : "text-[11px]"} font-bold leading-none`}>
@@ -414,7 +423,7 @@ export default function CenterColumn({
             <line x1="15" y1="9" x2="9" y2="15" />
           </svg>
         )}
-      </div>
+      </button>
     )
   }
 
@@ -502,11 +511,11 @@ export default function CenterColumn({
               <h4 className="text-slate-800 text-[15px] font-extrabold mb-4 tracking-tight">How&apos;s today, so far?</h4>
               <div className="flex justify-between items-center w-full px-0.5">
                 {[
-                  { name: "Low", score: 0 },
-                  { name: "Heavy", score: 1 },
-                  { name: "Okay", score: 2 },
-                  { name: "Good", score: 3 },
-                  { name: "Bright", score: 4 },
+                  { name: "Low", displayName: "Sad", score: 0 },
+                  { name: "Heavy", displayName: "Bad", score: 1 },
+                  { name: "Okay", displayName: "Not Bad", score: 2 },
+                  { name: "Good", displayName: "Good", score: 3 },
+                  { name: "Bright", displayName: "Happy", score: 4 },
                 ].map((mood) => {
                   const isSelected = checkedInMood && checkedInMood.score === mood.score
                   return (
@@ -514,9 +523,10 @@ export default function CenterColumn({
                       key={mood.name}
                       type="button"
                       onClick={() => handleOpenMoodModal(mood.score)}
-                      className="flex flex-col items-center focus-visible:outline-none"
+                      className="flex flex-col items-center focus-visible:outline-none transition-transform hover:scale-105"
                     >
                       {renderEmojiFace(mood.name, !!isSelected)}
+                      <span className="text-[11px] font-bold mt-2 text-slate-400">{mood.displayName}</span>
                     </button>
                   )
                 })}
@@ -954,32 +964,6 @@ export default function CenterColumn({
             )}
           </div>
         </div>
-      </div>
-
-      {/* Mobile Navigation Tab Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-100/80 flex justify-around items-center py-3.5 shadow-[0_-8px_30px_rgba(0,0,0,0.03)]">
-        <Link href="/patient/dashboard" className="flex flex-col items-center gap-1 text-[#E8722A]">
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-          </svg>
-          <span className="text-[10px] font-bold">Home</span>
-        </Link>
-        
-        <Link href="/patient/library" className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
-            <line x1="9" y1="3" x2="9" y2="18" />
-            <line x1="15" y1="6" x2="15" y2="21" />
-          </svg>
-          <span className="text-[10px] font-bold">Explore</span>
-        </Link>
-        
-        <Link href="/patient/journal" className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          <span className="text-[10px] font-bold">Journey</span>
-        </Link>
       </div>
 
       <BreathingModule

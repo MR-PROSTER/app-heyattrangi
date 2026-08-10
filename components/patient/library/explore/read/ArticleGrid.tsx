@@ -30,7 +30,7 @@ export default function ArticleGrid({
             }}
             className="snap-start"
           >
-            <ArticleCard article={article} onSelect={onSelectArticle} />
+            <ArticleCard article={article} onSelect={onSelectArticle} index={index} />
           </motion.div>
         ))}
       </div>
@@ -50,7 +50,7 @@ export default function ArticleGrid({
             ease: [0.22, 1, 0.36, 1],
           }}
         >
-          <ArticleCard article={article} onSelect={onSelectArticle} />
+          <ArticleCard article={article} onSelect={onSelectArticle} index={index} />
         </motion.div>
       ))}
     </div>

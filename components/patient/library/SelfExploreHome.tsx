@@ -178,42 +178,7 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
             Small things that might help, whenever you need them.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowSearch((v) => !v)}
-          aria-label="Search"
-          aria-expanded={showSearch}
-          className="w-11 h-11 rounded-full bg-white border border-slate-200 shadow-[0_2px_10px_rgba(0,0,0,0.04)] flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2"
-        >
-          <Search className="w-5 h-5" strokeWidth={2.2} />
-        </button>
       </div>
-
-      {showSearch && (
-        <div className="flex items-center gap-3 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200">
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-slate-400" />
-            </div>
-            <input
-              type="search"
-              autoFocus
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search assessments, activities..."
-              aria-label="Search Explore"
-              className="pl-11 pr-4 py-2.5 rounded-full border border-slate-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)] focus:ring-2 focus:ring-orange-100 text-sm w-full bg-white font-medium text-slate-600 placeholder:text-slate-400 outline-none"
-            />
-          </div>
-          <button
-            type="button"
-            className="p-2.5 border border-slate-200 rounded-full bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:bg-slate-50 text-slate-500 transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2"
-            aria-label="Filter"
-          >
-            <SlidersHorizontal className="w-5 h-5" />
-          </button>
-        </div>
-      )}
 
       <ExploreTabSwitcher
         value={mode}

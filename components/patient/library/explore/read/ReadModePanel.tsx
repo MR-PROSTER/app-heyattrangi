@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { Source_Serif_4 } from "next/font/google"
+import { motion } from "framer-motion"
 import type { ReadArticle, ReadArticleCategory } from "@/data/readArticles"
 import { READ_CATEGORIES } from "@/data/readArticles"
 import ArticleGrid from "@/components/patient/library/explore/read/ArticleGrid"
@@ -67,76 +68,24 @@ export default function ReadModePanel({
 
   return (
     <div className="animate-in fade-in duration-200">
-      {/* —— Mobile: image-1 literary shelves —— */}
-      <div className="md:hidden space-y-7">
-        {sections.map(({ category, items }) => (
-          <section
-            key={category}
-            aria-labelledby={`read-mobile-${category}`}
-            className="space-y-3"
+      {/* —— Mobile: Overlapping 3D card deck layout matching ActivityGrid —— */}
+      <div className="flex md:hidden flex-col -space-y-8 pt-4 pb-20">
+        {ordered.map((article, index) => (
+          <motion.div
+            key={article.id}
+            style={{ zIndex: index + 1 }}
+            whileHover={{ y: -16, scale: 1.02, zIndex: 50 }}
+            whileTap={{ y: -24, scale: 0.97, zIndex: 100 }}
+            transition={{ type: "spring", stiffness: 350, damping: 20 }}
+            className="w-full relative cursor-pointer"
           >
-            <div className="flex items-end justify-between gap-3">
-              <h2
-                id={`read-mobile-${category}`}
-                className={`${shelfSerif.className} text-[22px] font-bold tracking-tight text-[#1A1A1A]`}
-              >
-                {category}
-              </h2>
-              {!showAllForCategory ? (
-                <button
-                  type="button"
-                  onClick={() => setFilter(category)}
-                  className="shrink-0 text-[13px] font-semibold text-[#E8722A]
-                    hover:text-[#D45F1A] transition-colors
-                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 rounded-md px-1"
-                >
-                  See all
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setFilter("All")}
-                  className="shrink-0 text-[13px] font-semibold text-[#E8722A]
-                    hover:text-[#D45F1A] transition-colors
-                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 rounded-md px-1"
-                >
-                  Back
-                </button>
-              )}
-            </div>
-
-            {showAllForCategory ? (
-              <div className="grid grid-cols-1 gap-4">
-                {items.map((article) => (
-                  <ArticleCard
-                    key={article.id}
-                    article={article}
-                    onSelect={onSelectArticle}
-                    variant="shelf"
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="flex gap-3.5 overflow-x-auto pb-2 -mx-1 px-1 no-scrollbar snap-x">
-                {items.map((article) => (
-                  <div key={article.id} className="snap-start shrink-0 w-[280px]">
-                    <ArticleCard
-                      article={article}
-                      onSelect={onSelectArticle}
-                      variant="shelf"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+            <ArticleCard
+              article={article}
+              onSelect={onSelectArticle}
+              index={index}
+            />
+          </motion.div>
         ))}
-
-        {sections.length === 0 && (
-          <p className="py-10 text-center text-sm font-medium text-[#8A8A8A]">
-            No articles in this category yet.
-          </p>
-        )}
       </div>
 
       {/* —— Desktop: cover grid —— */}
