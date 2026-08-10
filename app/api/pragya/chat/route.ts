@@ -23,14 +23,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Expected JSON object" }, { status: 400 })
   }
 
-  const { message, generate_suggestions, client_time } = body as Record<string, unknown>
+  const { message, generate_suggestions, client_time, is_new_session } = body as Record<string, unknown>
   if (typeof message !== "string" || !message.trim()) {
     return NextResponse.json({ error: "message is required" }, { status: 400 })
   }
 
-  const nameToUse = ""
-  const finalChatCount = 0
-  let plan = "FREE"
+  // --- Multilingual Setup: Translate user message to English ---
+  let userMessageEnglish = message.trim();
+  let detectedLang = 'en';
+
+  try {
+    const translateUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(message.trim())}`;
+    const transRes = await fetch(translateUrl);
+    if (transRes.ok) {
+      const data = await transRes.json();
+      if (data && data[0]) {
+        userMessageEnglish = data[0].map((item: any) => item[0]).join("");
+      }
+      if (data && data[2]) {
+        detectedLang = data[2];
+      }
+    }
+  } catch (error) {
+    console.error("Failed to translate user message, falling back to original:", error);
+  }
+
+  // Name is not passed to AI to avoid overuse or asking for name
+  const nameToUse = "";
+  const finalChatCount = 0;
+  let plan = "FREE";
   let conversationId: string | null = null
   let resolvedGuestToken: string | null = null
   let preferredLanguage = "English"
@@ -115,6 +136,13 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // DEBUG - REMOVE AFTER TESTING
+  console.log("--- [DEBUG Next.js Route] INCOMING CHAT REQUEST ---");
+  console.log("Session ID:", session?.user?.id || resolvedGuestToken || conversationId);
+  console.log("User message:", message);
+  console.log("Upstream URL:", `${getPragyaUpstreamBase()}/chat`);
+  // END DEBUG
+
   // ── Load past assessments ──
   let pastAssessments: unknown[] = []
   if (session?.user?.id) {
@@ -146,11 +174,12 @@ export async function POST(req: NextRequest) {
         client_time: typeof client_time === "string" && client_time.trim()
           ? client_time
           : new Date().toISOString(),
-        message: message.trim(),
+        message: userMessageEnglish,
         user_name: nameToUse,
         language: preferredLanguage,
         generate_suggestions:
           typeof generate_suggestions === "boolean" ? generate_suggestions : true,
+        is_new_session: is_new_session === true,
         conversation_history: conversationHistory,
         memory_graph: memoryGraph,
         past_assessments: (pastAssessments as Array<{ assessmentId?: string; date?: string; results?: unknown }>).map((pa) => ({
@@ -184,11 +213,42 @@ export async function POST(req: NextRequest) {
       expression?: string
       suggestions?: string[]
       updated_memory_graph?: Record<string, unknown>
+      action?: Record<string, unknown>
     }
 
     // HF Space returns blocks[0].text — normalise to reply for the frontend
     if (!data.reply && data.blocks && data.blocks.length > 0) {
       data.reply = data.blocks.map((b) => b.text).join(" ").trim()
+    }
+
+    // --- Multilingual Setup: Translate bot response back to user's native language ---
+    if (data.reply && detectedLang && detectedLang !== 'en') {
+      try {
+        const backTranslateUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${detectedLang}&dt=t&q=${encodeURIComponent(data.reply)}`;
+        const backTransRes = await fetch(backTranslateUrl);
+        if (backTransRes.ok) {
+          const transData = await backTransRes.json();
+          if (transData && transData[0]) {
+            data.reply = transData[0].map((item: any) => item[0]).join("");
+          }
+        }
+        
+        // Also translate suggestions if any
+        if (data.suggestions && Array.isArray(data.suggestions) && data.suggestions.length > 0) {
+          for (let i = 0; i < data.suggestions.length; i++) {
+             const suggUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${detectedLang}&dt=t&q=${encodeURIComponent(data.suggestions[i])}`;
+             const suggRes = await fetch(suggUrl);
+             if (suggRes.ok) {
+                const sData = await suggRes.json();
+                if (sData && sData[0]) {
+                   data.suggestions[i] = sData[0].map((item: any) => item[0]).join("");
+                }
+             }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to translate bot response, falling back to English:", error);
+      }
     }
 
     // ── Save assistant reply to MongoDB ──
@@ -198,6 +258,7 @@ export async function POST(req: NextRequest) {
           conversationId,
           role: "assistant",
           content: data.reply,
+          action: data.action,
         })
       } catch (error) {
         console.warn("Failed to save assistant message to DB:", error)

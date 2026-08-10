@@ -129,20 +129,6 @@ const toolItems: SidebarItem[] = [
         icon: <GridIcon />,
     },
     {
-        label: "Talk to Attrangi",
-        href: "/patient/ai-bot",
-        icon: (
-            <div className="relative h-7 w-7 rounded-full overflow-hidden">
-                <Image
-                    src="/bot_expressions/Attrangi_s_HQ/NEUTRAL 1.png"
-                    alt="Pragya AI"
-                    fill
-                    className="object-cover"
-                />
-            </div>
-        )
-    },
-    {
         label: "Journey",
         href: "/patient/library",
         icon: <LibraryIcon />,

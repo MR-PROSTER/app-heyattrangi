@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, type FormEvent } from "react";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -225,7 +226,7 @@ const ChatLoadingIndicator = () => {
 
     return (
         <div className="flex justify-start animate-in fade-in duration-300">
-            <div className="bg-white border border-gray-100 rounded-3xl p-5 rounded-tl-sm shadow-sm flex flex-col gap-3 min-w-[200px]">
+            <div className="bg-white/30 backdrop-blur-md border border-white/40 rounded-[24px] rounded-tl-sm p-4 shadow-sm flex flex-col gap-3 min-w-[150px]">
                 <div className="flex items-center space-x-2">
                     <div className="w-2.5 h-2.5 bg-orange-400/60 rounded-full animate-bounce"></div>
                     <div
@@ -237,7 +238,7 @@ const ChatLoadingIndicator = () => {
                         style={{ animationDelay: "0.4s" }}
                     ></div>
                 </div>
-                <div className="text-[12px] font-medium text-gray-400 animate-pulse">
+                <div className="text-[12px] font-medium text-[#004f69]/80 animate-pulse">
                     {LOADING_MESSAGES[msgIndex]}
                 </div>
             </div>
@@ -261,11 +262,13 @@ export default function TryPragyaChat({
     initialPlan = "FREE",
     initialChatCount = 0,
     userName = "",
+    onBack,
 }: {
     sessionId: string;
     initialPlan?: string;
     initialChatCount?: number;
     userName?: string;
+    onBack?: () => void;
 }) {
     const { status } = useSession();
     const router = useRouter();
@@ -359,6 +362,13 @@ export default function TryPragyaChat({
     const [plan, setPlan] = useState(initialPlan);
     const [chatCount, setChatCount] = useState(initialChatCount);
     const [showMemoryPolicy, setShowMemoryPolicy] = useState(false);
+
+    const [isRecording, setIsRecording] = useState(false);
+    const [isTranscribing, setIsTranscribing] = useState(false);
+    const [recordingTime, setRecordingTime] = useState(0);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isSendingRef = useRef(false);
@@ -487,6 +497,7 @@ export default function TryPragyaChat({
         setShowSuggestions(false);
 
         try {
+            const isFirstMsg = !hasUserMessages;
             const res = await fetch("/api/pragya/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -494,6 +505,7 @@ export default function TryPragyaChat({
                     session_id: isGuestSession ? undefined : activeSessionId,
                     message: userMsg,
                     generate_suggestions: false,
+                    is_new_session: isFirstMsg,
                 }),
             });
 
@@ -682,33 +694,157 @@ export default function TryPragyaChat({
         resetChat();
     };
 
+    useEffect(() => {
+        if (isRecording) {
+            recordingTimerRef.current = setInterval(() => {
+                setRecordingTime((prev) => prev + 1);
+            }, 1000);
+        } else {
+            if (recordingTimerRef.current) {
+                clearInterval(recordingTimerRef.current);
+            }
+            setRecordingTime(0);
+        }
+        return () => {
+            if (recordingTimerRef.current) {
+                clearInterval(recordingTimerRef.current);
+            }
+        };
+    }, [isRecording]);
+
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            mediaRecorderRef.current = mediaRecorder;
+            audioChunksRef.current = [];
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) {
+                    audioChunksRef.current.push(e.data);
+                }
+            };
+
+            mediaRecorder.onstop = async () => {
+                try {
+                    const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+                    stream.getTracks().forEach((track) => track.stop());
+
+                    if (audioBlob.size === 0) {
+                        setIsTranscribing(false);
+                        return;
+                    }
+
+                    setIsTranscribing(true);
+                    const formData = new FormData();
+                    formData.append("audio", audioBlob);
+
+                    const response = await fetch("/api/speech/transcribe", {
+                        method: "POST",
+                        body: formData,
+                    });
+
+                    if (!response.ok) {
+                        const data = await response.json();
+                        throw new Error(data.error || "Failed to transcribe audio");
+                    }
+
+                    const data = await response.json();
+                    if (data.transcript) {
+                        setInputMessage((prev) => {
+                            const newText = prev.trim() ? `${prev} ${data.transcript}` : data.transcript;
+                            if (inputRef.current) {
+                                setTimeout(() => {
+                                    inputRef.current!.style.height = "auto";
+                                    inputRef.current!.style.height = `${Math.min(inputRef.current!.scrollHeight, 180)}px`;
+                                    inputRef.current!.focus();
+                                }, 50);
+                            }
+                            return newText;
+                        });
+                    }
+                } catch (error) {
+                    console.error("Transcription error:", error);
+                    alert("Transcription failed. Please try again or type your message.");
+                } finally {
+                    setIsTranscribing(false);
+                }
+            };
+
+            mediaRecorder.start();
+            setIsRecording(true);
+        } catch (error) {
+            console.error("Microphone access denied or error:", error);
+            alert("Microphone access was denied. Please allow microphone access to use Speech-to-Text.");
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && isRecording) {
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+        }
+    };
+
+    const toggleRecording = () => {
+        if (isRecording) {
+            stopRecording();
+        } else {
+            startRecording();
+        }
+    };
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, "0")}`;
+    };
+
     return (
         <>
-            <div className="flex flex-col h-full bg-white text-gray-800 overflow-hidden font-sans relative">
+            <motion.div className="flex flex-col h-full bg-gradient-to-b from-[#8BC8DF]/90 to-[#C8E2EF]/90 text-gray-800 overflow-hidden font-sans relative">
                 <div className="flex-1 flex flex-col w-full max-w-4xl mx-auto overflow-hidden relative h-full z-10 px-4 md:px-8">
                     {/* Top Navigation */}
-                    <div className="w-full flex items-center justify-between py-6 shrink-0 z-20">
-                        {/* Back Arrow */}
-                        <a
-                            href={isGuestSession ? "https://heyattrangi.com" : "/patient/dashboard"}
-                            onClick={(e) => {
-                                e.preventDefault();
-                                if (isGuestSession) {
-                                    if (window.history.length > 2) {
-                                        router.back();
-                                    } else {
-                                        window.location.href = "https://heyattrangi.com";
+                    <motion.div 
+                        className="w-full flex items-center justify-between py-6 shrink-0 z-20"
+                    >
+                        {/* Back Arrow and Avatar */}
+                        <div className="flex items-center gap-2">
+                            <a
+                                href={isGuestSession ? "https://heyattrangi.com" : "/patient/dashboard"}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    if (onBack) {
+                                        onBack();
+                                        return;
                                     }
-                                } else {
-                                    router.push("/patient/dashboard");
-                                }
-                            }}
-                            className="p-2 text-gray-800 hover:text-black hover:bg-gray-100 transition-colors rounded-full -ml-3"
-                        >
-                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </a>
+                                    if (isGuestSession) {
+                                        if (window.history.length > 2) {
+                                            router.back();
+                                        } else {
+                                            window.location.href = "https://heyattrangi.com";
+                                        }
+                                    } else {
+                                        router.push("/patient/dashboard");
+                                    }
+                                }}
+                                className="p-2 text-[#004f69] hover:text-[#00384d] hover:bg-white/20 transition-colors rounded-full -ml-3"
+                            >
+                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </a>
+                            {hasStarted && (
+                                <Image
+                                    src={getBotAvatar("NEUTRAL")}
+                                    alt="Pragya Bot"
+                                    width={36}
+                                    height={36}
+                                    className="object-contain"
+                                    priority
+                                />
+                            )}
+                        </div>
                         
                         {/* Right side: History */}
                         <div className="flex items-center gap-4">
@@ -736,7 +872,7 @@ export default function TryPragyaChat({
                                         setIsHistoryLoading(false);
                                     }
                                 }}
-                                className="p-2 text-gray-800 hover:text-black hover:bg-gray-100 transition-colors rounded-full flex items-center justify-center -mr-3"
+                                className="hidden p-2 text-gray-800 hover:text-black hover:bg-gray-100 transition-colors rounded-full items-center justify-center -mr-3"
                                 title="Chat History"
                             >
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -745,7 +881,7 @@ export default function TryPragyaChat({
                                 </svg>
                             </button>
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* LIMIT REACHED MODAL OVERLAY */}
                     {limitData.isLimitReached && (
@@ -847,7 +983,7 @@ export default function TryPragyaChat({
                                     : "opacity-0 max-h-0 mb-0 scale-95 pointer-events-none"
                                     }`}
                             >
-                                <div className="mb-4 flex items-center justify-center relative shrink-0 transition-transform duration-700 ease-in-out">
+                                <motion.div layoutId="chat-avatar" transition={{ layout: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }} className="mb-4 flex items-center justify-center relative shrink-0 transition-transform duration-700 ease-in-out">
                                     <Image
                                         src={getBotAvatar(botExpression)}
                                         alt="Pragya Bot"
@@ -856,18 +992,22 @@ export default function TryPragyaChat({
                                         className="object-contain"
                                         priority
                                     />
-                                </div>
-                                <h2 className="text-[12px] uppercase tracking-[0.05em] font-bold text-[#b3b3b3] mb-6 font-sans mt-2">
+                                </motion.div>
+                                <motion.h2 
+                                    className="text-[12px] uppercase tracking-[0.05em] font-bold text-[#004f69]/70 mb-6 font-sans mt-2"
+                                >
                                     HELLO {userName ? userName.toUpperCase() : "THERE"}!
-                                </h2>
-                                <h1 className="text-[28px] md:text-[34px] font-extrabold text-[#2a2a2a] leading-tight text-center font-sans tracking-tight">
+                                </motion.h2>
+                                <motion.h1 layoutId="chat-greeting" transition={{ layout: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }} className="text-[28px] md:text-[34px] font-extrabold text-[#004f69] leading-tight text-center font-sans tracking-tight">
                                     {currentGreeting}
-                                </h1>
+                                </motion.h1>
                             </div>
 
-                            {/* Mode Buttons 2x2 Grid */}
-                            {!conversationStarted && (
-                                <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-[560px] transition-all duration-700 ease-in-out px-2 ${!hasStarted ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+                            {/* Mode Buttons 2x2Grid */}
+                            {!hasStarted && (
+                                <motion.div 
+                                    className={`grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-[560px] transition-all duration-700 ease-in-out px-2 ${!hasStarted ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+                                >
                                     {CHAT_MODES.map((mode) => {
                                         const getModeColor = (id: string) => {
                                             switch (id) {
@@ -886,14 +1026,14 @@ export default function TryPragyaChat({
                                                         setSelectedMode(mode.id);
                                                     }
                                                 }}
-                                                className={`flex items-center gap-4 px-3 py-3 bg-white rounded-2xl border ${selectedMode === mode.id ? "border-[#FF6812]" : "border-gray-100"} shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:border-gray-200 transition-all text-left group`}
+                                                className={`flex items-center gap-4 px-4 py-3 bg-white/30 backdrop-blur-md rounded-[20px] border ${selectedMode === mode.id ? "border-white/80 shadow-md" : "border-white/30"} shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:bg-white/40 hover:border-white/60 transition-all text-left group`}
                                             >
                                                 <div className={`w-[26px] h-[26px] rounded-lg shrink-0 ${getModeColor(mode.id)}`}></div>
-                                                <span className="text-[13px] font-extrabold text-[#1f2937] group-hover:text-[#FF6812] transition-colors">{mode.title}</span>
+                                                <span className="text-[13px] font-extrabold text-[#004f69] group-hover:text-[#00384d] transition-colors">{mode.title}</span>
                                             </button>
                                         );
                                     })}
-                                </div>
+                                </motion.div>
                             )}
                         </div>
 
@@ -922,11 +1062,11 @@ export default function TryPragyaChat({
                                             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-2 duration-300`}
                                         >
                                             <div
-                                                className={`max-w-[85%] sm:max-w-[75%] rounded-3xl p-5 text-[15px] leading-relaxed shadow-sm whitespace-pre-wrap ${msg.role === "user"
-                                                    ? "bg-gradient-to-r from-orange-600 to-orange-500 text-white rounded-tr-sm shadow-[0_4px_14px_rgba(249,107,19,0.25)]"
+                                                className={`max-w-[85%] sm:max-w-[75%] rounded-3xl text-[16px] leading-relaxed whitespace-pre-wrap ${msg.role === "user"
+                                                    ? "bg-white/30 backdrop-blur-md border border-white/40 text-[#004f69] rounded-tr-sm p-4 shadow-sm"
                                                     : msg.isError
-                                                        ? "bg-red-50 text-red-800 rounded-tl-sm border border-red-100 shadow-[0_2px_10px_rgba(220,38,38,0.04)]"
-                                                        : "bg-white text-gray-800 rounded-tl-sm border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)]"
+                                                        ? "bg-red-50/50 backdrop-blur-md text-red-800 rounded-tl-sm border border-red-100 p-4 shadow-sm"
+                                                        : "bg-transparent text-[#004f69] font-medium p-2"
                                                     }`}
                                             >
                                                 {msg.role === "assistant" &&
@@ -956,9 +1096,9 @@ export default function TryPragyaChat({
                                                             { name: "KIRAN Support", number: "1800-599-0019", desc: "Government mental health service.", label: "SOS" },
                                                             { name: "Vandrevala Foundation", number: "9999 666 555", desc: "Crisis and trauma counseling helpline.", label: "Support" }
                                                         ].map((line, hidx) => (
-                                                            <div key={hidx} className="p-5 rounded-2xl bg-gradient-to-r from-orange-50 to-red-50/50 border border-orange-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:shadow-md hover:border-orange-300 transition-all font-sans text-slate-800">
+                                                            <div key={hidx} className="p-5 rounded-[20px] bg-white/30 backdrop-blur-md border border-white/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:bg-white/40 transition-all font-sans text-[#004f69]">
                                                                 <div className="flex items-start gap-4">
-                                                                    <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0 mt-0.5 animate-pulse">
+                                                                    <div className="w-10 h-10 rounded-full bg-red-100/50 text-red-600 flex items-center justify-center shrink-0 mt-0.5 animate-pulse">
                                                                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                                                         </svg>
@@ -968,7 +1108,7 @@ export default function TryPragyaChat({
                                                                             <h4 className="font-bold text-[15px]">{line.name}</h4>
                                                                             <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md bg-red-100 text-red-700">{line.label}</span>
                                                                         </div>
-                                                                        <p className="text-[13px] text-gray-600 font-medium leading-relaxed">{line.desc}</p>
+                                                                        <p className="text-[13px] text-[#004f69]/80 font-medium leading-relaxed">{line.desc}</p>
                                                                         <p className="text-lg font-black text-red-600 tracking-wide mt-1">{line.number}</p>
                                                                     </div>
                                                                 </div>
@@ -980,16 +1120,16 @@ export default function TryPragyaChat({
                                                     </div>
                                                 )}
                                                 {(msg.action?.type === "ATTENTION_ASSESSMENT" || msg.action?.type === "ASSESSMENT") && (!isTyping || idx < messages.length - 1) && (
-                                                    <div className="mt-4 p-5 rounded-2xl bg-orange-50/70 border border-orange-100 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500 text-slate-800 font-sans shadow-md">
+                                                    <div className="mt-4 p-5 rounded-[24px] rounded-tl-sm bg-white/30 backdrop-blur-md border border-white/40 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500 text-[#004f69] font-sans shadow-sm">
                                                         <div className="flex items-start gap-4">
-                                                            <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center shrink-0 mt-0.5">
+                                                            <div className="w-10 h-10 rounded-full bg-white/50 text-[#FF6812] flex items-center justify-center shrink-0 mt-0.5">
                                                                 <svg className="w-5 h-5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                                                                 </svg>
                                                             </div>
                                                             <div className="flex flex-col gap-1.5">
                                                                 <div className="flex items-center gap-2">
-                                                                    <h4 className="font-bold text-base text-gray-800">{msg.action.title}</h4>
+                                                                    <h4 className="font-bold text-base text-[#004f69]">{msg.action.title}</h4>
                                                                     <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-md ${(msg.action as any).severity === "severe" ? "bg-red-100 text-red-700" :
                                                                         (msg.action as any).severity === "moderate" ? "bg-orange-100 text-orange-700" :
                                                                             (msg.action as any).severity === "mild" ? "bg-yellow-100 text-yellow-700" :
@@ -998,10 +1138,10 @@ export default function TryPragyaChat({
                                                                         {(msg.action as any).severity || "info"}
                                                                     </span>
                                                                 </div>
-                                                                <p className="text-[13px] text-gray-600 font-medium leading-relaxed">
+                                                                <p className="text-[13px] text-[#004f69]/80 font-medium leading-relaxed">
                                                                     {(msg.action as any).rationale || "Based on your discussion, a structured evaluation is recommended."}
                                                                 </p>
-                                                                <p className="text-[11px] text-gray-400 font-medium">
+                                                                <p className="text-[11px] text-[#004f69]/60 font-medium">
                                                                     Selection Confidence: {Math.round(((msg.action as any).confidence || 0.70) * 100)}%
                                                                 </p>
                                                             </div>
@@ -1151,48 +1291,92 @@ export default function TryPragyaChat({
                                         </span>
                                     </div>
 
-                                    <form
+                                    <motion.form
+                                        layoutId="chat-input-bar"
+                                        transition={{ layout: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }}
                                         onSubmit={sendMessage}
-                                        className={`w-full bg-white text-gray-800 transition-all flex items-end gap-2 border border-orange-100 focus-within:border-orange-200 focus-within:ring-4 focus-within:ring-orange-50/50 ${!hasStarted ? "rounded-full py-1.5 pl-6 pr-2.5 shadow-sm" : "rounded-3xl py-2 pl-5 pr-3 shadow-md"}`}
+                                        className={`w-full bg-white/95 backdrop-blur-xl text-[#004f69] transition-all flex items-end gap-2 border border-white/80 shadow-lg ${!hasStarted ? "rounded-full py-2 pl-6 pr-2" : "rounded-[32px] py-2 pl-6 pr-2"}`}
                                     >
-                                        <textarea
-                                            ref={inputRef}
-                                            value={inputMessage}
-                                            onChange={handleInputChange}
-                                            onKeyDown={handleKeyDown}
-                                            placeholder={
-                                                hasStarted
-                                                    ? "Type your message here..."
-                                                    : "Tell me what's been on your mind..."
-                                            }
-                                            rows={1}
-                                            className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 py-3 focus:outline-none resize-none min-h-[44px] max-h-[160px] leading-relaxed text-[15px] overflow-y-auto style-scrollbar"
-                                            disabled={isLoading}
-                                            autoFocus
-                                        />
+                                        {isRecording ? (
+                                            <div className="flex-1 flex items-center justify-center gap-3 py-3 min-h-[44px]">
+                                                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                                                <span className="text-red-500 font-bold text-sm tracking-wider">
+                                                    Recording {formatTime(recordingTime)}
+                                                </span>
+                                            </div>
+                                        ) : isTranscribing ? (
+                                            <div className="flex-1 flex items-center justify-center gap-3 py-3 min-h-[44px]">
+                                                <div className="w-4 h-4 border-2 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
+                                                <span className="text-orange-500 font-bold text-[13px] tracking-widest uppercase">
+                                                    Transcribing...
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <textarea
+                                                ref={inputRef}
+                                                value={inputMessage}
+                                                onChange={handleInputChange}
+                                                onKeyDown={handleKeyDown}
+                                                placeholder={
+                                                    hasStarted
+                                                        ? "Type your message here..."
+                                                        : "Tell me what's been on your mind..."
+                                                }
+                                                rows={1}
+                                                className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 py-3 focus:outline-none resize-none min-h-[44px] max-h-[160px] leading-relaxed text-[15px] overflow-y-auto style-scrollbar"
+                                                disabled={isLoading || isRecording || isTranscribing}
+                                                autoFocus
+                                            />
+                                        )}
+                                        
                                         <button
-                                            type="submit"
-                                            disabled={isLoading || !inputMessage.trim()}
-                                            className={`p-2.5 rounded-full h-10 w-10 shrink-0 mb-1 transition-all duration-300 flex items-center justify-center ${isLoading || !inputMessage.trim()
-                                                ? "text-gray-400 bg-[#f4f4f5]"
-                                                : "text-gray-700 bg-[#f4f4f5] hover:bg-[#e4e4e7]"
-                                                }`}
+                                            type="button"
+                                            onClick={toggleRecording}
+                                            disabled={isLoading || isTranscribing}
+                                            className={`px-4 py-2 rounded-full h-[40px] shrink-0 mb-0.5 transition-all duration-300 flex items-center justify-center gap-2 font-bold text-[14px] ${
+                                                isRecording ? "bg-red-500 text-white" :
+                                                (isLoading || isTranscribing) ? "bg-orange-300 text-white" :
+                                                "bg-[#f88f5f] text-white hover:bg-[#eb7a47] shadow-[0_2px_8px_rgba(248,143,95,0.4)]"
+                                            }`}
+                                            title={isRecording ? "Stop Recording" : "Start Voice Input"}
                                         >
-                                            <svg
-                                                className="w-[18px] h-[18px] transform translate-x-[-1px] translate-y-[1px]"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                                            </svg>
+                                            {isRecording ? (
+                                                <svg className="w-[16px] h-[16px]" fill="currentColor" viewBox="0 0 24 24">
+                                                    <rect x="6" y="6" width="12" height="12" rx="2" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                                </svg>
+                                            )}
+                                            <span className="hidden sm:inline-block">{isRecording ? "Stop" : "Speak"}</span>
                                         </button>
-                                    </form>
+
+                                        {!isRecording && (
+                                            <button
+                                                type="submit"
+                                                disabled={isLoading || !inputMessage.trim() || isTranscribing}
+                                                className={`p-2.5 rounded-full h-10 w-10 shrink-0 mb-1 transition-all duration-300 flex items-center justify-center ${isLoading || !inputMessage.trim() || isTranscribing
+                                                    ? "text-gray-400 bg-[#f4f4f5]"
+                                                    : "text-gray-700 bg-[#f4f4f5] hover:bg-[#e4e4e7]"
+                                                    }`}
+                                            >
+                                                <svg
+                                                    className="w-[18px] h-[18px] transform translate-x-[-1px] translate-y-[1px]"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </motion.form>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Memory Policy Modal */}
             {showMemoryPolicy && (

@@ -5,9 +5,11 @@ import Image from "next/image"
 import dynamic from "next/dynamic"
 import { format, formatDistanceToNow } from "date-fns"
 import { useState, useEffect, useMemo } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion"
 import UpgradeOffersBanner from "./UpgradeOffersBanner"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
+import TryPragyaChat from "@/components/ai-bot/TryPragyaChat"
 import { DEFAULT_AVATAR } from "@/lib/avatar"
 import ProfileAvatar from "@/components/patient/ProfileAvatar"
 import MoodCheckInModal from "./MoodCheckInModal"
@@ -84,6 +86,7 @@ export default function CenterColumn({
   userImage?: string | null
 }) {
   const router = useRouter()
+  const { data: session } = useSession()
   const normalizedPlan = plan || "FREE"
   const planLabelMap: Record<string, string> = {
     FREE: "Free",
@@ -131,6 +134,7 @@ export default function CenterColumn({
     assessment: any
   } | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<"activity" | "read" | "listen" | "assessment" | null>(null)
+  const [isChatExpanded, setIsChatExpanded] = useState(false)
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -164,11 +168,7 @@ export default function CenterColumn({
 
   const handleMindSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (mindText.trim()) {
-      router.push(`/patient/ai-bot?q=${encodeURIComponent(mindText)}`)
-    } else {
-      router.push("/patient/ai-bot")
-    }
+    setIsChatExpanded(true)
   }
 
   const handleActivityClick = (activity: any) => {
@@ -419,8 +419,17 @@ export default function CenterColumn({
   }
 
   return (
-    <div className="flex-1 h-full overflow-y-auto w-full bg-[#FAF8F5] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] relative pb-28">
-      {/* Phone container style on desktop, wider on larger screens */}
+    <div className="flex-1 h-full w-full bg-[#FAF8F5] relative overflow-hidden">
+      <AnimatePresence>
+        {!isChatExpanded && (
+          <motion.div
+            key="dashboard-view"
+            initial={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="absolute inset-0 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] pb-28 md:pb-16"
+          >
+            {/* Phone container style on desktop, wider on larger screens */}
       <div className="w-full max-w-[480px] md:max-w-[1200px] mx-auto min-h-full flex flex-col bg-[#FAF8F5] relative px-0 md:px-6 md:py-8">
         
         {/* MOBILE VIEW (block md:hidden) */}
@@ -465,6 +474,7 @@ export default function CenterColumn({
                 type="text"
                 value={mindText}
                 onChange={(e) => setMindText(e.target.value)}
+                onFocus={() => setIsChatExpanded(true)}
                 placeholder="Tell me what's on your mind..."
                 className="flex-1 bg-transparent border-none text-[14px] font-medium placeholder-slate-400 text-slate-700 focus:outline-none"
               />
@@ -680,31 +690,43 @@ export default function CenterColumn({
         {/* DESKTOP VIEW (hidden md:flex flex-col gap-6) */}
         <div className="hidden md:flex flex-col gap-6 w-full pb-16">
           {/* Blue Rounded Header Area (Desktop) */}
-          <div className="w-full bg-gradient-to-b from-[#8BDDEE] via-[#A6E8F6] to-[#D7F5FC] rounded-[42px] p-8 flex flex-col gap-6 shadow-[0_8px_30px_rgba(139,221,238,0.12)]">
+          <motion.div 
+            style={{ borderRadius: 42 }}
+            className="w-full bg-gradient-to-b from-[#8BDDEE] via-[#A6E8F6] to-[#D7F5FC] p-8 flex flex-col gap-6 shadow-[0_8px_30px_rgba(139,221,238,0.12)]"
+          >
             <div className="flex items-center justify-between w-full">
               <div className="flex flex-col">
-                <h1 className="text-[36px] font-black text-white tracking-tight leading-none">
+                <motion.h1 
+                  className="text-[36px] font-black text-white tracking-tight leading-none"
+                >
                   Hello, {firstName}
-                </h1>
+                </motion.h1>
                 <span className="text-[#00829B] text-[16px] font-semibold mt-4">
                   Wanna talk about the conversation that we left ??
                 </span>
               </div>
-              <div className="shrink-0">
+              <motion.div 
+                className="shrink-0"
+              >
                 <ProfileAvatar
                   name={displayName}
                   image={userImage}
                   className="w-14 h-14 border-2 border-white/80 shadow-sm"
                 />
-              </div>
+              </motion.div>
             </div>
 
             {/* Voice Input Chat Bar (Desktop) */}
-            <form onSubmit={handleMindSubmit} className="w-full bg-white rounded-full p-2.5 pl-6 pr-2.5 shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex items-center justify-between gap-3 border border-white">
+            <motion.form 
+              whileTap={{ scale: 0.96 }}
+              onSubmit={handleMindSubmit} 
+              className="w-full bg-white rounded-full p-2.5 pl-6 pr-2.5 shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex items-center justify-between gap-3 border border-white"
+            >
               <input
                 type="text"
                 value={mindText}
                 onChange={(e) => setMindText(e.target.value)}
+                onFocus={() => setIsChatExpanded(true)}
                 placeholder="Tell me what's on your mind..."
                 className="flex-1 bg-transparent border-none text-[15px] font-medium placeholder-slate-400 text-slate-700 focus:outline-none"
               />
@@ -719,8 +741,8 @@ export default function CenterColumn({
                 </svg>
                 <span>Speak</span>
               </button>
-            </form>
-          </div>
+            </motion.form>
+          </motion.div>
 
           {/* Grid Layout (Desktop) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -784,6 +806,10 @@ export default function CenterColumn({
             <div className="flex items-center gap-4 mt-2">
               <Link 
                 href="/patient/ai-bot"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsChatExpanded(true);
+                }}
                 className="bg-[#F99254] hover:bg-[#E87E3E] text-white px-6 py-2.5 rounded-full font-bold text-[14px] shadow-sm transition-all active:scale-95"
               >
                 Let&apos;s talk
@@ -968,6 +994,33 @@ export default function CenterColumn({
         initialNote={modalInitialNote}
         onSubmit={handleSubmitMood}
       />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <LayoutGroup>
+        <AnimatePresence>
+          {isChatExpanded && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: { duration: 0.35, ease: "easeOut" } }}
+              exit={{ opacity: 0, transition: { duration: 0.3, ease: "easeIn" } }}
+              className="fixed inset-0 z-[100] bg-gradient-to-b from-[#8BC8DF]/90 to-[#C8E2EF]/90 flex flex-col shadow-[0_30px_60px_rgba(0,0,0,0.15)] overflow-hidden"
+              style={{
+                borderRadius: 0
+              }}
+            >
+              <TryPragyaChat 
+                sessionId={session?.user?.id ? `patient_${session.user.id}` : ""}
+                initialPlan={plan}
+                initialChatCount={0}
+                userName={displayName}
+                onBack={() => setIsChatExpanded(false)}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </LayoutGroup>
     </div>
   )
 }
