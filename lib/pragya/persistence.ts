@@ -399,12 +399,14 @@ export async function appendMessage(params: {
   conversationId: string
   role: ChatRole
   content: string
+  action?: unknown
 }) {
   await prisma.message.create({
     data: {
       conversationId: params.conversationId,
       role: params.role === "user" ? MessageRole.USER : MessageRole.ASSISTANT,
       content: params.content,
+      action: params.action ? (params.action as any) : null,
     },
   })
 

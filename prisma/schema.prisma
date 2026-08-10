@@ -489,6 +489,7 @@ model Message {
   conversationId String      @db.ObjectId
   role           MessageRole
   content        String      @db.String
+  action         Json?
   createdAt      DateTime    @default(now())
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)

@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Expected JSON object" }, { status: 400 })
   }
 
-  const { message, generate_suggestions, client_time } = body as Record<string, unknown>
+  const { message, generate_suggestions, client_time, is_new_session } = body as Record<string, unknown>
   if (typeof message !== "string" || !message.trim()) {
     return NextResponse.json({ error: "message is required" }, { status: 400 })
   }
@@ -179,6 +179,7 @@ export async function POST(req: NextRequest) {
         language: preferredLanguage,
         generate_suggestions:
           typeof generate_suggestions === "boolean" ? generate_suggestions : true,
+        is_new_session: is_new_session === true,
         conversation_history: conversationHistory,
         memory_graph: memoryGraph,
         past_assessments: (pastAssessments as Array<{ assessmentId?: string; date?: string; results?: unknown }>).map((pa) => ({
@@ -212,6 +213,7 @@ export async function POST(req: NextRequest) {
       expression?: string
       suggestions?: string[]
       updated_memory_graph?: Record<string, unknown>
+      action?: Record<string, unknown>
     }
 
     // HF Space returns blocks[0].text — normalise to reply for the frontend
@@ -256,6 +258,7 @@ export async function POST(req: NextRequest) {
           conversationId,
           role: "assistant",
           content: data.reply,
+          action: data.action,
         })
       } catch (error) {
         console.warn("Failed to save assistant message to DB:", error)
