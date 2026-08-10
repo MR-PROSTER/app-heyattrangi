@@ -221,6 +221,35 @@ export async function POST(req: NextRequest) {
       data.reply = data.blocks.map((b) => b.text).join(" ").trim()
     }
 
+    // FIX: Unwrap nested/raw JSON strings returned by the HuggingFace backend
+    if (data.reply && typeof data.reply === "string" && data.reply.trim().startsWith("{")) {
+      try {
+        const parsedNested = JSON.parse(data.reply);
+        
+        // Grab the most likely string response if it's nested
+        if (parsedNested.reply) {
+          data.reply = parsedNested.reply;
+        } else if (parsedNested.response) {
+          data.reply = parsedNested.response;
+        } else if (parsedNested.text) {
+          data.reply = parsedNested.text;
+        } else {
+          // Fallback to the first long string value
+          const possibleReply = Object.values(parsedNested).find(v => typeof v === 'string' && v.length > 5);
+          if (possibleReply) {
+            data.reply = possibleReply as string;
+          }
+        }
+        
+        // Ensure expression is bubbled up if available
+        if (parsedNested.expression && !data.expression) {
+          data.expression = parsedNested.expression;
+        }
+      } catch (e) {
+        // Not a valid JSON string, leave it alone
+      }
+    }
+
     // --- Multilingual Setup: Translate bot response back to user's native language ---
     if (data.reply && detectedLang && detectedLang !== 'en') {
       try {
