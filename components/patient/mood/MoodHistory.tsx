@@ -14,9 +14,9 @@ export default function MoodHistory({ entries }: MoodHistoryProps) {
   const last7Days = useMemo(() => {
     return Array.from({ length: 7 }).map((_, i) => {
       const date = subDays(new Date(), 6 - i)
-      const dayEntries = entries.filter((e) => isSameDay(new Date(e.created_at), date))
-      const avgScore = dayEntries.length > 0 
-        ? dayEntries.reduce((acc, curr) => acc + curr.mood_score, 0) / dayEntries.length 
+      const dayEntries = entries.filter((e) => isSameDay(new Date(e.timestamp), date))
+      const avgScore = dayEntries.length > 0
+        ? dayEntries.reduce((acc, curr) => acc + curr.moodScore, 0) / dayEntries.length
         : null
       return {
         date,
@@ -192,10 +192,10 @@ export default function MoodHistory({ entries }: MoodHistoryProps) {
             ))}
 
             {calendarDays.map((date) => {
-              const dayEntries = entries.filter((e) => isSameDay(new Date(e.created_at), date))
+              const dayEntries = entries.filter((e) => isSameDay(new Date(e.timestamp), date))
               const hasEntry = dayEntries.length > 0
-              const avgScore = hasEntry 
-                ? dayEntries.reduce((acc, curr) => acc + curr.mood_score, 0) / dayEntries.length 
+              const avgScore = hasEntry
+                ? dayEntries.reduce((acc, curr) => acc + curr.moodScore, 0) / dayEntries.length
                 : null
               
               const isToday = isSameDay(new Date(), date)
@@ -243,10 +243,10 @@ export default function MoodHistory({ entries }: MoodHistoryProps) {
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <p className="font-bold text-[var(--color-text-primary)]">
-                      {format(new Date(e.created_at), "EEEE, MMM d")}
+                      {format(new Date(e.timestamp), "EEEE, MMM d")}
                     </p>
                     <span className="text-xs text-[var(--color-text-muted)]">
-                      {format(new Date(e.created_at), "h:mm a")}
+                      {format(new Date(e.timestamp), "h:mm a")}
                     </span>
                   </div>
                   <div className="mt-1 flex flex-wrap gap-1">

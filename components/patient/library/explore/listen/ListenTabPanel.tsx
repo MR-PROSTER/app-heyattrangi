@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronRight, ArrowLeft, Play, Pause, Music, AlertCircle } from "lucide-react"
 import { useListenPlayer } from "@/components/patient/library/explore/listen/ListenPlayerContext"
-import { MUSIC_CATEGORIES, getTracksForCategory, type MusicTrack } from "@/lib/data/musicLibrary"
-import type { ListenTrack } from "@/data/listenContent"
+import { MUSIC_CATEGORIES, getTracksForCategory } from "@/lib/data/musicLibrary"
+import type { ListenTrack, ListenCategory } from "@/data/listenContent"
+import ListenCover from "@/components/patient/library/explore/listen/ListenCover"
+
 
 // Category UI Colors matching Aatrangi activities style
 interface CategoryColorTheme {
@@ -245,21 +247,47 @@ function CuteCategoryCharacter({ categoryName, className = "w-40 h-40" }: { cate
 
 interface ListenTabPanelProps {
   customCdnBase?: string
+  initialTracks?: ListenTrack[]
 }
 
-function ListenTabPanel({ customCdnBase }: ListenTabPanelProps) {
+function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelProps) {
   const router = useRouter()
   const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const { currentTrack, isPlaying, playTrack } = useListenPlayer()
 
-  const [tracks, setTracks] = useState<MusicTrack[]>([])
+  const [tracks, setTracks] = useState<ListenTrack[]>([])
 
   useEffect(() => {
     if (selectedCategoryName) {
       setIsLoading(true)
       const timer = setTimeout(() => {
-        const fetched = getTracksForCategory(selectedCategoryName, customCdnBase)
+        let fetched: ListenTrack[] = []
+        if (initialTracks && initialTracks.length > 0) {
+          fetched = initialTracks.filter((t) => t.category === selectedCategoryName)
+        }
+        
+        if (fetched.length === 0) {
+          const mockMusicTracks = getTracksForCategory(selectedCategoryName, customCdnBase)
+          fetched = mockMusicTracks.map((t) => {
+            const isAvailable = t.audioUrl !== null && !t.audioUrl.endsWith("null")
+            return {
+              id: t.id,
+              slug: t.id,
+              title: t.title,
+              shortDescription: `Track in ${selectedCategoryName}`,
+              description: `Track in ${selectedCategoryName}`,
+              category: selectedCategoryName as ListenCategory,
+              artist: "Hey Attrangi Wellness",
+              duration: t.duration || "5:00",
+              displayOrder: 1,
+              audioAvailable: isAvailable,
+              coverIllustration: "moon" as const,
+              coverImage: t.artworkUrl || "",
+              audioSrc: t.audioUrl || "",
+            } as ListenTrack
+          })
+        }
         setTracks(fetched)
         setIsLoading(false)
       }, 350)
@@ -267,38 +295,26 @@ function ListenTabPanel({ customCdnBase }: ListenTabPanelProps) {
     } else {
       setTracks([])
     }
-  }, [selectedCategoryName, customCdnBase])
+  }, [selectedCategoryName, initialTracks, customCdnBase])
 
-  const getMappedTracks = useMemo(() => {
-    return tracks.map((track) => {
-      const isAvailable = track.audioUrl !== null && !track.audioUrl.endsWith("null")
-      return {
-        id: track.id,
-        slug: track.id,
-        title: track.title,
-        shortDescription: `Track in ${selectedCategoryName}`,
-        description: `Track in ${selectedCategoryName}`,
-        category: "Instrumental",
-        artist: "Hey Attrangi Wellness",
-        duration: track.duration || "5:00",
-        displayOrder: 1,
-        audioAvailable: isAvailable,
-        coverIllustration: "moon" as const,
-        coverImage: track.artworkUrl || "",
-        audioSrc: track.audioUrl || "",
-      } as ListenTrack
-    })
-  }, [tracks, selectedCategoryName])
-
-  const handlePlayClick = (targetTrack: MusicTrack) => {
-    if (!targetTrack.audioUrl) return
-
-    const mappedTarget = getMappedTracks.find((t) => t.id === targetTrack.id)
-    if (mappedTarget) {
-      playTrack(mappedTarget, getMappedTracks)
-      router.push(`/listen/${targetTrack.id}`)
-    }
+  const handlePlayClick = (targetTrack: ListenTrack) => {
+    if (!targetTrack.audioSrc) return
+    playTrack(targetTrack, tracks)
+    router.push(`/listen/${targetTrack.id}`)
   }
+
+  const categoriesWithCounts = useMemo(() => {
+    return MUSIC_CATEGORIES.map((category) => {
+      let count = category.trackCount
+      if (initialTracks && initialTracks.length > 0) {
+        count = initialTracks.filter((t) => t.category === category.name).length
+      }
+      return {
+        ...category,
+        trackCount: count,
+      }
+    })
+  }, [initialTracks])
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -368,7 +384,7 @@ function ListenTabPanel({ customCdnBase }: ListenTabPanelProps) {
           >
             {tracks.map((track) => {
               const isCurrent = currentTrack?.id === track.id
-              const isAvailable = track.audioUrl !== null
+              const isAvailable = track.audioAvailable !== false && !!track.audioSrc
 
               return (
                 <motion.div key={track.id} variants={cardVariants}>
@@ -381,15 +397,19 @@ function ListenTabPanel({ customCdnBase }: ListenTabPanelProps) {
                   >
                     {/* Cover Image Container */}
                     <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[24px] bg-[#E8E0D4] shadow-[0_10px_28px_rgba(40,30,20,0.12)] ring-1 ring-black/[0.04]">
-                      {track.artworkUrl ? (
+                      {track.coverImage || track.imageUrl ? (
                         <img
-                          src={track.artworkUrl}
+                          src={(track.coverImage || track.imageUrl) ?? undefined}
                           alt=""
                           className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04]"
                         />
                       ) : (
-                        <div className="absolute inset-0 bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
-                          <Music className="w-10 h-10 text-slate-400" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
+                          <ListenCover
+                            illustration={track.coverIllustration ?? "rain"}
+                            size="lg"
+                            title={track.title}
+                          />
                         </div>
                       )}
 
@@ -466,7 +486,7 @@ function ListenTabPanel({ customCdnBase }: ListenTabPanelProps) {
 
       {/* Mobile view: Overlapping 3D card deck list */}
       <div className="flex md:hidden flex-col -space-y-8 pt-4 pb-20">
-        {MUSIC_CATEGORIES.map((category, index) => {
+        {categoriesWithCounts.map((category, index) => {
           const theme = CATEGORY_THEMES[category.name] || CATEGORY_THEMES["Calm Down"]
 
           return (
@@ -512,7 +532,7 @@ function ListenTabPanel({ customCdnBase }: ListenTabPanelProps) {
         animate="show"
         className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6"
       >
-        {MUSIC_CATEGORIES.map((category) => {
+        {categoriesWithCounts.map((category) => {
           const theme = CATEGORY_THEMES[category.name] || CATEGORY_THEMES["Calm Down"]
 
           return (

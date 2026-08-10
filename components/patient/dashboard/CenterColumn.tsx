@@ -58,7 +58,7 @@ function renderEmojiFace(name: string, isSelected: boolean) {
   return (
     <div 
       className={`w-12 h-12 flex items-center justify-center transition-transform duration-200 ${
-        isSelected ? "scale-110 ring-2 ring-orange-400 rounded-2xl shadow-md" : "hover:scale-105"
+        isSelected ? "scale-110 rounded-2xl shadow-md" : "hover:scale-105"
       }`}
     >
       <Image 
@@ -214,9 +214,34 @@ export default function CenterColumn({
     setIsMoodModalOpen(true)
   }
 
-  const handleSubmitMood = (score: number, note: string) => {
+  const handleSubmitMood = async (score: number, note: string) => {
     const todayStr = new Date().toISOString().split("T")[0]
     const val = { score, note }
+
+    // Map score to mood name for the API
+    const moodMap: Record<number, string> = {
+      0: "SAD",
+      1: "BAD",
+      2: "NOT BAD",
+      3: "GOOD",
+      4: "HAPPY",
+    }
+    const moodName = moodMap[score] || "Neutral"
+
+    try {
+      await fetch("/api/patient/mood", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mood: moodName,
+          mood_score: score,
+          note,
+        }),
+      })
+    } catch (err) {
+      console.error("Failed to log mood check-in:", err)
+    }
+
     setCheckedInMood(val)
     localStorage.setItem(`attrangi_mood_${todayStr}`, JSON.stringify(val))
   }
@@ -340,31 +365,41 @@ export default function CenterColumn({
     { type: "text", value: "28", bg: "#EBF0F2", color: "#64748B" },
   ]
 
-  const renderCalendarCircle = (item: any) => {
+  const renderCalendarCircle = (item: any, isMobile: boolean = false) => {
+    const isText = item.type === "text"
+    const circleStyle = (isText && isMobile)
+      ? { borderColor: "#64748B", color: "#64748B", backgroundColor: "#ffffff" }
+      : { backgroundColor: item.bg, color: item.color }
+
+    const sizeClass = isMobile ? "w-6 h-6" : "w-7 h-7"
+    const borderClass = (isText && isMobile) ? "border border-[#64748B]" : ""
+
     return (
       <div 
-        style={{ backgroundColor: item.bg, color: item.color }}
-        className="w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-105 shadow-sm shrink-0"
+        style={circleStyle}
+        className={`${sizeClass} rounded-full flex items-center justify-center transition-transform hover:scale-105 shadow-sm shrink-0 ${borderClass}`}
       >
         {item.type === "text" && (
-          <span className="text-[12px] font-bold">{item.value}</span>
+          <span className={`${isMobile ? "text-[10px]" : "text-[11px]"} font-bold leading-none`}>
+            {item.value}
+          </span>
         )}
         {item.type === "emoji" && (
-          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+          <svg className={isMobile ? "w-2.5 h-2.5" : "w-3 h-3"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
             <line x1="8" y1="14" x2="16" y2="14" strokeLinecap="round" />
             <circle cx="9" cy="9" r="1.5" fill="currentColor" stroke="none" />
             <circle cx="15" cy="9" r="1.5" fill="currentColor" stroke="none" />
           </svg>
         )}
         {item.type === "wave" && (
-          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
+          <svg className={isMobile ? "w-2.5 h-2.5" : "w-3 h-3"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
             <path d="M5 8c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 5 0" />
             <path d="M5 12c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 5 0" />
             <path d="M5 16c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 5 0" />
           </svg>
         )}
         {item.type === "exercise" && (
-          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
+          <svg className={isMobile ? "w-2.5 h-2.5" : "w-3 h-3"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
             <line x1="6.5" y1="6.5" x2="17.5" y2="17.5" />
             <line x1="5" y1="9" x2="9" y2="5" />
             <line x1="15" y1="19" x2="19" y2="15" />
@@ -373,7 +408,7 @@ export default function CenterColumn({
           </svg>
         )}
         {item.type === "close" && (
-          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
+          <svg className={isMobile ? "w-2.5 h-2.5" : "w-3 h-3"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
             <circle cx="12" cy="12" r="8" />
             <line x1="9" y1="9" x2="15" y2="15" />
             <line x1="15" y1="9" x2="9" y2="15" />
@@ -501,44 +536,7 @@ export default function CenterColumn({
                   { day: "S", type: "close", bg: "#D5CEEB", color: "#6B4FBB" },
                 ].map((item, index) => (
                   <div key={index} className="flex flex-col items-center gap-2">
-                    <div 
-                      style={{ backgroundColor: item.bg, color: item.color }}
-                      className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-105 shadow-sm shrink-0"
-                    >
-                      {item.type === "text" && (
-                        <span className="text-[14px] font-bold">{item.value}</span>
-                      )}
-                      {item.type === "emoji" && (
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                          <line x1="8" y1="14" x2="16" y2="14" strokeLinecap="round" />
-                          <circle cx="9" cy="9" r="1.5" fill="currentColor" stroke="none" />
-                          <circle cx="15" cy="9" r="1.5" fill="currentColor" stroke="none" />
-                        </svg>
-                      )}
-                      {item.type === "wave" && (
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
-                          <path d="M5 8c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 5 0" />
-                          <path d="M5 12c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 5 0" />
-                          <path d="M5 16c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 5 0" />
-                        </svg>
-                      )}
-                      {item.type === "exercise" && (
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
-                          <line x1="6.5" y1="6.5" x2="17.5" y2="17.5" />
-                          <line x1="5" y1="9" x2="9" y2="5" />
-                          <line x1="15" y1="19" x2="19" y2="15" />
-                          <line x1="3.5" y1="7.5" x2="7.5" y2="3.5" />
-                          <line x1="16.5" y1="20.5" x2="20.5" y2="16.5" />
-                        </svg>
-                      )}
-                      {item.type === "close" && (
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
-                          <circle cx="12" cy="12" r="8" />
-                          <line x1="9" y1="9" x2="15" y2="15" />
-                          <line x1="15" y1="9" x2="9" y2="15" />
-                        </svg>
-                      )}
-                    </div>
+                    {renderCalendarCircle(item, true)}
                     <span className="text-[11px] font-bold text-slate-400 uppercase">{item.day}</span>
                   </div>
                 ))}
@@ -750,14 +748,19 @@ export default function CenterColumn({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Card 1: How's today, so far? */}
             <div className="bg-white rounded-[32px] p-6 border border-slate-100/90 shadow-[0_4px_24px_rgba(15,23,42,0.015)] flex flex-col justify-between h-[230px]">
-              <h4 className="text-slate-800 text-[16px] font-extrabold tracking-tight">How&apos;s today, so far?</h4>
+              <div>
+                <h4 className="text-slate-800 text-[16px] font-extrabold tracking-tight">How&apos;s today, so far?</h4>
+                <p className="text-[13px] font-medium text-slate-500 mt-2 leading-relaxed">
+                  Select a mood below to log your daily check-in. Consistent tracking helps customize recommendations and session insights.
+                </p>
+              </div>
               <div className="flex justify-between items-center w-full px-0.5 mt-2">
                 {[
-                  { name: "Low", score: 0 },
-                  { name: "Heavy", score: 1 },
-                  { name: "Okay", score: 2 },
-                  { name: "Good", score: 3 },
-                  { name: "Bright", score: 4 },
+                  { name: "Low", displayName: "Sad", score: 0 },
+                  { name: "Heavy", displayName: "Bad", score: 1 },
+                  { name: "Okay", displayName: "Not Bad", score: 2 },
+                  { name: "Good", displayName: "Good", score: 3 },
+                  { name: "Bright", displayName: "Happy", score: 4 },
                 ].map((mood) => {
                   const isSelected = checkedInMood && checkedInMood.score === mood.score
                   return (
@@ -768,7 +771,7 @@ export default function CenterColumn({
                       className="flex flex-col items-center focus-visible:outline-none transition-transform hover:scale-105"
                     >
                       {renderEmojiFace(mood.name, !!isSelected)}
-                      <span className="text-[11px] font-bold mt-2 text-slate-400">{mood.name}</span>
+                      <span className="text-[11px] font-bold mt-2 text-slate-400">{mood.displayName}</span>
                     </button>
                   )
                 })}
