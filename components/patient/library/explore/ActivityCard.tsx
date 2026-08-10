@@ -13,6 +13,7 @@ interface ActivityCardProps {
   onSelect?: (activity: ExploreActivity) => void
   className?: string
   isMobileStack?: boolean
+  index?: number
 }
 
 function CuteCharacter({ id, className = "w-40 h-40" }: { id: string; className?: string }) {
@@ -171,61 +172,82 @@ function CuteCharacter({ id, className = "w-40 h-40" }: { id: string; className?
   return null
 }
 
-function getMobileStackCardStyle(id: string) {
-  switch (id) {
-    case "breathing":
+const ACTIVITY_CARD_COLORS = [
+  "#F49865", // Soft Orange
+  "#A5BBEC", // Soft Blue
+  "#CEA4EC", // Soft Purple
+  "#9ACDAC", // Soft Green
+  "#DFD39F", // Soft Yellow
+  "#F2AAAB", // Soft Red/Pink
+]
+
+function getDeterministicCardStyle(index: number) {
+  const colorIndex = index % ACTIVITY_CARD_COLORS.length
+  const bg = ACTIVITY_CARD_COLORS[colorIndex]
+
+  switch (bg) {
+    case "#F49865": // Soft Orange
       return {
-        bg: "bg-[#CBEB7A]",
-        text: "text-[#2C3A00]",
-        labelBg: "bg-[#B5D965]",
-        labelText: "text-[#2C3A00]",
-        border: "border-[#B1D560]",
-        circleBg: "bg-[#D9FA75]/70"
+        bg: "#F49865",
+        text: "#52250c",
+        labelBg: "#df7f49",
+        labelText: "#ffffff",
+        border: "#df7f49",
+        circleBg: "#dd8251"
       }
-    case "grounding-54321":
+    case "#A5BBEC": // Soft Blue
       return {
-        bg: "bg-[#F58F54]",
-        text: "text-[#401800]",
-        labelBg: "bg-[#E68143]",
-        labelText: "text-[#401800]",
-        border: "border-[#E17C3F]",
-        circleBg: "bg-[#EA7F43]"
+        bg: "#A5BBEC",
+        text: "#132349",
+        labelBg: "#8ba3db",
+        labelText: "#ffffff",
+        border: "#8ba3db",
+        circleBg: "#8ca4da"
       }
-    case "micro-movement":
+    case "#CEA4EC": // Soft Purple
       return {
-        bg: "bg-[#85A3F0]",
-        text: "text-[#001C5C]",
-        labelBg: "bg-[#7192EA]",
-        labelText: "text-[#001C5C]",
-        border: "border-[#6E8FE6]",
-        circleBg: "bg-[#6787DE]"
+        bg: "#CEA4EC",
+        text: "#3c1758",
+        labelBg: "#b98cd9",
+        labelText: "#ffffff",
+        border: "#b98cd9",
+        circleBg: "#ba8cd9"
       }
-    case "progressive-muscle-relaxation":
+    case "#9ACDAC": // Soft Green
       return {
-        bg: "bg-[#ED78D5]",
-        text: "text-[#400030]",
-        labelBg: "bg-[#D661BD]",
-        labelText: "text-[#400030]",
-        border: "border-[#D15DB8]",
-        circleBg: "bg-[#D65FBC]"
+        bg: "#9ACDAC",
+        text: "#163a23",
+        labelBg: "#83ba96",
+        labelText: "#ffffff",
+        border: "#83ba96",
+        circleBg: "#83ba96"
       }
-    case "journal-reflection":
+    case "#DFD39F": // Soft Yellow
       return {
-        bg: "bg-[#82EED4]",
-        text: "text-[#003B2C]",
-        labelBg: "bg-[#6FD8BF]",
-        labelText: "text-[#003B2C]",
-        border: "border-[#67D0B7]",
-        circleBg: "bg-[#69CDB4]"
+        bg: "#DFD39F",
+        text: "#463f1b",
+        labelBg: "#c9bc86",
+        labelText: "#ffffff",
+        border: "#c9bc86",
+        circleBg: "#cabd85"
+      }
+    case "#F2AAAB": // Soft Red/Pink
+      return {
+        bg: "#F2AAAB",
+        text: "#53181a",
+        labelBg: "#db9394",
+        labelText: "#ffffff",
+        border: "#db9394",
+        circleBg: "#db9394"
       }
     default:
       return {
-        bg: "bg-[#CBEB7A]",
-        text: "text-[#2C3A00]",
-        labelBg: "bg-[#B5D965]",
-        labelText: "text-[#2C3A00]",
-        border: "border-[#B1D560]",
-        circleBg: "bg-[#D9FA75]/70"
+        bg: "#F49865",
+        text: "#52250c",
+        labelBg: "#df7f49",
+        labelText: "#ffffff",
+        border: "#df7f49",
+        circleBg: "#dd8251"
       }
   }
 }
@@ -249,8 +271,9 @@ function ActivityCard({
   onSelect,
   className = "",
   isMobileStack = false,
+  index = 0,
 }: ActivityCardProps) {
-  const style = getMobileStackCardStyle(activity.id)
+  const style = getDeterministicCardStyle(index)
 
   if (isMobileStack) {
     return (
@@ -258,7 +281,12 @@ function ActivityCard({
         type="button"
         onClick={() => onSelect?.(activity)}
         aria-label={`${activity.title}, ${activity.duration}`}
-        className={`relative flex flex-col h-[200px] w-full text-left rounded-[32px] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] border ${style.bg} ${style.border} ${style.text} transition-all duration-300 overflow-hidden active:shadow-[0_16px_32px_rgba(0,0,0,0.12)] ${className}`}
+        style={{
+          backgroundColor: style.bg,
+          borderColor: style.border,
+          color: style.text,
+        }}
+        className={`relative flex flex-col h-[200px] w-full text-left rounded-[32px] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] border transition-all duration-300 overflow-hidden active:shadow-[0_16px_32px_rgba(0,0,0,0.12)] ${className}`}
       >
         <span className="absolute inset-0 bg-white/20 opacity-0 active:opacity-100 transition-opacity duration-75 pointer-events-none rounded-[32px] z-20" />
 
@@ -266,7 +294,10 @@ function ActivityCard({
           <span className="font-extrabold text-[20px] tracking-tight leading-none">
             {activity.title}
           </span>
-          <span className={`px-4 py-1.5 rounded-full text-xs font-bold ${style.labelBg} ${style.labelText}`}>
+          <span 
+            style={{ backgroundColor: style.labelBg, color: style.labelText }}
+            className="px-4 py-1.5 rounded-full text-xs font-bold"
+          >
             {activity.duration}
           </span>
         </div>
@@ -284,7 +315,12 @@ function ActivityCard({
       type="button"
       onClick={() => onSelect?.(activity)}
       aria-label={`${activity.title}, ${activity.duration}`}
-      className={`group relative flex flex-col h-[200px] w-full text-left rounded-[32px] p-6 shadow-[0_6px_20px_rgba(0,0,0,0.04)] border ${style.bg} ${style.border} ${style.text} transition-all duration-300 ease-out overflow-hidden hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 ${className}`}
+      style={{
+        backgroundColor: style.bg,
+        borderColor: style.border,
+        color: style.text,
+      }}
+      className={`group relative flex flex-col h-[200px] w-full text-left rounded-[32px] p-6 shadow-[0_6px_20px_rgba(0,0,0,0.04)] border transition-all duration-300 ease-out overflow-hidden hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 ${className}`}
     >
       {/* Glow overlay */}
       <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none rounded-[32px] z-20" />
@@ -300,7 +336,10 @@ function ActivityCard({
       </div>
 
       {/* Bottom Circle with Cute Character inside */}
-      <div className={`absolute -bottom-20 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full ${style.circleBg} flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105`}>
+      <div 
+        style={{ backgroundColor: style.circleBg }}
+        className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105"
+      >
         <div className="mb-18">
           <CuteCharacter id={activity.id} className="w-[110px] h-[110px]" />
         </div>

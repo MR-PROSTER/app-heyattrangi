@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronRight, ArrowLeft, Play, Pause, Music, AlertCircle } from "lucide-react"
 import { useListenPlayer } from "@/components/patient/library/explore/listen/ListenPlayerContext"
-import { MUSIC_CATEGORIES, getTracksForCategory } from "@/lib/data/musicLibrary"
+import { MUSIC_CATEGORIES, getTracksForCategory, UNIQUE_TRACKS } from "@/lib/data/musicLibrary"
 import type { ListenTrack, ListenCategory } from "@/data/listenContent"
 import ListenCover from "@/components/patient/library/explore/listen/ListenCover"
 
@@ -20,71 +20,84 @@ interface CategoryColorTheme {
   circleBg: string
 }
 
-const CATEGORY_THEMES: Record<string, CategoryColorTheme> = {
-  "Calm Down": {
-    bg: "bg-[#CBEB7A]",
-    border: "border-[#B1D560]",
-    text: "text-[#2C3A00]",
-    badgeBg: "bg-[#B5D965]",
-    badgeText: "text-[#2C3A00]",
-    circleBg: "bg-[#D9FA75]/70",
-  },
-  "Comfort": {
-    bg: "bg-[#FCA35D]",
-    border: "border-[#E59350]",
-    text: "text-[#4F2D00]",
-    badgeBg: "bg-[#EB9752]",
-    badgeText: "text-[#4F2D00]",
-    circleBg: "bg-[#FDB57A]/70",
-  },
-  "Emotional Release": {
-    bg: "bg-[#EC77A2]",
-    border: "border-[#D7648F]",
-    text: "text-[#4A0020]",
-    badgeBg: "bg-[#E36D9A]",
-    badgeText: "text-[#4A0020]",
-    circleBg: "bg-[#F391B5]/70",
-  },
-  "Focus": {
-    bg: "bg-[#71A5E9]",
-    border: "border-[#5B92DB]",
-    text: "text-[#00275C]",
-    badgeBg: "bg-[#669BE2]",
-    badgeText: "text-[#00275C]",
-    circleBg: "bg-[#8BB7EE]/70",
-  },
-  "Ground & Breathe": {
-    bg: "bg-[#71E6C5]",
-    border: "border-[#5ED0B0]",
-    text: "text-[#004A36]",
-    badgeBg: "bg-[#67DBBA]",
-    badgeText: "text-[#004A36]",
-    circleBg: "bg-[#8BF0D4]/70",
-  },
-  "Lift Your Mood": {
-    bg: "bg-[#FFDB63]",
-    border: "border-[#ECC43E]",
-    text: "text-[#4F3C00]",
-    badgeBg: "bg-[#F3CE52]",
-    badgeText: "text-[#4F3C00]",
-    circleBg: "bg-[#FFE484]/70",
-  },
-  "Reflect": {
-    bg: "bg-[#C99DF6]",
-    border: "border-[#B385E3]",
-    text: "text-[#3D0070]",
-    badgeBg: "bg-[#BE90EC]",
-    badgeText: "text-[#3D0070]",
-    circleBg: "bg-[#D6B5FC]/70",
-  },
-  "Sleep & Wind Down": {
-    bg: "bg-[#96A6E0]",
-    border: "border-[#7E90CA]",
-    text: "text-[#0F1E5C]",
-    badgeBg: "bg-[#8A9CD5]",
-    badgeText: "text-[#0F1E5C]",
-    circleBg: "bg-[#ABB9EA]/70",
-  },
+const LISTEN_CARD_COLORS = [
+  "#F49865", // Soft Orange
+  "#A5BBEC", // Soft Blue
+  "#CEA4EC", // Soft Purple
+  "#9ACDAC", // Soft Green
+  "#DFD39F", // Soft Yellow
+  "#F2AAAB", // Soft Red/Pink
+]
+
+function getDeterministicCardStyle(index: number): CategoryColorTheme {
+  const colorIndex = index % LISTEN_CARD_COLORS.length
+  const bg = LISTEN_CARD_COLORS[colorIndex]
+
+  switch (bg) {
+    case "#F49865": // Soft Orange
+      return {
+        bg: "#F49865",
+        text: "#52250c",
+        badgeBg: "#df7f49",
+        badgeText: "#ffffff",
+        border: "#df7f49",
+        circleBg: "#dd8251"
+      }
+    case "#A5BBEC": // Soft Blue
+      return {
+        bg: "#A5BBEC",
+        text: "#132349",
+        badgeBg: "#8ba3db",
+        badgeText: "#ffffff",
+        border: "#8ba3db",
+        circleBg: "#8ca4da"
+      }
+    case "#CEA4EC": // Soft Purple
+      return {
+        bg: "#CEA4EC",
+        text: "#3c1758",
+        badgeBg: "#b98cd9",
+        badgeText: "#ffffff",
+        border: "#b98cd9",
+        circleBg: "#ba8cd9"
+      }
+    case "#9ACDAC": // Soft Green
+      return {
+        bg: "#9ACDAC",
+        text: "#163a23",
+        badgeBg: "#83ba96",
+        badgeText: "#ffffff",
+        border: "#83ba96",
+        circleBg: "#83ba96"
+      }
+    case "#DFD39F": // Soft Yellow
+      return {
+        bg: "#DFD39F",
+        text: "#463f1b",
+        badgeBg: "#c9bc86",
+        badgeText: "#ffffff",
+        border: "#c9bc86",
+        circleBg: "#cabd85"
+      }
+    case "#F2AAAB": // Soft Red/Pink
+      return {
+        bg: "#F2AAAB",
+        text: "#53181a",
+        badgeBg: "#db9394",
+        badgeText: "#ffffff",
+        border: "#db9394",
+        circleBg: "#db9394"
+      }
+    default:
+      return {
+        bg: "#F49865",
+        text: "#52250c",
+        badgeBg: "#df7f49",
+        badgeText: "#ffffff",
+        border: "#df7f49",
+        circleBg: "#dd8251"
+      }
+  }
 }
 
 function CuteCategoryCharacter({ categoryName, className = "w-40 h-40" }: { categoryName: string; className?: string }) {
@@ -264,7 +277,15 @@ function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelPro
       const timer = setTimeout(() => {
         let fetched: ListenTrack[] = []
         if (initialTracks && initialTracks.length > 0) {
-          fetched = initialTracks.filter((t) => t.category === selectedCategoryName)
+          fetched = initialTracks.filter((t) => t.category === selectedCategoryName).map((t) => {
+            const cleanTitleSlug = t.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+            const staticTrack = UNIQUE_TRACKS[t.slug] || UNIQUE_TRACKS[t.id] || UNIQUE_TRACKS[cleanTitleSlug]
+            return {
+              ...t,
+              coverImage: t.coverImage || t.imageUrl || staticTrack?.artworkUrl || "",
+              imageUrl: t.imageUrl || t.coverImage || staticTrack?.artworkUrl || null,
+            }
+          })
         }
         
         if (fetched.length === 0) {
@@ -330,14 +351,18 @@ function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelPro
   }
 
   if (selectedCategoryName) {
-    const theme = CATEGORY_THEMES[selectedCategoryName] || CATEGORY_THEMES["Calm Down"]
+    // Find index of the selected category to retain consistent header theme colors
+    const categoryIndex = categoriesWithCounts.findIndex((c) => c.name === selectedCategoryName)
+    const theme = getDeterministicCardStyle(categoryIndex >= 0 ? categoryIndex : 0)
 
     return (
       <div className="space-y-6 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
         {/* Back and Title Header */}
         <div className="flex flex-col gap-2.5">
           <button
-            onClick={() => setSelectedCategoryName(null)}
+            onClick={() => {
+              window.location.href = "/patient/library?mode=listen"
+            }}
             className="self-start text-[11px] font-black text-slate-500 hover:text-slate-800 transition-colors uppercase tracking-widest flex items-center gap-1.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
@@ -348,7 +373,10 @@ function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelPro
             <h2 className="font-extrabold text-[28px] md:text-[32px] text-slate-800 tracking-tight">
               {selectedCategoryName}
             </h2>
-            <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${theme.badgeBg} ${theme.badgeText}`}>
+            <span 
+              style={{ backgroundColor: theme.badgeBg, color: theme.badgeText }}
+              className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider"
+            >
               {tracks.length} {tracks.length === 1 ? "track" : "tracks"}
             </span>
           </div>
@@ -400,7 +428,7 @@ function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelPro
                       {track.coverImage || track.imageUrl ? (
                         <img
                           src={(track.coverImage || track.imageUrl) ?? undefined}
-                          alt=""
+                          alt={track.title || "The Budding of Consciousness"}
                           className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04]"
                         />
                       ) : (
@@ -474,20 +502,10 @@ function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelPro
 
   return (
     <div className="space-y-7 animate-in fade-in duration-300 w-full">
-      {/* Title block */}
-      <div>
-        <h2 className="font-extrabold text-[28px] md:text-[32px] text-slate-800 tracking-tight">
-          Listen
-        </h2>
-        <p className="mt-1 text-slate-500 font-medium text-sm md:text-[15px] leading-relaxed">
-          Find something that fits how you feel right now.
-        </p>
-      </div>
-
       {/* Mobile view: Overlapping 3D card deck list */}
       <div className="flex md:hidden flex-col -space-y-8 pt-4 pb-20">
         {categoriesWithCounts.map((category, index) => {
-          const theme = CATEGORY_THEMES[category.name] || CATEGORY_THEMES["Calm Down"]
+          const theme = getDeterministicCardStyle(index)
 
           return (
             <motion.div
@@ -501,7 +519,12 @@ function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelPro
               <button
                 type="button"
                 onClick={() => setSelectedCategoryName(category.name)}
-                className={`relative flex flex-col h-[200px] w-full text-left rounded-[32px] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] border ${theme.bg} ${theme.border} ${theme.text} transition-all duration-300 overflow-hidden active:shadow-[0_16px_32px_rgba(0,0,0,0.12)]`}
+                style={{
+                  backgroundColor: theme.bg,
+                  borderColor: theme.border,
+                  color: theme.text,
+                }}
+                className="relative flex flex-col h-[200px] w-full text-left rounded-[32px] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] border transition-all duration-300 overflow-hidden active:shadow-[0_16px_32px_rgba(0,0,0,0.12)]"
               >
                 <span className="absolute inset-0 bg-white/20 opacity-0 active:opacity-100 transition-opacity duration-75 pointer-events-none rounded-[32px] z-20" />
 
@@ -509,12 +532,14 @@ function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelPro
                   <span className="font-extrabold text-[20px] tracking-tight leading-none">
                     {category.name}
                   </span>
-                  <span className={`px-4 py-1.5 rounded-full text-xs font-bold ${theme.badgeBg} ${theme.badgeText}`}>
+                  <span 
+                    style={{ backgroundColor: theme.badgeBg, color: theme.badgeText }}
+                    className="px-4 py-1.5 rounded-full text-xs font-bold"
+                  >
                     {category.trackCount} tracks
                   </span>
                 </div>
                 
-
 
                 <div className="absolute right-0 bottom-0 z-0 select-none pointer-events-none">
                   <CuteCategoryCharacter categoryName={category.name} />
@@ -525,22 +550,27 @@ function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelPro
         })}
       </div>
 
-      {/* Desktop view: Standard Grid matching ActivityCard */}
+      {/* Desktop view: Standard Grid matching ActivityCard (3 columns layout) */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6"
+        className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6"
       >
-        {categoriesWithCounts.map((category) => {
-          const theme = CATEGORY_THEMES[category.name] || CATEGORY_THEMES["Calm Down"]
+        {categoriesWithCounts.map((category, index) => {
+          const theme = getDeterministicCardStyle(index)
 
           return (
             <motion.div key={category.name} variants={cardVariants}>
               <button
                 type="button"
                 onClick={() => setSelectedCategoryName(category.name)}
-                className={`group relative flex flex-col h-[200px] w-full text-left rounded-[32px] p-6 shadow-[0_6px_20px_rgba(0,0,0,0.04)] border ${theme.bg} ${theme.border} ${theme.text} transition-all duration-300 ease-out overflow-hidden hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2`}
+                style={{
+                  backgroundColor: theme.bg,
+                  borderColor: theme.border,
+                  color: theme.text,
+                }}
+                className="group relative flex flex-col h-[200px] w-full text-left rounded-[32px] p-6 shadow-[0_6px_20px_rgba(0,0,0,0.04)] border transition-all duration-300 ease-out overflow-hidden hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2"
               >
                 <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none rounded-[32px] z-20" />
                 
@@ -548,15 +578,20 @@ function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelPro
                   <span className="font-extrabold text-[20px] tracking-tight leading-tight">
                     {category.name}
                   </span>
-                  <span className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider ${theme.badgeBg} ${theme.badgeText}`}>
+                  <span 
+                    style={{ backgroundColor: theme.badgeBg, color: theme.badgeText }}
+                    className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider"
+                  >
                     {category.trackCount} tracks
                   </span>
                 </div>
                 
 
-
                 {/* Bottom Circle with Cute Character inside */}
-                <div className={`absolute -bottom-20 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full ${theme.circleBg} flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105`}>
+                <div 
+                  style={{ backgroundColor: theme.circleBg }}
+                  className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105"
+                >
                   <div className="mb-18">
                     <CuteCategoryCharacter categoryName={category.name} className="w-[110px] h-[110px]" />
                   </div>

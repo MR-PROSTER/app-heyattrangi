@@ -41,7 +41,7 @@ export const UNIQUE_TRACKS: Record<string, Omit<MusicTrack, "audioUrl">> = {
     title: "The Budding of Consciousness",
     filename: "the_budding_of_consciousness.mp3",
     duration: "7:02",
-    artworkUrl: "https://images.unsplash.com/photo-1504198453319-5ce911bafcde?q=80&w=600&auto=format&fit=crop",
+    artworkUrl: "https://res.cloudinary.com/dbjv95prc/image/upload/v1786354611/The_Budding_of_Consciousness_h6ejyc.jpg",
   },
   "up-in-the-sky": {
     id: "up-in-the-sky",
@@ -83,7 +83,7 @@ export const UNIQUE_TRACKS: Record<string, Omit<MusicTrack, "audioUrl">> = {
     title: "Calm Piano",
     filename: "003_Vaporware.mp3",
     duration: "4:12",
-    artworkUrl: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?q=80&w=600&auto=format&fit=crop",
+    artworkUrl: "https://res.cloudinary.com/dbjv95prc/image/upload/v1786358298/Calm_Piano_xdcsep.jpg",
   },
   "emotional-piano": {
     id: "emotional-piano",
@@ -97,7 +97,7 @@ export const UNIQUE_TRACKS: Record<string, Omit<MusicTrack, "audioUrl">> = {
     title: "November Reflection",
     filename: "improv_november_14.mp3",
     duration: "6:54",
-    artworkUrl: "https://images.unsplash.com/photo-1477414302227-d31450b1474d?q=80&w=600&auto=format&fit=crop",
+    artworkUrl: "https://res.cloudinary.com/dbjv95prc/image/upload/v1786358660/novernmber_y8hifj.jpg",
   },
   "piano-nostalgia": {
     id: "piano-nostalgia",
@@ -160,7 +160,7 @@ export const UNIQUE_TRACKS: Record<string, Omit<MusicTrack, "audioUrl">> = {
     title: "Contemplation",
     filename: "Contemplation.mp3",
     duration: "5:30",
-    artworkUrl: "https://images.unsplash.com/photo-1488866081807-dcad22967c4c?q=80&w=600&auto=format&fit=crop",
+    artworkUrl: "https://res.cloudinary.com/dbjv95prc/image/upload/v1786359015/Contemplation_dtzlst.jpg",
   },
   "slow-piano-intermission": {
     id: "slow-piano-intermission",

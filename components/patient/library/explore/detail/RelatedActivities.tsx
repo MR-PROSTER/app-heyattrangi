@@ -39,6 +39,7 @@ export default function RelatedActivities({
             <ActivityCard
               activity={activity}
               onSelect={onSelectActivity}
+              index={index}
             />
           </motion.div>
         ))}

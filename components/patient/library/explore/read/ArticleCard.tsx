@@ -9,6 +9,7 @@ interface ArticleCardProps {
   className?: string
   /** shelf = category shelf card; grid = default desktop grid card; row = list view row card */
   variant?: "shelf" | "grid" | "row"
+  index?: number
 }
 
 function renderIllustrationIcon(illustration: ReadCoverIllustration) {
@@ -95,43 +96,69 @@ function renderIllustrationIcon(illustration: ReadCoverIllustration) {
   }
 }
 
-function getArticleCardStyle(category: string) {
-  switch (category) {
-    case "Breathing":
+const READ_CARD_COLORS = [
+  "#F49865", // Soft Orange
+  "#A5BBEC", // Soft Blue
+  "#CEA4EC", // Soft Purple
+  "#9ACDAC", // Soft Green
+  "#DFD39F", // Soft Yellow
+  "#F2AAAB", // Soft Red/Pink
+]
+
+// Mapping card index to styling details
+function getDeterministicCardStyle(index: number) {
+  const colorIndex = index % READ_CARD_COLORS.length
+  const bg = READ_CARD_COLORS[colorIndex]
+
+  switch (bg) {
+    case "#F49865": // Soft Orange
       return {
-        bg: "#CBEB7A",
-        text: "#2C3A00",
-        border: "#B1D560",
-        circleBg: "#D9FA75"
+        bg: "#F49865",
+        text: "#52250c",
+        border: "#df7f49",
+        circleBg: "#dd8251"
       }
-    case "Academic stress":
+    case "#A5BBEC": // Soft Blue
       return {
-        bg: "#85A3F0",
-        text: "#001C5C",
-        border: "#6E8FE6",
-        circleBg: "#6787DE"
+        bg: "#A5BBEC",
+        text: "#132349",
+        border: "#8ba3db",
+        circleBg: "#8ca4da"
       }
-    case "Sleep":
+    case "#CEA4EC": // Soft Purple
       return {
-        bg: "#ED78D5",
-        text: "#400030",
-        border: "#D15DB8",
-        circleBg: "#D65FBC"
+        bg: "#CEA4EC",
+        text: "#3c1758",
+        border: "#b98cd9",
+        circleBg: "#ba8cd9"
       }
-    case "Transition":
+    case "#9ACDAC": // Soft Green
       return {
-        bg: "#F4A462",
-        text: "#733E0A",
-        border: "#D58544",
-        circleBg: "#F9B77E"
+        bg: "#9ACDAC",
+        text: "#163a23",
+        border: "#83ba96",
+        circleBg: "#83ba96"
+      }
+    case "#DFD39F": // Soft Yellow
+      return {
+        bg: "#DFD39F",
+        text: "#463f1b",
+        border: "#c9bc86",
+        circleBg: "#cabd85"
+      }
+    case "#F2AAAB": // Soft Red/Pink
+      return {
+        bg: "#F2AAAB",
+        text: "#53181a",
+        border: "#db9394",
+        circleBg: "#db9394"
       }
     default:
-      // Calm, Habits, Feelings, Focus, Rest etc.
       return {
-        bg: "#82EED4",
-        text: "#003B2C",
-        border: "#67D0B7",
-        circleBg: "#69CDB4"
+        bg: "#F49865",
+        text: "#52250c",
+        border: "#df7f49",
+        circleBg: "#dd8251"
       }
   }
 }
@@ -141,6 +168,7 @@ export default function ArticleCard({
   onSelect,
   className = "",
   variant = "grid",
+  index = 0,
 }: ArticleCardProps) {
   const readTime =
     article.estimatedReadTime?.trim() || article.readTime?.trim() || ""
@@ -191,7 +219,7 @@ export default function ArticleCard({
     )
   }
 
-  const style = getArticleCardStyle(article.category)
+  const style = getDeterministicCardStyle(index)
 
   return (
     <button

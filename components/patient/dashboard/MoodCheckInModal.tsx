@@ -99,6 +99,7 @@ export default function MoodCheckInModal({
   const [note, setNote] = useState<string>(initialNote)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [isFocused, setIsFocused] = useState(false)
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const modalRef = useRef<HTMLDivElement>(null)
@@ -111,6 +112,7 @@ export default function MoodCheckInModal({
       setNote(initialNote)
       setErrorMsg(null)
       setIsSubmitting(false)
+      setIsFocused(false)
     }
   }, [isOpen, initialScore, initialNote])
 
@@ -160,14 +162,6 @@ export default function MoodCheckInModal({
     }
   }, [isOpen, onClose])
 
-  // Auto-resize note textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto"
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
-    }
-  }, [note, isOpen])
-
   if (!isOpen) return null
 
   const activeMood = MOOD_CONFIG[score] || MOOD_CONFIG[2]
@@ -186,6 +180,9 @@ export default function MoodCheckInModal({
       setIsSubmitting(false)
     }
   }
+
+  // Determine if we should show the expanded input card matching image 2
+  const isExpanded = isFocused || note.length > 0
 
   return (
     <AnimatePresence>
@@ -226,19 +223,36 @@ export default function MoodCheckInModal({
         </button>
 
         {/* Centered Card Content Flow */}
-        <div className="w-full max-w-[440px] flex flex-col items-center justify-center space-y-7 sm:space-y-9 py-8">
+        <div className="w-full max-w-[440px] flex flex-col items-center justify-center py-8">
           
-          {/* Main Title */}
-          <h2
-            id="mood-title"
-            className="font-extrabold text-[24px] sm:text-[32px] text-center tracking-tight"
-            style={{ color: activeMood.primary }}
+          {/* Main Title & Slider/Label - Animates out of layout in expanded state */}
+          <motion.div
+            animate={{ 
+              height: isExpanded ? 0 : "auto", 
+              opacity: isExpanded ? 0 : 1,
+              marginBottom: isExpanded ? 0 : 28
+            }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="w-full flex flex-col items-center overflow-hidden"
           >
-            How is your Mood?
-          </h2>
+            <h2
+              id="mood-title"
+              className="font-extrabold text-[24px] sm:text-[32px] text-center tracking-tight mb-7 sm:mb-9"
+              style={{ color: activeMood.primary }}
+            >
+              How is your Mood?
+            </h2>
+          </motion.div>
 
           {/* Animated Mood Face */}
-          <div className="w-[280px] h-[190px] sm:w-[320px] sm:h-[220px] flex items-center justify-center transition-all duration-300">
+          <motion.div 
+            animate={{ 
+              scale: isExpanded ? 0.75 : 1,
+              y: isExpanded ? 0 : 0
+            }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="w-[280px] h-[190px] sm:w-[320px] sm:h-[220px] flex items-center justify-center transition-all duration-300"
+          >
             <svg viewBox="0 0 240 160" className="w-full h-full">
               {/* Left Eye */}
               <motion.rect
@@ -274,20 +288,37 @@ export default function MoodCheckInModal({
                 strokeLinecap="round"
               />
             </svg>
-          </div>
+          </motion.div>
 
-          {/* Large Mood Text Label */}
-          <div className="h-[60px] flex items-center justify-center">
+          {/* Large Mood Text Label - Animates out in expanded state */}
+          <motion.div
+            animate={{ 
+              height: isExpanded ? 0 : 60, 
+              opacity: isExpanded ? 0 : 1,
+              marginTop: isExpanded ? 0 : 28
+            }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="flex items-center justify-center overflow-hidden"
+          >
             <span
               className="font-black text-[46px] sm:text-[54px] tracking-wider select-none text-center leading-none"
               style={{ color: activeMood.primary }}
             >
               {activeMood.label}
             </span>
-          </div>
+          </motion.div>
 
-          {/* Custom Range Slider */}
-          <div className="relative w-full px-2 py-4">
+          {/* Custom Range Slider - Animates out in expanded state */}
+          <motion.div
+            animate={{ 
+              height: isExpanded ? 0 : "auto", 
+              opacity: isExpanded ? 0 : 1,
+              marginTop: isExpanded ? 0 : 16,
+              pointerEvents: isExpanded ? "none" : "auto"
+            }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="relative w-full px-2 py-4 overflow-hidden"
+          >
             <div
               className="relative w-full h-[3px] rounded-full"
               style={{ backgroundColor: activeMood.muted }}
@@ -403,54 +434,78 @@ export default function MoodCheckInModal({
               aria-valuetext={activeMood.label}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
-          </div>
+          </motion.div>
 
           {/* Footer Area with Note field & Submit */}
           <form
             onSubmit={handleSubmit}
-            className="w-full space-y-4 pt-4 relative z-10"
+            className="w-full pt-4 relative z-10"
           >
             {errorMsg && (
-              <p className="text-[13px] font-extrabold text-center" style={{ color: activeMood.primary }}>
+              <p className="text-[13px] font-extrabold text-center mb-2" style={{ color: activeMood.primary }}>
                 {errorMsg}
               </p>
             )}
 
-            <div
-              className="flex items-center w-full p-2.5 rounded-[28px] transition-colors duration-300"
-              style={{ backgroundColor: "rgba(0, 0, 0, 0.08)" }}
+            {/* Beautiful expanded Card wrapper matching Image 2 */}
+            <motion.div
+              animate={{
+                borderRadius: isExpanded ? "32px" : "28px",
+                height: isExpanded ? "210px" : "56px",
+                padding: isExpanded ? "20px" : "4px 8px 4px 12px",
+              }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="flex w-full relative transition-colors duration-300 border border-transparent"
+              style={{ 
+                flexDirection: isExpanded ? "column" : "row",
+                alignItems: isExpanded ? "stretch" : "center",
+                backgroundColor: "rgba(0, 0, 0, 0.08)",
+                borderColor: isExpanded ? "rgba(0, 0, 0, 0.15)" : "transparent"
+              }}
             >
               <textarea
                 ref={textareaRef}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
                 placeholder="Add note"
-                rows={1}
                 aria-label="Add optional note"
-                className="flex-1 bg-transparent px-4 py-3 text-[15px] font-bold border-none outline-none resize-none overflow-hidden leading-snug placeholder-current focus:ring-0"
+                className="bg-transparent px-4 border-none outline-none resize-none overflow-y-auto leading-[36px] placeholder-current focus:ring-0 flex-1 min-h-[36px]"
                 style={{
                   color: activeMood.primary,
+                  opacity: 0.8,
+                  paddingTop: isExpanded ? "8px" : "0px",
+                  paddingBottom: isExpanded ? "8px" : "0px",
+                  lineHeight: isExpanded ? "1.5" : "36px",
+                  height: isExpanded ? "100%" : "36px",
+                  fontWeight: 500,
+                  fontSize: "16px",
                 }}
               />
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="shrink-0 inline-flex items-center gap-1.5 px-6 py-3 rounded-full text-[14px] font-black text-white hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
-                style={{ backgroundColor: activeMood.primary }}
-              >
-                <span>{isSubmitting ? "Saving..." : "Submit"}</span>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3.5"
-                  className="w-4 h-4"
+              
+              {/* Submit button section - aligns inline when collapsed, bottom right when expanded */}
+              <div className="flex justify-end shrink-0" style={{ marginTop: isExpanded ? "8px" : "0px" }}>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="shrink-0 inline-flex items-center gap-1.5 px-6 py-3 rounded-full text-[14px] font-black text-white hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+                  style={{ backgroundColor: activeMood.primary }}
                 >
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </button>
-            </div>
+                  <span>{isSubmitting ? "Saving..." : "Submit"}</span>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3.5"
+                    className="w-4 h-4"
+                  >
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </button>
+              </div>
+            </motion.div>
           </form>
         </div>
       </motion.div>
