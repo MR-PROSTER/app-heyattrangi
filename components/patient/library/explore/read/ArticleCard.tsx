@@ -12,9 +12,9 @@ interface ArticleCardProps {
   index?: number
 }
 
-function renderIllustrationIcon(illustration: ReadCoverIllustration) {
+function renderIllustrationIcon(illustration: ReadCoverIllustration, classNameClass: string = "w-11 h-11") {
   const props = {
-    className: "w-11 h-11 text-white/95",
+    className: `${classNameClass} text-white/95`,
     fill: "none",
     viewBox: "0 0 24 24",
     stroke: "currentColor",
@@ -237,18 +237,18 @@ export default function ArticleCard({
         borderColor: style.border,
         color: style.text,
       }}
-      className={`group relative flex flex-col h-[200px] w-full text-left rounded-[32px] p-6 shadow-[0_6px_20px_rgba(0,0,0,0.04)] border transition-all duration-300 ease-out overflow-hidden hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 ${className}`}
+      className={`group relative flex flex-col h-[155px] min-[360px]:h-[175px] min-[390px]:h-[200px] w-full text-left rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 shadow-[0_6px_20px_rgba(0,0,0,0.04)] border transition-all duration-300 ease-out overflow-hidden hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 ${className}`}
     >
       {/* Glow overlay */}
-      <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none rounded-[32px] z-20" />
+      <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] z-20" />
 
       {/* Title & Read Time */}
       <div className="flex items-start justify-between w-full z-10 gap-3">
-        <span className="font-extrabold text-[20px] tracking-tight leading-tight line-clamp-3">
+        <span className="font-extrabold text-[16px] min-[360px]:text-[18px] min-[390px]:text-[20px] tracking-tight leading-tight line-clamp-3">
           {article.title}
         </span>
-        <span className="flex items-center gap-1.5 text-[13px] font-bold opacity-80 shrink-0 mt-0.5">
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <span className="flex items-center gap-1.5 text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] font-bold opacity-80 shrink-0 mt-0.5">
+          <svg className="w-3 h-3 min-[390px]:w-3.5 min-[390px]:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
           {readTime}
@@ -258,10 +258,10 @@ export default function ArticleCard({
       {/* Bottom Circle with category illustration inside */}
       <div 
         style={{ backgroundColor: style.circleBg }}
-        className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105"
+        className="absolute -bottom-16 min-[360px]:-bottom-18 min-[390px]:-bottom-20 left-1/2 -translate-x-1/2 w-34 h-34 min-[360px]:w-40 min-[360px]:h-40 min-[390px]:w-44 min-[390px]:h-44 rounded-full flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105"
       >
-        <div className="mb-18 flex items-center justify-center">
-          {renderIllustrationIcon(article.cover)}
+        <div className="mb-13 min-[360px]:mb-16 min-[390px]:mb-18 flex items-center justify-center">
+          {renderIllustrationIcon(article.cover, "w-8 h-8 min-[360px]:w-10 min-[360px]:h-10 min-[390px]:w-11 min-[390px]:h-11")}
         </div>
       </div>
     </button>

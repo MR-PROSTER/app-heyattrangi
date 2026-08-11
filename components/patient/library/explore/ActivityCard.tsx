@@ -286,24 +286,24 @@ function ActivityCard({
           borderColor: style.border,
           color: style.text,
         }}
-        className={`relative flex flex-col h-[200px] w-full text-left rounded-[32px] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] border transition-all duration-300 overflow-hidden active:shadow-[0_16px_32px_rgba(0,0,0,0.12)] ${className}`}
+        className={`relative flex flex-col h-[155px] min-[360px]:h-[175px] min-[390px]:h-[200px] w-full text-left rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] border transition-all duration-300 overflow-hidden active:shadow-[0_16px_32px_rgba(0,0,0,0.12)] ${className}`}
       >
-        <span className="absolute inset-0 bg-white/20 opacity-0 active:opacity-100 transition-opacity duration-75 pointer-events-none rounded-[32px] z-20" />
+        <span className="absolute inset-0 bg-white/20 opacity-0 active:opacity-100 transition-opacity duration-75 pointer-events-none rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] z-20" />
 
         <div className="flex items-start justify-between w-full z-10">
-          <span className="font-extrabold text-[20px] tracking-tight leading-none">
+          <span className="font-extrabold text-[16px] min-[360px]:text-[18px] min-[390px]:text-[20px] tracking-tight leading-tight min-w-0 flex-1">
             {activity.title}
           </span>
           <span 
             style={{ backgroundColor: style.labelBg, color: style.labelText }}
-            className="px-4 py-1.5 rounded-full text-xs font-bold"
+            className="px-2.5 py-1 min-[360px]:px-4 min-[360px]:py-1.5 rounded-full text-[10px] min-[360px]:text-[11px] min-[390px]:text-xs font-bold whitespace-nowrap shrink-0 ml-2"
           >
             {activity.duration}
           </span>
         </div>
 
         <div className="absolute right-0 bottom-0 z-0 select-none pointer-events-none">
-          <CuteCharacter id={activity.id} />
+          <CuteCharacter id={activity.id} className="w-[100px] h-[100px] min-[360px]:w-[130px] min-[360px]:h-[130px] min-[390px]:w-40 min-[390px]:h-40" />
         </div>
       </button>
     )

@@ -227,12 +227,12 @@ export default function Sidebar() {
 
     return (
         <>
-        {/* Mobile hamburger — hidden on Profile and Dashboard */}
-        {pathname !== "/patient/profile" && pathname !== "/patient/dashboard" ? (
+        {/* Mobile hamburger — hidden on Profile */}
+        {pathname !== "/patient/profile" ? (
         <button
             type="button"
             onClick={() => setIsMobileOpen(true)}
-            className="md:hidden fixed top-3 left-3 z-50 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#4A3020] text-white shadow-lg shadow-black/20 border border-white/10"
+            className="md:hidden fixed top-2.5 left-2.5 min-[360px]:top-3 min-[360px]:left-3 z-50 flex h-9 w-9 min-[360px]:h-10 min-[360px]:w-10 min-[390px]:h-11 min-[390px]:w-11 items-center justify-center rounded-xl min-[390px]:rounded-2xl bg-[#4A3020] text-white shadow-lg shadow-black/20 border border-white/10"
             aria-label="Open menu"
         >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="h-5 w-5" aria-hidden="true">

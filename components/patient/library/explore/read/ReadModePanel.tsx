@@ -69,7 +69,7 @@ export default function ReadModePanel({
   return (
     <div className="animate-in fade-in duration-200">
       {/* —— Mobile: Overlapping 3D card deck layout matching ActivityGrid —— */}
-      <div className="flex md:hidden flex-col -space-y-8 pt-4 pb-20">
+      <div className="flex md:hidden flex-col -space-y-[22px] min-[360px]:-space-y-[27px] min-[390px]:-space-y-8 pt-4 pb-20">
         {ordered.map((article, index) => (
           <motion.div
             key={article.id}

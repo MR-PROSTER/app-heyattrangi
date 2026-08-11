@@ -296,7 +296,7 @@ function LibraryPageContent() {
 
 
 
-            <div className="p-6 md:p-8 flex-1 w-full max-w-6xl mx-auto">
+            <div className="p-4 min-[360px]:p-5 min-[390px]:p-6 md:p-8 flex-1 w-full max-w-6xl mx-auto">
                 {activeTab !== "discover" && (
                     <button
                         onClick={() => setActiveTab("discover")}

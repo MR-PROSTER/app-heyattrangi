@@ -20,7 +20,7 @@ function ActivityGrid({ activities, onSelectActivity }: ActivityGridProps) {
   return (
     <>
       {/* Mobile view: Overlapping 3D card deck list */}
-      <div className="flex md:hidden flex-col -space-y-8 pt-4 pb-20">
+      <div className="flex md:hidden flex-col -space-y-[22px] min-[360px]:-space-y-[27px] min-[390px]:-space-y-8 pt-4 pb-20">
         {activities.map((activity, index) => (
           <motion.div
             key={activity.id}

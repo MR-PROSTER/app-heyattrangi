@@ -156,10 +156,10 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
   }
 
   return (
-    <div className="space-y-6 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 w-full pb-28">
+    <div className="space-y-4 min-[360px]:space-y-5 min-[390px]:space-y-6 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 w-full pb-28">
       {/* Mobile Title Header (image-1 design) */}
-      <div className="md:hidden pt-4 pb-1">
-        <h1 className="text-[32px] font-black text-slate-900 tracking-tight">
+      <div className="md:hidden pt-3 min-[360px]:pt-4 pb-1">
+        <h1 className="text-[26px] min-[360px]:text-[29px] min-[390px]:text-[32px] font-black text-slate-900 tracking-tight">
           Explore
         </h1>
       </div>

@@ -57,8 +57,8 @@ function renderEmojiFace(name: string, isSelected: boolean) {
   
   return (
     <div 
-      className={`w-12 h-12 flex items-center justify-center transition-transform duration-200 ${
-        isSelected ? "scale-110 rounded-2xl shadow-md" : "hover:scale-105"
+      className={`w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 min-[390px]:w-12 min-[390px]:h-12 flex items-center justify-center transition-transform duration-200 ${
+        isSelected ? "scale-110 rounded-xl min-[390px]:rounded-2xl shadow-md" : "hover:scale-105"
       }`}
     >
       <Image 
@@ -66,7 +66,7 @@ function renderEmojiFace(name: string, isSelected: boolean) {
         alt={name} 
         width={48} 
         height={48} 
-        className="w-full h-full object-contain rounded-2xl"
+        className="w-full h-full object-contain rounded-xl min-[390px]:rounded-2xl"
       />
     </div>
   )
@@ -444,11 +444,11 @@ export default function CenterColumn({
         {/* MOBILE VIEW (block md:hidden) */}
         <div className="block md:hidden w-full flex flex-col">
           {/* Blue Rounded Header Area */}
-          <div className="w-full px-6 pt-10 pb-14 flex flex-col gap-6 relative">
+          <div className="w-full px-4 min-[360px]:px-5 min-[390px]:px-6 pt-[72px] min-[360px]:pt-[76px] min-[390px]:pt-20 pb-9 min-[360px]:pb-11 min-[390px]:pb-14 flex flex-col gap-4 min-[360px]:gap-5 min-[390px]:gap-6 relative">
             {/* Background & Robot Wrapper (Clipped by rounded bottom) */}
             <div className="absolute inset-0 bg-gradient-to-b from-[#8BDDEE] via-[#A6E8F6] to-[#D7F5FC] rounded-b-[42px] overflow-hidden pointer-events-none shadow-[0_8px_30px_rgba(139,221,238,0.12)]">
               {/* Peeking Robot Image */}
-              <div className="absolute left-0 bottom-10 w-[95px] h-[135px] pointer-events-none">
+              <div className="absolute left-0 bottom-6 min-[360px]:bottom-8 min-[390px]:bottom-10 w-[75px] min-[360px]:w-[85px] min-[390px]:w-[95px] h-[106px] min-[360px]:h-[120px] min-[390px]:h-[135px] pointer-events-none">
                 <Image
                   src="/images/robot_peeking.png"
                   alt="Peeking Robot"
@@ -459,9 +459,9 @@ export default function CenterColumn({
             </div>
 
             {/* Header Row: Title & Avatar */}
-            <div className="flex items-center justify-between w-full z-10 relative">
-              <div className="flex flex-col pl-4">
-                <h1 className="text-[28px] font-black text-white tracking-tight leading-none">
+            <div className="flex items-center justify-between w-full z-10 relative gap-2 min-[360px]:gap-3">
+              <div className="flex flex-col pl-2 min-[360px]:pl-3 min-[390px]:pl-4 min-w-0 flex-1">
+                <h1 className="text-[22px] min-[360px]:text-[25px] min-[390px]:text-[28px] font-black text-white tracking-tight leading-none whitespace-nowrap truncate">
                   Hello, {firstName}
                 </h1>
               </div>
@@ -469,29 +469,29 @@ export default function CenterColumn({
                 <ProfileAvatar
                   name={displayName}
                   image={userImage}
-                  className="w-11 h-11 border-2 border-white/80 shadow-sm"
+                  className="w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 min-[390px]:w-11 min-[390px]:h-11 border-2 border-white/80 shadow-sm"
                 />
               </div>
             </div>
 
             {/* Spacing to push down the form */}
-            <div className="h-4" />
+            <div className="h-2 min-[360px]:h-3 min-[390px]:h-4" />
 
             {/* Voice Input Chat Bar (overlapping bottom edge) */}
-            <form onSubmit={handleMindSubmit} className="w-full bg-white rounded-full p-1.5 pl-5 pr-1.5 shadow-[0_12px_24px_rgba(0,0,0,0.08)] flex items-center justify-between gap-3 border border-white z-10 relative translate-y-9">
+            <form onSubmit={handleMindSubmit} className="w-full bg-white rounded-full p-1 min-[390px]:p-1.5 pl-3.5 min-[360px]:pl-4 min-[390px]:pl-5 pr-1 min-[390px]:pr-1.5 shadow-[0_12px_24px_rgba(0,0,0,0.08)] flex items-center justify-between gap-2 min-[360px]:gap-3 border border-white z-10 relative translate-y-9">
               <input
                 type="text"
                 value={mindText}
                 onChange={(e) => setMindText(e.target.value)}
                 onFocus={() => setIsChatExpanded(true)}
                 placeholder="Tell me what's on your mind..."
-                className="flex-1 bg-transparent border-none text-[14px] font-medium placeholder-slate-400 text-slate-700 focus:outline-none"
+                className="flex-1 bg-transparent border-none text-[13px] min-[360px]:text-[14px] font-medium placeholder-slate-400 text-slate-700 focus:outline-none min-w-0"
               />
               <button
                 type="submit"
-                className="bg-[#F99254] hover:bg-[#E87E3E] text-white px-5 py-2.5 rounded-full font-bold text-[13px] flex items-center gap-1.5 transition-all shadow-sm active:scale-95 shrink-0"
+                className="bg-[#F99254] hover:bg-[#E87E3E] text-white px-3.5 py-2 min-[360px]:px-4 min-[360px]:py-2.5 min-[390px]:px-5 rounded-full font-bold text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] flex items-center gap-1 min-[360px]:gap-1.5 transition-all shadow-sm active:scale-95 shrink-0"
               >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round">
+                <svg className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round">
                   <line x1="7" y1="10" x2="7" y2="14" />
                   <line x1="12" y1="6" x2="12" y2="18" />
                   <line x1="17" y1="10" x2="17" y2="14" />
@@ -501,15 +501,15 @@ export default function CenterColumn({
             </form>
           </div>
           {/* Compensation spacing for the overlap */}
-          <div className="h-8" />
+          <div className="h-6 min-[360px]:h-7 min-[390px]:h-8" />
 
           {/* Body content cards grid */}
-          <div className="flex-1 px-5 pt-6 pb-12 flex flex-col gap-5">
+          <div className="flex-1 px-3.5 min-[360px]:px-4 min-[390px]:px-5 pt-4 min-[360px]:pt-5 min-[390px]:pt-6 pb-8 min-[390px]:pb-12 flex flex-col gap-4 min-[360px]:gap-4.5 min-[390px]:gap-5">
             
             {/* Card 1: How's today, so far? */}
-            <div className="bg-white rounded-[32px] p-6 border border-slate-100/90 shadow-[0_4px_24px_rgba(15,23,42,0.015)]">
-              <h4 className="text-slate-800 text-[15px] font-extrabold mb-4 tracking-tight">How&apos;s today, so far?</h4>
-              <div className="flex justify-between items-center w-full px-0.5">
+            <div className="bg-white rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 border border-slate-100/90 shadow-[0_4px_24px_rgba(15,23,42,0.015)]">
+              <h4 className="text-slate-800 text-[13.5px] min-[360px]:text-[14.5px] min-[390px]:text-[15px] font-extrabold mb-2.5 min-[360px]:mb-3 min-[390px]:mb-4 tracking-tight">How&apos;s today, so far?</h4>
+              <div className="grid grid-cols-5 justify-items-center w-full gap-1 px-0.5">
                 {[
                   { name: "Low", displayName: "Sad", score: 0 },
                   { name: "Heavy", displayName: "Bad", score: 1 },
@@ -526,7 +526,7 @@ export default function CenterColumn({
                       className="flex flex-col items-center focus-visible:outline-none transition-transform hover:scale-105"
                     >
                       {renderEmojiFace(mood.name, !!isSelected)}
-                      <span className="text-[11px] font-bold mt-2 text-slate-400">{mood.displayName}</span>
+                      <span className="text-[9.5px] min-[360px]:text-[10px] min-[390px]:text-[11px] font-bold mt-1.5 min-[390px]:mt-2 text-slate-400 whitespace-nowrap">{mood.displayName}</span>
                     </button>
                   )
                 })}
@@ -534,8 +534,8 @@ export default function CenterColumn({
             </div>
 
             {/* Card 2: Your rhythm this week */}
-            <div className="bg-white rounded-[32px] p-6 border border-slate-100/90 shadow-[0_4px_24px_rgba(15,23,42,0.015)]">
-              <div className="flex justify-between items-center px-1">
+            <div className="bg-white rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 border border-slate-100/90 shadow-[0_4px_24px_rgba(15,23,42,0.015)]">
+              <div className="grid grid-cols-7 justify-items-center w-full gap-1.5 px-0.5">
                 {[
                   { day: "M", type: "text", value: "13", bg: "#EBF0F2", color: "#64748B" },
                   { day: "T", type: "text", value: "14", bg: "#EBF0F2", color: "#64748B" },
@@ -545,56 +545,56 @@ export default function CenterColumn({
                   { day: "S", type: "exercise", bg: "#FDD3D3", color: "#DC2626" },
                   { day: "S", type: "close", bg: "#D5CEEB", color: "#6B4FBB" },
                 ].map((item, index) => (
-                  <div key={index} className="flex flex-col items-center gap-2">
+                  <div key={index} className="flex flex-col items-center gap-1.5 min-[360px]:gap-2">
                     {renderCalendarCircle(item, true)}
-                    <span className="text-[11px] font-bold text-slate-400 uppercase">{item.day}</span>
+                    <span className="text-[9.5px] min-[360px]:text-[10px] min-[390px]:text-[11px] font-bold text-slate-400 uppercase">{item.day}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Card 3: Something I Noticed */}
-            <div className="bg-[#FEF6F0] rounded-[32px] p-6 border border-[#FBE6D8] shadow-[0_4px_24px_rgba(15,23,42,0.01)] flex flex-col gap-2">
-              <span className="text-[11.5px] font-black uppercase tracking-[0.15em] text-[#E8722A]">
+            <div className="bg-[#FEF6F0] rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 border border-[#FBE6D8] shadow-[0_4px_24px_rgba(15,23,42,0.01)] flex flex-col gap-1.5 min-[360px]:gap-2">
+              <span className="text-[10px] min-[360px]:text-[11px] min-[390px]:text-[11.5px] font-black uppercase tracking-[0.15em] text-[#E8722A]">
                 Something I Noticed
               </span>
-              <p className="text-[15px] font-medium text-slate-700 leading-relaxed">
+              <p className="text-[13.5px] min-[360px]:text-[14.5px] min-[390px]:text-[15px] font-medium text-slate-700 leading-relaxed">
                 You&apos;ve mentioned exam stress a few times lately. If it helps, we can unpack what&apos;s weighing heaviest before it builds up.
               </p>
             </div>
 
             {/* What you can do now Section */}
-            <div className="flex flex-col gap-4 mt-2">
-              <h3 className="text-[19px] font-black text-slate-800 tracking-tight leading-none mb-1">
+            <div className="flex flex-col gap-3 min-[360px]:gap-3.5 min-[390px]:gap-4 mt-1 min-[360px]:mt-1.5 min-[390px]:mt-2">
+              <h3 className="text-[16px] min-[360px]:text-[18px] min-[390px]:text-[19px] font-black text-slate-800 tracking-tight leading-none mb-0.5 min-[360px]:mb-1">
                What you can do now
               </h3>
               
               {suggestions && selectedCategory && (
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3 min-[360px]:gap-3.5 min-[390px]:gap-4">
                   {/* Card 1: Activity */}
                   {selectedCategory === "activity" && (
                     <div 
                       onClick={() => handleActivityClick(suggestions.activity)}
-                      className="bg-[#F0ECF8] rounded-[32px] p-5 border border-[#E3DCF1] flex items-center justify-between cursor-pointer hover:scale-[1.01] transition-all group"
+                      className="bg-[#F0ECF8] rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-3.5 min-[360px]:p-4 min-[390px]:p-5 border border-[#E3DCF1] flex items-center justify-between cursor-pointer hover:scale-[1.01] transition-all group"
                     >
-                      <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
-                        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
-                          <svg className="w-6 h-6 text-[#6B4FBB]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <div className="flex items-center gap-3 min-[390px]:gap-4 min-w-0 flex-1 pr-3">
+                        <div className="w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 min-[390px]:w-12 min-[390px]:h-12 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                          <svg className="w-5 h-5 min-[390px]:w-6 min-[390px]:h-6 text-[#6B4FBB]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                           </svg>
                         </div>
                         <div className="flex flex-col min-w-0 flex-1">
-                          <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                          <span className="font-extrabold text-[14px] min-[390px]:text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
                             {suggestions.activity.title}
                           </span>
-                          <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2">
+                          <span className="text-[11.5px] min-[390px]:text-[12px] font-medium text-slate-500 leading-snug mt-0.5 min-[390px]:mt-1 line-clamp-2">
                             {suggestions.activity.description}
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 text-[#6B4FBB] text-[13px] font-bold shrink-0 pr-1">
+                      <div className="flex items-center gap-1 text-[#6B4FBB] text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] font-bold shrink-0 pr-1">
                         <span>Try</span>
-                        <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <svg className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -605,26 +605,26 @@ export default function CenterColumn({
                   {selectedCategory === "read" && (
                     <Link 
                       href={`/read/${suggestions.read.slug}`}
-                      className="bg-[#E6F4F8] rounded-[32px] p-5 border border-[#CDE5EE] flex items-center justify-between hover:scale-[1.01] transition-all group"
+                      className="bg-[#E6F4F8] rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-3.5 min-[360px]:p-4 min-[390px]:p-5 border border-[#CDE5EE] flex items-center justify-between hover:scale-[1.01] transition-all group"
                     >
-                      <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
-                        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
-                          <svg className="w-6 h-6 text-[#00829B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <div className="flex items-center gap-3 min-[390px]:gap-4 min-w-0 flex-1 pr-3">
+                        <div className="w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 min-[390px]:w-12 min-[390px]:h-12 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                          <svg className="w-5 h-5 min-[390px]:w-6 min-[390px]:h-6 text-[#00829B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                           </svg>
                         </div>
                         <div className="flex flex-col min-w-0 flex-1">
-                          <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                          <span className="font-extrabold text-[14px] min-[390px]:text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
                             {suggestions.read.title}
                           </span>
-                          <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2">
+                          <span className="text-[11.5px] min-[390px]:text-[12px] font-medium text-slate-500 leading-snug mt-0.5 min-[390px]:mt-1 line-clamp-2">
                             {suggestions.read.description}
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 text-[#00829B] text-[13px] font-bold shrink-0 pr-1">
+                      <div className="flex items-center gap-1 text-[#00829B] text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] font-bold shrink-0 pr-1">
                         <span>Read</span>
-                        <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <svg className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -635,26 +635,26 @@ export default function CenterColumn({
                   {selectedCategory === "listen" && (
                     <Link 
                       href={`/listen/${suggestions.listen.slug}`}
-                      className="bg-[#EAF6EC] rounded-[32px] p-5 border border-[#D2EBD7] flex items-center justify-between hover:scale-[1.01] transition-all group"
+                      className="bg-[#EAF6EC] rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-3.5 min-[360px]:p-4 min-[390px]:p-5 border border-[#D2EBD7] flex items-center justify-between hover:scale-[1.01] transition-all group"
                     >
-                      <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
-                        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
-                          <svg className="w-6 h-6 text-[#1E8A37]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <div className="flex items-center gap-3 min-[390px]:gap-4 min-w-0 flex-1 pr-3">
+                        <div className="w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 min-[390px]:w-12 min-[390px]:h-12 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                          <svg className="w-5 h-5 min-[390px]:w-6 min-[390px]:h-6 text-[#1E8A37]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
                           </svg>
                         </div>
                         <div className="flex flex-col min-w-0 flex-1">
-                          <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                          <span className="font-extrabold text-[14px] min-[390px]:text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
                             {suggestions.listen.title}
                           </span>
-                          <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2">
+                          <span className="text-[11.5px] min-[390px]:text-[12px] font-medium text-slate-500 leading-snug mt-0.5 min-[390px]:mt-1 line-clamp-2">
                             {suggestions.listen.description}
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 text-[#1E8A37] text-[13px] font-bold shrink-0 pr-1">
+                      <div className="flex items-center gap-1 text-[#1E8A37] text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] font-bold shrink-0 pr-1">
                         <span>Listen</span>
-                        <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <svg className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -665,26 +665,26 @@ export default function CenterColumn({
                   {selectedCategory === "assessment" && (
                     <Link 
                       href={suggestions.assessment.href}
-                      className="bg-[#FEF5ED] rounded-[32px] p-5 border border-[#FCE3CF] flex items-center justify-between hover:scale-[1.01] transition-all group"
+                      className="bg-[#FEF5ED] rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-3.5 min-[360px]:p-4 min-[390px]:p-5 border border-[#FCE3CF] flex items-center justify-between hover:scale-[1.01] transition-all group"
                     >
-                      <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
-                        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
-                          <svg className="w-6 h-6 text-[#D97736]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <div className="flex items-center gap-3 min-[390px]:gap-4 min-w-0 flex-1 pr-3">
+                        <div className="w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 min-[390px]:w-12 min-[390px]:h-12 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                          <svg className="w-5 h-5 min-[390px]:w-6 min-[390px]:h-6 text-[#D97736]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                         </div>
                         <div className="flex flex-col min-w-0 flex-1">
-                          <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                          <span className="font-extrabold text-[14px] min-[390px]:text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
                             {suggestions.assessment.title}
                           </span>
-                          <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2">
+                          <span className="text-[11.5px] min-[390px]:text-[12px] font-medium text-slate-500 leading-snug mt-0.5 min-[390px]:mt-1 line-clamp-2">
                             {suggestions.assessment.description}
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 text-[#D97736] text-[13px] font-bold shrink-0 pr-1">
+                      <div className="flex items-center gap-1 text-[#D97736] text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] font-bold shrink-0 pr-1">
                         <span>Check</span>
-                        <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <svg className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                       </div>

@@ -43,7 +43,7 @@ export default function ExploreTabSwitcher({
               role="tab"
               aria-selected={active}
               onClick={() => onChange(tab.id)}
-              className={`relative z-[1] flex-1 py-2 px-2.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-colors duration-200 text-center ${
+              className={`relative z-[1] flex-1 py-2 px-1.5 min-[360px]:px-2.5 rounded-full text-[10px] min-[360px]:text-[11px] font-semibold whitespace-nowrap transition-colors duration-200 text-center ${
                 active
                   ? "text-slate-800"
                   : "text-slate-500 hover:text-slate-700"
