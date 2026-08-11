@@ -9,7 +9,7 @@ export default async function DashboardLayout({
   const user = await getCurrentUser()
 
   if (!user || user.role !== "PATIENT") {
-    redirect("/auth/unauthorized")
+    redirect("/")
   }
 
   return <>{children}</>

@@ -8,7 +8,7 @@ export default async function PaymentsAdminPage() {
   const user = await getCurrentUser()
 
   if (!session?.user || user?.role !== "ADMIN") {
-    redirect("/auth/unauthorized")
+    redirect("/")
   }
 
   return (

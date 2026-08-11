@@ -18,7 +18,7 @@ export default async function DoctorLayout({
   const user = await getCurrentUser()
 
   if (!user || user.role !== "DOCTOR") {
-    redirect("/auth/unauthorized")
+    redirect("/")
   }
 
   return (

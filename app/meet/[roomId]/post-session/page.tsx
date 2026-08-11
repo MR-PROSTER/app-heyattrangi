@@ -8,7 +8,7 @@ export default async function PostSessionPage({ params }: { params: Promise<{ ro
     const session = await auth()
     
     if (!session?.user?.id) {
-        redirect("/auth/unauthorized")
+        redirect("/")
     }
 
     // Find appointment by meetingLink
@@ -22,14 +22,14 @@ export default async function PostSessionPage({ params }: { params: Promise<{ ro
     })
 
     if (!appointment) {
-        redirect("/auth/unauthorized")
+        redirect("/")
     }
 
     const isDoctor = appointment.doctor.userId === session.user.id
     const isPatient = appointment.patient?.userId === session.user.id
 
     if (!isDoctor && !isPatient) {
-        redirect("/auth/unauthorized")
+        redirect("/")
     }
 
     const role = isDoctor ? "host" : "patient"

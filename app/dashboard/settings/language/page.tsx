@@ -7,7 +7,7 @@ import LanguageSettings from "@/components/settings/language/LanguageSettings"
 
 async function Content() {
   const user = await getCurrentUser()
-  if (!user || user.role !== "PATIENT") redirect("/auth/unauthorized")
+  if (!user || user.role !== "PATIENT") redirect("/")
 
   return (
     <LanguageSettings

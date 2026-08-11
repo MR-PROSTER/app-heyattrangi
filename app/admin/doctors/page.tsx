@@ -15,7 +15,7 @@ export default async function AdminDoctorsPage() {
   const user = await getCurrentUser()
 
   if (!user || user.role !== "ADMIN") {
-    redirect("/auth/unauthorized")
+    redirect("/")
   }
 
   // Fetch all doctors with their user info

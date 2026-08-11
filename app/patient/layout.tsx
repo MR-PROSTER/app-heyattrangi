@@ -34,7 +34,7 @@ export default async function PatientLayout({
 
     // All other patient routes require an authenticated patient.
     if (!session?.user || session.user.role !== "PATIENT") {
-      redirect("/auth/unauthorized")
+      redirect("/")
     }
 
     return <PatientShell>{children}</PatientShell>

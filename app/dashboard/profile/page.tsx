@@ -19,7 +19,7 @@ async function ProfileContent() {
     const user = await getCurrentUser()
 
     if (!user || user.role !== "PATIENT") {
-        redirect("/auth/unauthorized")
+        redirect("/")
     }
 
     const memberSinceLabel = formatMemberSince(user.createdAt)

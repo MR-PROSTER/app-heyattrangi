@@ -15,7 +15,7 @@ export default async function AdminDashboard() {
   const user = await getCurrentUser()
 
   if (!user || (user.role !== "ADMIN" && process.env.NODE_ENV !== "development")) {
-    redirect("/auth/unauthorized")
+    redirect("/")
   }
 
   // Fetch doctor statistics

@@ -8,7 +8,7 @@ import PersonalDetailsForm from "@/components/settings/personal-details/Personal
 
 async function Content() {
   const user = await getCurrentUser()
-  if (!user || user.role !== "PATIENT") redirect("/auth/unauthorized")
+  if (!user || user.role !== "PATIENT") redirect("/")
 
   const provider = inferAuthProvider({
     image: user.image,

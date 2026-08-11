@@ -20,7 +20,7 @@ export default async function AdminDoctorDetailPage({
   const user = await getCurrentUser()
 
   if (!user || user.role !== "ADMIN") {
-    redirect("/auth/unauthorized")
+    redirect("/")
   }
 
   // Handle params (Next.js 16 might pass it as a Promise)

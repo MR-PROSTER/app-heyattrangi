@@ -13,7 +13,7 @@ export default async function ReadLayout({
   const user = await getCurrentUser()
 
   if (!user || user.role !== "PATIENT") {
-    redirect("/auth/unauthorized")
+    redirect("/")
   }
 
   return (

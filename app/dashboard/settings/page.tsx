@@ -5,7 +5,7 @@ import SettingsClient from "@/components/settings/SettingsClient"
 
 export default async function DashboardSettingsPage() {
   const user = await getCurrentUser()
-  if (!user || user.role !== "PATIENT") redirect("/auth/unauthorized")
+  if (!user || user.role !== "PATIENT") redirect("/")
 
   return (
     <SettingsLayout title="Settings" backHref="/dashboard/profile">

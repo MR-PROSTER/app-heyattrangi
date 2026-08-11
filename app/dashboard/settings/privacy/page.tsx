@@ -7,7 +7,7 @@ import PrivacySettings from "@/components/settings/privacy/PrivacySettings"
 
 async function Content() {
   const user = await getCurrentUser()
-  if (!user || user.role !== "PATIENT") redirect("/auth/unauthorized")
+  if (!user || user.role !== "PATIENT") redirect("/")
 
   return (
     <PrivacySettings

@@ -8,7 +8,7 @@ import EmergencyContactForm from "@/components/settings/emergency/EmergencyConta
 
 async function Content() {
   const user = await getCurrentUser()
-  if (!user || user.role !== "PATIENT") redirect("/auth/unauthorized")
+  if (!user || user.role !== "PATIENT") redirect("/")
 
   if (getMembershipTier(user.plan) !== "committed") {
     redirect("/dashboard/settings")

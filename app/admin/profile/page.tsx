@@ -15,7 +15,7 @@ export default async function AdminProfilePage() {
   const user = await getCurrentUser()
 
   if (!user || user.role !== "ADMIN") {
-    redirect("/auth/unauthorized")
+    redirect("/")
   }
 
   return (

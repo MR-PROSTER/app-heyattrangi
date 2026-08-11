@@ -19,7 +19,7 @@ export default async function AppointmentPaymentPage({
   const user = await getCurrentUser()
 
   if (!user || (user.role !== "PATIENT")) {
-    redirect("/auth/unauthorized")
+    redirect("/")
   }
 
   // Handle params (Next.js 16 compatibility)
@@ -92,7 +92,7 @@ export default async function AppointmentPaymentPage({
   })
 
   if (!patient || appointment.patientId !== patient.id) {
-    redirect("/auth/unauthorized")
+    redirect("/")
   }
 
   // Check if payment is already completed

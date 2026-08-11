@@ -12,7 +12,7 @@ export default async function OrganizationsAdminPage() {
   const user = await getCurrentUser()
 
   if (!session?.user || user?.role !== "ADMIN") {
-    redirect("/auth/unauthorized")
+    redirect("/")
   }
 
   const organizations = await prisma.organization.findMany({
