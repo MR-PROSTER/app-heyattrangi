@@ -8,7 +8,7 @@ export default function ProfileLoading() {
       aria-busy="true"
       aria-label="Loading profile"
     >
-      <div className="mx-auto flex w-full max-w-lg flex-1 flex-col">
+      <div className="mx-auto flex w-full max-w-[430px] flex-1 flex-col">
         <div
           className="sticky top-0 z-20 grid grid-cols-[2.75rem_1fr_2.75rem] items-center gap-[var(--text-xs)]
             px-[var(--text-xs)] pt-[max(0.5rem,env(safe-area-inset-top))] pb-[var(--text-xs)]"
@@ -18,10 +18,10 @@ export default function ProfileLoading() {
           <div className="size-11 rounded-full bg-[var(--color-border)] animate-pulse motion-reduce:animate-none" />
         </div>
 
-        <div className="flex-1 px-5 pb-[max(2rem,env(safe-area-inset-bottom))]">
-          <div className="rounded-[var(--radius-xl)] bg-[var(--color-accent-light)]/50 px-4 pb-6 pt-4">
+        <div className="flex-1 px-4 min-[360px]:px-5 pb-[max(2rem,env(safe-area-inset-bottom))]">
+          <div className="rounded-[var(--radius-xl)] bg-[var(--color-accent-light)]/50 px-4 pb-5 pt-[14px] min-[360px]:pb-6 min-[360px]:pt-4">
             <div className="flex flex-col items-center">
-              <div className="size-24 rounded-full bg-[var(--color-border)] animate-pulse motion-reduce:animate-none" />
+              <div className="size-20 min-[360px]:size-24 rounded-full bg-[var(--color-border)] animate-pulse motion-reduce:animate-none" />
               <div className="mt-[var(--text-base)] h-6 w-40 max-w-full rounded-[var(--radius-sm)] bg-[var(--color-border)] animate-pulse motion-reduce:animate-none" />
               <div className="mt-[var(--text-xs)] h-4 w-52 max-w-full rounded-[var(--radius-sm)] bg-[var(--color-border)] animate-pulse motion-reduce:animate-none" />
               <div className="mt-[var(--text-xs)] h-3 w-36 max-w-full rounded-[var(--radius-sm)] bg-[var(--color-border)] animate-pulse motion-reduce:animate-none" />

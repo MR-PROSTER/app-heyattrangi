@@ -27,14 +27,21 @@ export default async function AdminDashboard() {
 
   const pendingCount = doctors.filter(d => d.status === "PENDING_PROFILE" || d.status === "PENDING_DOCUMENTS" || d.status === "PENDING_REVIEW").length
   const totalDoctors = doctors.length
-
+ 
+  // Fetch support message statistics
+  const newMessagesCount = await prisma.supportMessage.count({
+    where: {
+      isRead: false,
+    },
+  })
+ 
   return (
     <div className="min-h-screen bg-[#fafcfd] text-gray-800 font-sans relative overflow-hidden">
       
       {/* Subtle Background Elements */}
       <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-orange-100/40 blur-[100px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-blue-100/40 blur-[100px] rounded-full pointer-events-none" />
-
+ 
       {/* Navigation */}
       <nav className="relative z-10 border-b border-gray-100 bg-white/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6">
@@ -65,7 +72,7 @@ export default async function AdminDashboard() {
           </div>
         </div>
       </nav>
-
+ 
       <main className="relative z-10 max-w-7xl mx-auto px-6 py-12">
         
         {/* Header */}
@@ -77,9 +84,9 @@ export default async function AdminDashboard() {
             Monitor platform health, verify doctors, and manage global settings.
           </p>
         </div>
-
+ 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {/* Stat Card 1 */}
           <Link href="/admin/doctors" className="group relative bg-white border border-gray-100 rounded-[2rem] p-8 hover:border-orange-200 hover:shadow-[0_8px_30px_rgba(249,107,19,0.08)] transition-all duration-300 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
             <div className="relative z-10">
@@ -93,7 +100,7 @@ export default async function AdminDashboard() {
               </div>
             </div>
           </Link>
-
+ 
           {/* Stat Card 2 */}
           <Link href="/admin/doctors" className="group relative bg-white border border-gray-100 rounded-[2rem] p-8 hover:border-blue-200 hover:shadow-[0_8px_30px_rgba(59,130,246,0.08)] transition-all duration-300 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
             <div className="relative z-10">
@@ -106,7 +113,7 @@ export default async function AdminDashboard() {
               </div>
             </div>
           </Link>
-
+ 
           {/* Stat Card 3 */}
           <div className="group relative bg-white border border-gray-100 rounded-[2rem] p-8 transition-all duration-300 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
             <div className="relative z-10">
@@ -120,14 +127,30 @@ export default async function AdminDashboard() {
               </div>
             </div>
           </div>
+ 
+          {/* Stat Card 4: Support Messages */}
+          <Link href="/admin/support-messages" className="group relative bg-white border border-gray-100 rounded-[2rem] p-8 hover:border-rose-200 hover:shadow-[0_8px_30px_rgba(244,63,94,0.08)] transition-all duration-300 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
+            <div className="relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center mb-6 text-rose-500 group-hover:scale-110 transition-transform duration-500">
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              </div>
+              <h3 className="text-gray-500 font-bold mb-2">Support Messages</h3>
+              <div className="flex items-baseline gap-3">
+                <p className="text-5xl font-black text-gray-900">{newMessagesCount}</p>
+                {newMessagesCount > 0 && (
+                  <span className="text-xs font-black uppercase tracking-wider text-rose-500 bg-rose-50 px-2 py-1 rounded-lg">New</span>
+                )}
+              </div>
+            </div>
+          </Link>
         </div>
-
+ 
         {/* Quick Actions Grid */}
         <div className="mb-6">
           <h3 className="text-2xl font-black text-gray-900 mb-6 tracking-tight">
             Management Modules
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             
             <Link
               href="/admin/doctors"
@@ -143,7 +166,7 @@ export default async function AdminDashboard() {
                 </p>
               </div>
             </Link>
-
+ 
             <Link
               href="/admin/patients"
               className="group relative p-6 bg-white border border-gray-100 rounded-[1.5rem] hover:border-purple-200 hover:bg-purple-50/30 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden"
@@ -158,7 +181,7 @@ export default async function AdminDashboard() {
                 </p>
               </div>
             </Link>
-
+ 
             <Link
               href="/admin/payments"
               className="group relative p-6 bg-white border border-gray-100 rounded-[1.5rem] hover:border-emerald-200 hover:bg-emerald-50/30 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden"
@@ -173,7 +196,7 @@ export default async function AdminDashboard() {
                 </p>
               </div>
             </Link>
-
+ 
             <Link
               href="/admin/organizations"
               className="group relative p-6 bg-white border border-gray-100 rounded-[1.5rem] hover:border-orange-200 hover:bg-orange-50/30 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden"
@@ -188,7 +211,22 @@ export default async function AdminDashboard() {
                 </p>
               </div>
             </Link>
-
+ 
+            <Link
+              href="/admin/support-messages"
+              className="group relative p-6 bg-white border border-gray-100 rounded-[1.5rem] hover:border-rose-200 hover:bg-rose-50/30 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden"
+            >
+              <div className="relative z-10">
+                <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-rose-500 group-hover:text-white transition-all duration-300 shadow-sm">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                </div>
+                <h4 className="text-lg font-black text-gray-900 mb-2 group-hover:text-rose-600 transition-colors">Support Messages</h4>
+                <p className="text-[13px] text-gray-500 font-medium leading-relaxed">
+                  Read messages from our founder contact flow, reply to support, and track resolution.
+                </p>
+              </div>
+            </Link>
+ 
             <Link
               href="/institution"
               className="group relative p-6 bg-white border border-gray-100 rounded-[1.5rem] hover:border-teal-200 hover:bg-teal-50/30 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden"
@@ -203,7 +241,7 @@ export default async function AdminDashboard() {
                 </p>
               </div>
             </Link>
-
+ 
           </div>
         </div>
 

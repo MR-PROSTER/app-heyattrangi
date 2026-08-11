@@ -446,9 +446,9 @@ export default function CenterColumn({
           {/* Blue Rounded Header Area */}
           <div className="w-full px-4 min-[360px]:px-5 min-[390px]:px-6 pt-[72px] min-[360px]:pt-[76px] min-[390px]:pt-20 pb-9 min-[360px]:pb-11 min-[390px]:pb-14 flex flex-col gap-4 min-[360px]:gap-5 min-[390px]:gap-6 relative">
             {/* Background & Robot Wrapper (Clipped by rounded bottom) */}
-            <div className="absolute inset-0 bg-gradient-to-b from-[#8BDDEE] via-[#A6E8F6] to-[#D7F5FC] rounded-b-[42px] overflow-hidden pointer-events-none shadow-[0_8px_30px_rgba(139,221,238,0.12)]">
+            <div className="absolute inset-0 bg-gradient-to-b from-[#8BDDEE] via-[#A6E8F6] to-[#D7F5FC] rounded-b-[32px] min-[360px]:rounded-b-[38px] min-[390px]:rounded-b-[42px] overflow-hidden pointer-events-none shadow-[0_8px_30px_rgba(139,221,238,0.12)]">
               {/* Peeking Robot Image */}
-              <div className="absolute left-0 bottom-6 min-[360px]:bottom-8 min-[390px]:bottom-10 w-[75px] min-[360px]:w-[85px] min-[390px]:w-[95px] h-[106px] min-[360px]:h-[120px] min-[390px]:h-[135px] pointer-events-none">
+              <div className="absolute left-0 bottom-[32px] min-[360px]:bottom-8 min-[390px]:bottom-10 w-[55px] min-[360px]:w-[80px] min-[390px]:w-[95px] h-[78px] min-[360px]:h-[113px] min-[390px]:h-[135px] pointer-events-none">
                 <Image
                   src="/images/robot_peeking.png"
                   alt="Peeking Robot"
@@ -460,8 +460,8 @@ export default function CenterColumn({
 
             {/* Header Row: Title & Avatar */}
             <div className="flex items-center justify-between w-full z-10 relative gap-2 min-[360px]:gap-3">
-              <div className="flex flex-col pl-2 min-[360px]:pl-3 min-[390px]:pl-4 min-w-0 flex-1">
-                <h1 className="text-[22px] min-[360px]:text-[25px] min-[390px]:text-[28px] font-black text-white tracking-tight leading-none whitespace-nowrap truncate">
+              <div className="flex flex-col pl-1 min-[360px]:pl-2.5 min-[390px]:pl-4 min-w-0 flex-1">
+                <h1 className="text-[19px] min-[360px]:text-[24px] min-[390px]:text-[28px] font-black text-white tracking-tight leading-none whitespace-nowrap truncate">
                   Hello, {firstName}
                 </h1>
               </div>
@@ -469,13 +469,13 @@ export default function CenterColumn({
                 <ProfileAvatar
                   name={displayName}
                   image={userImage}
-                  className="w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 min-[390px]:w-11 min-[390px]:h-11 border-2 border-white/80 shadow-sm"
+                  className="w-[34px] h-[34px] min-[360px]:w-10 min-[360px]:h-10 min-[390px]:w-11 min-[390px]:h-11 border-2 border-white/80 shadow-sm"
                 />
               </div>
             </div>
 
             {/* Spacing to push down the form */}
-            <div className="h-2 min-[360px]:h-3 min-[390px]:h-4" />
+            <div className="h-1 min-[360px]:h-2.5 min-[390px]:h-4" />
 
             {/* Voice Input Chat Bar (overlapping bottom edge) */}
             <form onSubmit={handleMindSubmit} className="w-full bg-white rounded-full p-1 min-[390px]:p-1.5 pl-3.5 min-[360px]:pl-4 min-[390px]:pl-5 pr-1 min-[390px]:pr-1.5 shadow-[0_12px_24px_rgba(0,0,0,0.08)] flex items-center justify-between gap-2 min-[360px]:gap-3 border border-white z-10 relative translate-y-9">
@@ -485,11 +485,11 @@ export default function CenterColumn({
                 onChange={(e) => setMindText(e.target.value)}
                 onFocus={() => setIsChatExpanded(true)}
                 placeholder="Tell me what's on your mind..."
-                className="flex-1 bg-transparent border-none text-[13px] min-[360px]:text-[14px] font-medium placeholder-slate-400 text-slate-700 focus:outline-none min-w-0"
+                className="flex-1 bg-transparent border-none text-[11.5px] min-[360px]:text-[13px] min-[390px]:text-[14px] font-medium placeholder-slate-400 text-slate-700 focus:outline-none min-w-0"
               />
               <button
                 type="submit"
-                className="bg-[#F99254] hover:bg-[#E87E3E] text-white px-3.5 py-2 min-[360px]:px-4 min-[360px]:py-2.5 min-[390px]:px-5 rounded-full font-bold text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] flex items-center gap-1 min-[360px]:gap-1.5 transition-all shadow-sm active:scale-95 shrink-0"
+                className="bg-[#F99254] hover:bg-[#E87E3E] text-white px-2.5 py-1.5 min-[360px]:px-4 min-[360px]:py-2.5 min-[390px]:px-5 rounded-full font-bold text-[10px] min-[360px]:text-[12px] min-[390px]:text-[13px] flex items-center gap-1 min-[360px]:gap-1.5 transition-all shadow-sm active:scale-95 shrink-0"
               >
                 <svg className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round">
                   <line x1="7" y1="10" x2="7" y2="14" />
