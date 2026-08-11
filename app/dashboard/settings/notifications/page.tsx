@@ -7,7 +7,7 @@ import NotificationsSettings from "@/components/settings/notifications/Notificat
 
 async function Content() {
   const user = await getCurrentUser()
-  if (!user || user.role !== "PATIENT") redirect("/")
+  if (!user || user.role !== "PATIENT") redirect("/auth/unauthorized")
   return <NotificationsSettings userId={user.id} />
 }
 

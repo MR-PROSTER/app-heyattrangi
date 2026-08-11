@@ -16,7 +16,7 @@ export default async function DoctorDashboard() {
   const user = await getCurrentUser()
 
   if (!user || user.role !== "DOCTOR") {
-    redirect("/")
+    redirect("/auth/unauthorized")
   }
 
   const displayName = session.user.name || "Doctor"

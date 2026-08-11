@@ -9,7 +9,7 @@ export default async function AppExploreLayout({
 }) {
   const user = await getCurrentUser()
   if (!user || user.role !== "PATIENT") {
-    redirect("/")
+    redirect("/auth/unauthorized")
   }
   return (
     <>

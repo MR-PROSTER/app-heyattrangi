@@ -10,7 +10,7 @@ export default async function PatientsAdminPage() {
   const user = await getCurrentUser()
 
   if (!session?.user || user?.role !== "ADMIN") {
-    redirect("/")
+    redirect("/auth/unauthorized")
   }
 
   // Fetch all users with role PATIENT

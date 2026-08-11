@@ -92,7 +92,7 @@ export default function AdminSupportMessagesPage() {
   useEffect(() => {
     if (sessionStatus === "authenticated") {
       if (session?.user?.role !== "ADMIN" && process.env.NODE_ENV !== "development") {
-        router.push("/")
+        router.push("/auth/unauthorized")
       } else {
         fetchMessages()
       }

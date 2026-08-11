@@ -19,7 +19,7 @@ export default async function TherapistDetailPage({
   const user = await getCurrentUser()
 
   if (!user || (user.role !== "PATIENT")) {
-    redirect("/")
+    redirect("/auth/unauthorized")
   }
 
   // Handle params (Next.js 16 compatibility)

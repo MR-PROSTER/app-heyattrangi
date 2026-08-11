@@ -7,7 +7,7 @@ import SubscriptionSettings from "@/components/settings/subscription/Subscriptio
 
 async function Content() {
   const user = await getCurrentUser()
-  if (!user || user.role !== "PATIENT") redirect("/")
+  if (!user || user.role !== "PATIENT") redirect("/auth/unauthorized")
   return <SubscriptionSettings user={user} />
 }
 

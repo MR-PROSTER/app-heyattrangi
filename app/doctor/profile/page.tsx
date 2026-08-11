@@ -14,7 +14,7 @@ export default async function DoctorProfilePage() {
   const user = await getCurrentUser()
 
   if (!user || user.role !== "DOCTOR") {
-    redirect("/")
+    redirect("/auth/unauthorized")
   }
 
   // Fetch doctor details with availability
@@ -26,7 +26,7 @@ export default async function DoctorProfilePage() {
   })
 
   if (!doctor) {
-    redirect("/")
+    redirect("/auth/unauthorized")
   }
 
   return (
