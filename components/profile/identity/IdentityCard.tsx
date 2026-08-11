@@ -116,7 +116,7 @@ export default function IdentityCard({
     return () => window.clearInterval(id)
   }, [lastUpdatedAt])
 
-  const displayName = (name || user.email || "Patient").trim()
+  const displayName = (name || user.email || "Individual User").trim()
   const memberSince = formatMemberSince(user.createdAt)
   const planLabel = formatPlanLabel(user.plan as PlanType | string)
   const memberIdFull = user.id

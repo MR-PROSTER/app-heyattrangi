@@ -464,7 +464,7 @@ export default function Sidebar() {
                             </div>
                             <div className="flex flex-col min-w-0">
                                 <span className="text-sm font-black text-white leading-none tracking-wide truncate">
-                                    {session?.user?.name || "Patient"}
+                                    {session?.user?.name || "Individual User"}
                                 </span>
                                 <span className="text-[11px] font-bold text-orange-300 mt-1 uppercase tracking-wider leading-none">
                                     View Profile
