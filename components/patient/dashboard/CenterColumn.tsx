@@ -375,7 +375,7 @@ export default function CenterColumn({
       } else if (item.type === "wave") {
         setIsBreathingOpen(true)
       } else if (item.type === "exercise") {
-        router.push("/explore/activities/progressive-muscle-relaxation")
+        // Navigation disabled for now - will be implemented later
       } else if (item.type === "close") {
         handleOpenMoodModal(2)
       }
@@ -561,6 +561,25 @@ export default function CenterColumn({
               <p className="text-[13.5px] min-[360px]:text-[14.5px] min-[390px]:text-[15px] font-medium text-slate-700 leading-relaxed">
                 You&apos;ve mentioned exam stress a few times lately. If it helps, we can unpack what&apos;s weighing heaviest before it builds up.
               </p>
+              <div className="flex items-center gap-4 mt-1">
+                <Link 
+                  href="/patient/ai-bot"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsChatExpanded(true);
+                  }}
+                  className="bg-[#F99254] hover:bg-[#E87E3E] text-white px-5 py-2 rounded-full font-bold text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] shadow-sm transition-all active:scale-95"
+                >
+                  Let&apos;s talk
+                </Link>
+                <Link 
+                  href="#"
+                  onClick={(e) => e.preventDefault()}
+                  className="text-[#F99254] hover:underline font-bold text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] flex items-center gap-1"
+                >
+                  Know more &rarr;
+                </Link>
+              </div>
             </div>
 
             {/* What you can do now Section */}
@@ -825,7 +844,8 @@ export default function CenterColumn({
                 Let&apos;s talk
               </Link>
               <Link 
-                href="/patient/library"
+                href="#"
+                onClick={(e) => e.preventDefault()}
                 className="text-[#F99254] hover:underline font-bold text-[14px] flex items-center gap-1"
               >
                 Know more &rarr;
