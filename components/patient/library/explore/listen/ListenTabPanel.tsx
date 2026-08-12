@@ -103,142 +103,101 @@ function getDeterministicCardStyle(index: number): CategoryColorTheme {
 function CuteCategoryCharacter({ categoryName, className = "w-40 h-40" }: { categoryName: string; className?: string }) {
   if (categoryName === "Calm Down") {
     return (
-      <motion.svg
-        className={`${className} select-none pointer-events-none`}
-        viewBox="0 0 100 100"
-        animate={{ scale: [1, 1.06, 1], y: [0, -2, 0] }}
+      <motion.img
+        src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786528343/Calm_Down_dpobfg.png"
+        alt="Calm Down"
+        className={`${className} select-none pointer-events-none object-contain`}
+        animate={{ scale: [1, 1.04, 1], y: [0, -2, 0] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <path
-          d="M 25,60 C 20,60 15,55 15,48 C 15,41 21,36 28,36 C 30,30 36,25 44,25 C 52,25 58,31 60,38 C 63,35 67,34 71,34 C 77,34 82,39 82,45 C 82,51 77,56 71,56"
-          fill="#FFFFFF"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path d="M 35,43 Q 39,47 43,43" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-        <path d="M 53,43 Q 57,47 61,43" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-        <path d="M 46,49 Q 48,51 50,49" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <text x="66" y="24" fill="currentColor" fontSize="7" fontWeight="bold">z</text>
-        <text x="73" y="17" fill="currentColor" fontSize="9" fontWeight="bold">Z</text>
-      </motion.svg>
+      />
     )
   }
 
   if (categoryName === "Comfort") {
-    // Cozy hugging heart character
     return (
-      <motion.svg
-        className={`${className} select-none pointer-events-none`}
-        viewBox="0 0 100 100"
-        animate={{ scale: [1, 1.05, 1], rotate: [-1, 1, -1] }}
+      <motion.img
+        src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786528344/Comfort_u1cahf.png"
+        alt="Comfort"
+        className={`${className} select-none pointer-events-none object-contain`}
+        animate={{ scale: [1, 1.02, 1], rotate: [-1, 1, -1] }}
         transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <path d="M 50,32 C 50,22 30,12 20,27 C 10,42 30,67 50,84 C 70,67 90,42 80,27 C 70,12 50,22 50,32 Z" fill="#FFFFFF" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" />
-        <path d="M 28,47 C 33,50 40,50 43,47" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-        <path d="M 72,47 C 67,50 60,50 57,47" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-        <circle cx="38" cy="40" r="3.5" fill="currentColor" />
-        <circle cx="62" cy="40" r="3.5" fill="currentColor" />
-        <path d="M 47,45 Q 50,48 53,45" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-      </motion.svg>
+      />
     )
   }
 
   if (categoryName === "Emotional Release") {
-    // Relieved raincloud character releasing micro drops
     return (
-      <motion.svg
-        className={`${className} select-none pointer-events-none`}
-        viewBox="0 0 100 100"
-        animate={{ y: [0, -3, 0] }}
+      <motion.img
+        src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786528344/Emotional_Release_xw7c8m.png"
+        alt="Emotional Release"
+        className={`${className} select-none pointer-events-none object-contain`}
+        animate={{ y: [0, -3, 0], scale: [1, 1.02, 1] }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <path d="M 25,50 C 20,50 15,45 15,38 C 15,31 21,26 28,26 C 30,20 36,15 44,15 C 52,15 58,21 60,28 C 63,25 67,24 71,24 C 77,24 82,29 82,35 C 82,41 77,46 71,46" fill="#FFFFFF" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-        <path d="M 33,35 Q 37,38 41,35" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <path d="M 53,35 Q 57,38 61,35" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <path d="M 46,40 Q 48,42 50,40" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <motion.path d="M 30,55 L 30,65" stroke="currentColor" strokeWidth="2" strokeLinecap="round" animate={{ y: [0, 8, 0], opacity: [1, 0, 1] }} transition={{ duration: 2, repeat: Infinity }} />
-        <motion.path d="M 50,58 L 50,68" stroke="currentColor" strokeWidth="2" strokeLinecap="round" animate={{ y: [0, 10, 0], opacity: [1, 0, 1] }} transition={{ duration: 1.5, delay: 0.3, repeat: Infinity }} />
-        <motion.path d="M 70,55 L 70,65" stroke="currentColor" strokeWidth="2" strokeLinecap="round" animate={{ y: [0, 8, 0], opacity: [1, 0, 1] }} transition={{ duration: 1.8, delay: 0.6, repeat: Infinity }} />
-      </motion.svg>
+      />
     )
   }
 
   if (categoryName === "Focus") {
-    // Focus target with bullseye smiley
     return (
-      <motion.svg
-        className={`${className} select-none pointer-events-none`}
-        viewBox="0 0 100 100"
-        animate={{ scale: [1, 1.04, 1], rotate: [0, 5, -5, 0] }}
+      <motion.img
+        src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786528344/Focus_lgk5tj.png"
+        alt="Focus"
+        className={`${className} select-none pointer-events-none object-contain`}
+        animate={{ scale: [1, 1.02, 1], rotate: [0, 2, -2, 0] }}
         transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <circle cx="50" cy="50" r="30" fill="#FFFFFF" stroke="currentColor" strokeWidth="2.5" />
-        <circle cx="50" cy="50" r="18" fill="none" stroke="currentColor" strokeWidth="2.2" />
-        <circle cx="50" cy="50" r="7" fill="currentColor" />
-        <path d="M 50,10 L 50,20 M 50,80 L 50,90 M 10,50 L 20,50 M 80,50 L 90,50" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      </motion.svg>
+      />
     )
   }
 
   if (categoryName === "Ground & Breathe") {
-    // Growing seedling pot character
     return (
-      <motion.svg
-        className={`${className} select-none pointer-events-none`}
-        viewBox="0 0 100 100"
-        animate={{ y: [0, -3, 0], rotate: [0, 1.5, -1.5, 0] }}
+      <motion.img
+        src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786528344/Ground_Breathe_js8cns.png"
+        alt="Ground & Breathe"
+        className={`${className} select-none pointer-events-none object-contain`}
+        animate={{ y: [0, -3, 0], scale: [1, 1.02, 1] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <path d="M 32,52 L 68,52 L 62,84 L 38,84 Z" fill="#FFFFFF" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" />
-        <rect x="28" y="46" width="44" height="6" rx="2" fill="#FFFFFF" stroke="currentColor" strokeWidth="2.5" />
-        <path d="M 50,46 Q 42,32 50,18 Q 58,32 50,46" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-        <circle cx="43" cy="66" r="3.2" fill="currentColor" />
-        <circle cx="57" cy="66" r="3.2" fill="currentColor" />
-        <path d="M 48,72 Q 50,74 52,72" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      </motion.svg>
+      />
     )
   }
 
   if (categoryName === "Lift Your Mood") {
-    // Rising smiley hot-air balloon
     return (
-      <motion.svg
-        className={`${className} select-none pointer-events-none`}
-        viewBox="0 0 100 100"
-        animate={{ y: [0, -5, 0], rotate: [-2, 2, -2] }}
+      <motion.img
+        src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786528345/Lift_Your_Mood_b9tfgd.png"
+        alt="Lift Your Mood"
+        className={`${className} select-none pointer-events-none object-contain`}
+        animate={{ y: [0, -5, 0], scale: [1, 1.02, 1] }}
         transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <path d="M 50,18 C 70,18 78,35 70,55 C 64,68 53,73 50,73 C 47,73 36,68 30,55 C 22,35 30,18 50,18 Z" fill="#FFFFFF" stroke="currentColor" strokeWidth="2.5" />
-        <path d="M 47,73 L 53,73 L 50,78 Z" fill="currentColor" />
-        <path d="M 50,78 Q 46,86 52,94" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <circle cx="43" cy="38" r="3.5" fill="currentColor" />
-        <circle cx="57" cy="38" r="3.5" fill="currentColor" />
-        <path d="M 45,46 Q 50,52 55,46" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-      </motion.svg>
+      />
     )
   }
 
   if (categoryName === "Reflect") {
-    // Reflecting shiny pond character
     return (
-      <motion.svg
-        className={`${className} select-none pointer-events-none`}
-        viewBox="0 0 100 100"
-        animate={{ scale: [1, 1.03, 1] }}
+      <motion.img
+        src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786528345/Reflect_ohmfop.png"
+        alt="Reflect"
+        className={`${className} select-none pointer-events-none object-contain`}
+        animate={{ scale: [1, 1.02, 1] }}
         transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <ellipse cx="50" cy="55" rx="34" ry="24" fill="#FFFFFF" stroke="currentColor" strokeWidth="2.5" />
-        <ellipse cx="50" cy="55" rx="20" ry="12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" />
-        <circle cx="42" cy="55" r="3" fill="currentColor" />
-        <circle cx="58" cy="55" r="3" fill="currentColor" />
-        <path d="M 48,61 Q 50,63 52,61" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      </motion.svg>
+      />
     )
   }
 
-  // Sleep & Wind Down: Fluffy sheep sleeping character
+  if (categoryName === "Sleep & Wind Down") {
+    return (
+      <motion.img
+        src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786528345/Sleep_Wind_Down_m8ffiw.png"
+        alt="Sleep & Wind Down"
+        className={`${className} select-none pointer-events-none object-contain`}
+        animate={{ y: [0, -3, 0], scale: [1, 1.02, 1] }}
+        transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+      />
+    )
+  }
+
+  // Sleep & Wind Down fallback: Fluffy sheep sleeping character
   return (
     <motion.svg
       className={`${className} select-none pointer-events-none`}
@@ -320,7 +279,6 @@ function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelPro
 
   const handlePlayClick = (targetTrack: ListenTrack) => {
     if (!targetTrack.audioSrc) return
-    playTrack(targetTrack, tracks)
     router.push(`/listen/${targetTrack.id}`)
   }
 
@@ -424,20 +382,18 @@ function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelPro
                     }`}
                   >
                     {/* Cover Image Container */}
-                    <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[24px] bg-[#E8E0D4] shadow-[0_10px_28px_rgba(40,30,20,0.12)] ring-1 ring-black/[0.04]">
-                      {track.coverImage || track.imageUrl ? (
-                        <img
-                          src={(track.coverImage || track.imageUrl) ?? undefined}
-                          alt={track.title || "The Budding of Consciousness"}
-                          className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04]"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
-                          <ListenCover
-                            illustration={track.coverIllustration ?? "rain"}
-                            size="lg"
-                            title={track.title}
+                    <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[24px] bg-white border border-slate-100 shadow-[0_8px_24px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.04] flex items-center justify-center">
+                      {track.title === "The Budding of Consciousness" ? (
+                        <div className="w-full h-full flex items-center justify-center p-4">
+                          <img
+                            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786539260/Warm_Fireplace_Crackle_z9p7sb.png"
+                            alt={track.title}
+                            className="w-[135px] h-[135px] min-[360px]:w-[160px] min-[360px]:h-[160px] min-[390px]:w-[180px] min-[390px]:h-[180px] object-contain select-none pointer-events-none"
                           />
+                        </div>
+                      ) : (
+                        <div className="w-14 h-14 rounded-full bg-orange-50 text-[#FF6A39] flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                          <Music className="w-6 h-6 stroke-[2]" />
                         </div>
                       )}
 
@@ -541,8 +497,14 @@ function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelPro
                 </div>
                 
 
-                <div className="absolute right-0 bottom-0 z-0 select-none pointer-events-none">
-                  <CuteCategoryCharacter categoryName={category.name} className="w-[100px] h-[100px] min-[360px]:w-[130px] min-[360px]:h-[130px] min-[390px]:w-40 min-[390px]:h-40" />
+                {/* Bottom Circle with Cute Character inside */}
+                <div 
+                  style={{ backgroundColor: theme.circleBg }}
+                  className="absolute left-1/2 -translate-x-1/2 rounded-full flex items-center justify-center z-0 transition-transform duration-300 w-[220px] h-[220px] -bottom-[110px] min-[360px]:w-[250px] min-[360px]:h-[250px] min-[360px]:-bottom-[125px] min-[390px]:w-[280px] min-[390px]:h-[280px] min-[390px]:-bottom-[140px]"
+                >
+                  <div className="mb-18 -translate-y-[20px] min-[360px]:-translate-y-[24px] min-[390px]:-translate-y-[30px]">
+                    <CuteCategoryCharacter categoryName={category.name} className="w-[150px] h-[150px] min-[360px]:w-[175px] min-[360px]:h-[175px] min-[390px]:w-[195px] min-[390px]:h-[195px]" />
+                  </div>
                 </div>
               </button>
             </motion.div>
@@ -590,10 +552,10 @@ function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelPro
                 {/* Bottom Circle with Cute Character inside */}
                 <div 
                   style={{ backgroundColor: theme.circleBg }}
-                  className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105"
+                  className="absolute -bottom-[140px] left-1/2 -translate-x-1/2 w-[280px] h-[280px] rounded-full flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105"
                 >
-                  <div className="mb-18">
-                    <CuteCategoryCharacter categoryName={category.name} className="w-[110px] h-[110px]" />
+                  <div className="mb-18 -translate-y-[25px]">
+                    <CuteCategoryCharacter categoryName={category.name} className="w-[195px] h-[195px]" />
                   </div>
                 </div>
               </button>

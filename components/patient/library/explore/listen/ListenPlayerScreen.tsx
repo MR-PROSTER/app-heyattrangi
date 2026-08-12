@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { motion } from "framer-motion"
 import { Source_Serif_4 } from "next/font/google"
+import { Music } from "lucide-react"
 import type { ListenTrack } from "@/data/listenContent"
 import ListenCover from "@/components/patient/library/explore/listen/ListenCover"
 import AudioPlayer from "@/components/patient/library/explore/listen/AudioPlayer"
@@ -33,6 +34,7 @@ export default function ListenPlayerScreen({
   track,
   onBack,
 }: ListenPlayerScreenProps) {
+  console.log("ListenPlayerScreen RENDERING TRACK:", JSON.stringify(track, null, 2))
   const { currentTrack, playTrack } = useListenPlayer()
 
   useEffect(() => {
@@ -63,13 +65,21 @@ export default function ListenPlayerScreen({
           </button>
 
           <div className="flex flex-col items-center text-center">
-            <ListenCover
-              illustration={track.coverIllustration}
-              coverImage={track.coverImage}
-              size="lg"
-              title={track.title}
-              className="!h-[min(72vw,280px)] !w-[min(72vw,280px)] shadow-[0_16px_40px_rgba(40,30,20,0.16)]"
-            />
+            <div className="!h-[min(72vw,280px)] !w-[min(72vw,280px)] aspect-square rounded-[28px] bg-white border border-slate-100 shadow-[0_16px_40px_rgba(40,30,20,0.06)] flex items-center justify-center">
+              {track.title === "The Budding of Consciousness" ? (
+                <div className="w-full h-full flex items-center justify-center p-6">
+                  <img
+                    src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786539260/Warm_Fireplace_Crackle_z9p7sb.png"
+                    alt={track.title}
+                    className="w-[180px] h-[180px] object-contain select-none pointer-events-none"
+                  />
+                </div>
+              ) : (
+                <div className="w-18 h-18 rounded-full bg-orange-50 text-[#FF6A39] flex items-center justify-center">
+                  <Music className="w-8 h-8 stroke-[2]" />
+                </div>
+              )}
+            </div>
 
             <span className="mt-6 inline-flex items-center rounded-full bg-[#FFF0E6] px-3.5 py-1 text-[11px] font-bold tracking-[0.06em] text-[#E8722A]">
               {formatListenBadge(track.duration)}
@@ -106,12 +116,21 @@ export default function ListenPlayerScreen({
           </button>
 
           <div className="flex flex-col items-center text-center">
-            <ListenCover
-              illustration={track.coverIllustration}
-              coverImage={track.coverImage}
-              size="lg"
-              title={track.title}
-            />
+            <div className="w-56 h-56 sm:w-64 sm:h-64 rounded-[28px] sm:rounded-[32px] bg-white border border-slate-100 shadow-[0_16px_40px_rgba(40,30,20,0.06)] flex items-center justify-center">
+              {track.title === "The Budding of Consciousness" ? (
+                <div className="w-full h-full flex items-center justify-center p-8">
+                  <img
+                    src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786539260/Warm_Fireplace_Crackle_z9p7sb.png"
+                    alt={track.title}
+                    className="w-[180px] h-[180px] object-contain select-none pointer-events-none"
+                  />
+                </div>
+              ) : (
+                <div className="w-18 h-18 rounded-full bg-orange-50 text-[#FF6A39] flex items-center justify-center">
+                  <Music className="w-8 h-8 stroke-[2]" />
+                </div>
+              )}
+            </div>
 
             <span className="mt-7 inline-flex items-center rounded-full bg-[#FFF0E6] px-3.5 py-1 text-[11px] font-bold tracking-[0.06em] text-[#E8722A]">
               {formatListenBadge(track.duration)}

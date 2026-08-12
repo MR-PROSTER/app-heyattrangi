@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Lock, Play } from 'lucide-react';
 import { useListenPlayer } from '@/components/patient/library/explore/listen/ListenPlayerContext';
 import ListenCover from '@/components/patient/library/explore/listen/ListenCover';
@@ -10,8 +11,9 @@ interface AudioTrack extends ListenTrack {
 }
 
 export default function RecommendedAudios() {
+  const router = useRouter();
   const [tracks, setTracks] = useState<AudioTrack[]>([]);
-  const { playTrack, currentTrack, isPlaying } = useListenPlayer();
+  const { currentTrack, isPlaying } = useListenPlayer();
 
   const userHasPremium = false; // Placeholder until authentication is wired.
 
@@ -43,7 +45,10 @@ export default function RecommendedAudios() {
         return (
           <div
             key={track.id}
-            onClick={() => playTrack(track)}
+            onClick={() => {
+              if (track.isPremium && !userHasPremium) return;
+              router.push(`/listen/${track.id}`);
+            }}
             className="group relative cursor-pointer rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all overflow-hidden p-4 flex items-center gap-4"
           >
             <div className="relative shrink-0">

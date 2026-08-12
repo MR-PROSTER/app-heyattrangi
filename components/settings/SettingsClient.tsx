@@ -147,19 +147,6 @@ export default function SettingsClient({ user }: SettingsClientProps) {
           </div>
           <ChevronRight className="w-[18px] h-[18px] min-[360px]:w-5 min-[360px]:h-5 text-zinc-400 group-hover:translate-x-0.5 transition-transform" />
         </Link>
-
-        <Link
-          href="/dashboard/settings/language"
-          className="flex items-center justify-between p-3 min-[360px]:p-4 hover:bg-zinc-50/80 transition-all group"
-        >
-          <div className="flex items-center">
-            <div className="w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 rounded-[12px] min-[360px]:rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center">
-              <Globe className="w-[18px] h-[18px] min-[360px]:w-5 min-[360px]:h-5" />
-            </div>
-            <span className="text-[clamp(13.5px,4.0vw,15px)] font-bold text-zinc-800 ml-3 min-[360px]:ml-4">Language</span>
-          </div>
-          <ChevronRight className="w-[18px] h-[18px] min-[360px]:w-5 min-[360px]:h-5 text-zinc-400 group-hover:translate-x-0.5 transition-transform" />
-        </Link>
       </div>
 
       {/* Group 2: Privacy / Biometrics commented out per user request */}

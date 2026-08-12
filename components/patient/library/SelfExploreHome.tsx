@@ -147,7 +147,6 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
   }
 
   const handleSelectTrack = (track: ListenTrack) => {
-    playTrack(track)
     openListenTrack(track.slug)
   }
 

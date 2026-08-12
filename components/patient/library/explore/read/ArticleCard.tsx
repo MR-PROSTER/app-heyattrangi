@@ -163,6 +163,14 @@ function getDeterministicCardStyle(index: number) {
   }
 }
 
+const ARTICLE_IMAGES: Record<string, string> = {
+  "why-your-breath-is-the-fastest-way-to-feel-calmer": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786528343/Why_Your_Breath_Is_the_Fastest_Way_to_Feel_Calmer_l5sdrf.png",
+  "what-exam-season-actually-does-to-your-body": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786528343/What_Exam_Season_Actually_Does_to_Your_Body_vqsyuw.png",
+  "homesick-isnt-small": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786528344/Homesick_Isn_t_Small_aebsev.png",
+  "what-just-one-more-hour-costs-you": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786528343/Why_Just_One_More_Hour_Costs_You_More_Than_Sleep_daaafr.png",
+  "the-thoughts-that-loop-at-2am": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786528345/The_Thoughts_That_Loop_at_2_AM_jwfrhj.png"
+}
+
 export default function ArticleCard({
   article,
   onSelect,
@@ -186,12 +194,12 @@ export default function ArticleCard({
         ]
           .filter(Boolean)
           .join(", ")}
-        className={`group flex w-full items-center gap-4 text-left p-3.5 rounded-[22px] bg-white border border-slate-100/90 shadow-[0_6px_20px_rgba(40,30,20,0.03)] transition-all hover:translate-y-[-1px] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] ${className}`}
+        className={`group flex w-full items-center gap-4 text-left p-3.5 rounded-[22px] bg-white border border-slate-100/90 shadow-[0_6px_20px_rgba(40,30,20,0.03)] transition-all hover:translate-y-[-1px] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${className}`}
       >
         <div className="w-16 shrink-0">
           <ArticleCover
             illustration={article.cover}
-            coverImage={article.coverImage}
+            coverImage={ARTICLE_IMAGES[article.id] || article.coverImage}
             title={article.title}
           />
         </div>
@@ -220,6 +228,7 @@ export default function ArticleCard({
   }
 
   const style = getDeterministicCardStyle(index)
+  const customImg = ARTICLE_IMAGES[article.id]
 
   return (
     <button
@@ -258,10 +267,18 @@ export default function ArticleCard({
       {/* Bottom Circle with category illustration inside */}
       <div 
         style={{ backgroundColor: style.circleBg }}
-        className="absolute -bottom-16 min-[360px]:-bottom-18 min-[390px]:-bottom-20 left-1/2 -translate-x-1/2 w-34 h-34 min-[360px]:w-40 min-[360px]:h-40 min-[390px]:w-44 min-[390px]:h-44 rounded-full flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105"
+        className="absolute left-1/2 -translate-x-1/2 rounded-full flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105 w-[220px] h-[220px] -bottom-[110px] min-[360px]:w-[250px] min-[360px]:h-[250px] min-[360px]:-bottom-[125px] min-[390px]:w-[280px] min-[390px]:h-[280px] min-[390px]:-bottom-[140px]"
       >
-        <div className="mb-13 min-[360px]:mb-16 min-[390px]:mb-18 flex items-center justify-center">
-          {renderIllustrationIcon(article.cover, "w-8 h-8 min-[360px]:w-10 min-[360px]:h-10 min-[390px]:w-11 min-[390px]:h-11")}
+        <div className="mb-18 -translate-y-[20px] min-[360px]:-translate-y-[24px] min-[390px]:-translate-y-[30px] md:-translate-y-[25px]">
+          {customImg ? (
+            <img
+              src={customImg}
+              alt={article.title}
+              className="w-[150px] h-[150px] min-[360px]:w-[175px] min-[360px]:h-[175px] min-[390px]:w-[195px] min-[390px]:h-[195px] object-contain select-none pointer-events-none"
+            />
+          ) : (
+            renderIllustrationIcon(article.cover, "w-[150px] h-[150px] min-[360px]:w-[175px] min-[360px]:h-[175px] min-[390px]:w-[195px] min-[390px]:h-[195px]")
+          )}
         </div>
       </div>
     </button>
