@@ -972,11 +972,11 @@ export default function TryPragyaChat({
                                                 onClick={() => {
                                                     if (selectedMode !== "think") setSelectedMode("think");
                                                 }}
-                                                className={`absolute top-0 left-[-20px] bg-white rounded-full px-5 py-3 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "think" ? "border border-[#004f69]/20 shadow-md" : ""}`}
+                                                className={`absolute top-0 left-[-10px] rounded-full px-5 py-3 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "think" ? "bg-[#004f69] text-white" : "bg-white text-[#004f69]"}`}
                                             >
-                                                <span className="text-[#004f69]">Help Me Think</span>
+                                                <span>Help Me Think</span>
                                                 {/* Tail pointing bottom-right */}
-                                                <div className="absolute right-5 -bottom-1.5 w-3 h-3 bg-white rotate-45 rounded-[2px]" style={{ boxShadow: "1px 1px 1px rgba(0,0,0,0.02)" }}></div>
+                                                <div className={`absolute right-5 -bottom-1.5 w-3 h-3 rotate-45 rounded-[2px] ${selectedMode === "think" ? "bg-[#004f69]" : "bg-white"}`} style={{ boxShadow: selectedMode === "think" ? "none" : "1px 1px 1px rgba(0,0,0,0.02)" }}></div>
                                             </button>
 
                                             {/* Answer Directly - Top Right */}
@@ -984,35 +984,35 @@ export default function TryPragyaChat({
                                                 onClick={() => {
                                                     if (selectedMode !== "direct") setSelectedMode("direct");
                                                 }}
-                                                className={`absolute top-6 right-[-30px] bg-white rounded-full px-5 py-3 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "direct" ? "border border-[#004f69]/20 shadow-md" : ""}`}
+                                                className={`absolute top-3 right-[-10px] rounded-full px-5 py-3 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "direct" ? "bg-[#004f69] text-white" : "bg-white text-[#004f69]"}`}
                                             >
-                                                <span className="text-[#004f69]">Answer Directly</span>
+                                                <span>Answer Directly</span>
                                                 {/* Tail pointing bottom-left */}
-                                                <div className="absolute left-6 -bottom-1.5 w-3 h-3 bg-white rotate-45 rounded-[2px]" style={{ boxShadow: "1px 1px 1px rgba(0,0,0,0.02)" }}></div>
+                                                <div className={`absolute left-6 -bottom-1.5 w-3 h-3 rotate-45 rounded-[2px] ${selectedMode === "direct" ? "bg-[#004f69]" : "bg-white"}`} style={{ boxShadow: selectedMode === "direct" ? "none" : "-1px 1px 1px rgba(0,0,0,0.02)" }}></div>
                                             </button>
 
-                                            {/* Just Listen - Bottom Left */}
+                                            {/* Just Listen - Top Left (Lower) */}
                                             <button
                                                 onClick={() => {
                                                     if (selectedMode !== "listen") setSelectedMode("listen");
                                                 }}
-                                                className={`absolute bottom-6 left-[-10px] bg-white rounded-full px-5 py-3 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "listen" ? "border border-[#004f69]/20 shadow-md" : ""}`}
+                                                className={`absolute top-[75px] left-[-30px] rounded-full px-5 py-3 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "listen" ? "bg-[#004f69] text-white" : "bg-white text-[#004f69]"}`}
                                             >
-                                                <span className="text-[#004f69]">Just Listen</span>
-                                                {/* Tail pointing top-right */}
-                                                <div className="absolute right-5 -top-1.5 w-3 h-3 bg-white rotate-45 rounded-[2px]" style={{ boxShadow: "-1px -1px 1px rgba(0,0,0,0.02)" }}></div>
+                                                <span>Just Listen</span>
+                                                {/* Tail pointing bottom-right */}
+                                                <div className={`absolute right-5 -bottom-1.5 w-3 h-3 rotate-45 rounded-[2px] ${selectedMode === "listen" ? "bg-[#004f69]" : "bg-white"}`} style={{ boxShadow: selectedMode === "listen" ? "none" : "1px 1px 1px rgba(0,0,0,0.02)" }}></div>
                                             </button>
 
-                                            {/* Reflect - Bottom Right */}
+                                            {/* Reflect - Top Right (Lower) */}
                                             <button
                                                 onClick={() => {
                                                     if (selectedMode !== "reflect") setSelectedMode("reflect");
                                                 }}
-                                                className={`absolute bottom-[20%] right-[-10px] bg-white rounded-full px-5 py-3 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "reflect" ? "border border-[#004f69]/20 shadow-md" : ""}`}
+                                                className={`absolute top-[85px] right-[-30px] rounded-full px-5 py-3 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "reflect" ? "bg-[#004f69] text-white" : "bg-white text-[#004f69]"}`}
                                             >
-                                                <span className="text-[#004f69]">Reflect</span>
-                                                {/* Tail pointing top-left */}
-                                                <div className="absolute left-5 -top-1.5 w-3 h-3 bg-white rotate-45 rounded-[2px]" style={{ boxShadow: "-1px -1px 1px rgba(0,0,0,0.02)" }}></div>
+                                                <span>Reflect</span>
+                                                {/* Tail pointing bottom-left */}
+                                                <div className={`absolute left-5 -bottom-1.5 w-3 h-3 rotate-45 rounded-[2px] ${selectedMode === "reflect" ? "bg-[#004f69]" : "bg-white"}`} style={{ boxShadow: selectedMode === "reflect" ? "none" : "-1px 1px 1px rgba(0,0,0,0.02)" }}></div>
                                             </button>
                                         </>
                                     )}
@@ -1102,7 +1102,7 @@ export default function TryPragyaChat({
                                                         ))}
                                                     </div>
                                                 )}
-                                                {(msg.action?.type === "ATTENTION_ASSESSMENT" || msg.action?.type === "ASSESSMENT") && (!isTyping || idx < messages.length - 1) && (
+                                                {(msg.action?.type === "ATTENTION_ASSESSMENT" || msg.action?.type === "ASSESSMENT" || (msg.action?.type === "ACTIVITY" && !isCrisis)) && (!isTyping || idx < messages.length - 1) && (
                                                     <div className="mt-4 p-5 rounded-[24px] rounded-tl-sm bg-white/30 backdrop-blur-md border border-white/40 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500 text-[#004f69] font-sans shadow-sm">
                                                         <div className="flex items-start gap-4">
                                                             <div className="w-10 h-10 rounded-full bg-white/50 text-[#FF6812] flex items-center justify-center shrink-0 mt-0.5">
@@ -1122,7 +1122,7 @@ export default function TryPragyaChat({
                                                                     </span>
                                                                 </div>
                                                                 <p className="text-[13px] text-[#004f69]/80 font-medium leading-relaxed">
-                                                                    {(msg.action as any).rationale || "Based on your discussion, a structured evaluation is recommended."}
+                                                                    {(msg.action as any).rationale || (msg.action.type === "ACTIVITY" ? "We recommend trying this activity based on your thoughts." : "Based on your discussion, a structured evaluation is recommended.")}
                                                                 </p>
                                                                 <p className="text-[11px] text-[#004f69]/60 font-medium">
                                                                     Selection Confidence: {Math.round(((msg.action as any).confidence || 0.70) * 100)}%
@@ -1133,7 +1133,7 @@ export default function TryPragyaChat({
                                                             href={isGuestSession ? `/auth/signin?callbackUrl=${encodeURIComponent(msg.action.url)}` : msg.action.url}
                                                             className="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-[12px] font-black tracking-widest uppercase transition-all shadow-md hover:shadow-orange-500/20 whitespace-nowrap text-center self-stretch md:self-center flex items-center justify-center"
                                                         >
-                                                            Start Recommended Task
+                                                            {msg.action.type === "ACTIVITY" ? "Start Activity" : "Start Recommended Task"}
                                                         </Link>
                                                     </div>
                                                 )}
