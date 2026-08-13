@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { Source_Serif_4 } from "next/font/google"
 import { motion } from "framer-motion"
 import type { ReadArticle, ReadArticleCategory } from "@/data/readArticles"
@@ -31,6 +31,20 @@ export default function ReadModePanel({
   onSelectArticle,
 }: ReadModePanelProps) {
   const [filter, setFilter] = useState<FilterKey>("All")
+  const [activeCardId, setActiveCardId] = useState<string | null>(null)
+
+  useEffect(() => {
+    return () => {
+      setActiveCardId(null)
+    }
+  }, [])
+
+  const handleCardSelect = (article: ReadArticle) => {
+    setActiveCardId(article.id)
+    setTimeout(() => {
+      onSelectArticle?.(article)
+    }, 480)
+  }
 
   const chips: FilterKey[] = useMemo(() => ["All", ...READ_CATEGORIES], [])
 
@@ -69,23 +83,43 @@ export default function ReadModePanel({
   return (
     <div className="animate-in fade-in duration-200">
       {/* —— Mobile: Overlapping 3D card deck layout matching ActivityGrid —— */}
-      <div className="flex md:hidden flex-col -space-y-[22px] min-[360px]:-space-y-[27px] min-[390px]:-space-y-8 pt-4 pb-20">
-        {ordered.map((article, index) => (
-          <motion.div
-            key={article.id}
-            style={{ zIndex: index + 1 }}
-            whileHover={{ y: -16, scale: 1.02, zIndex: 50 }}
-            whileTap={{ y: -24, scale: 0.97, zIndex: 100 }}
-            transition={{ type: "spring", stiffness: 350, damping: 20 }}
-            className="w-full relative cursor-pointer"
-          >
-            <ArticleCard
-              article={article}
-              onSelect={onSelectArticle}
-              index={index}
-            />
-          </motion.div>
-        ))}
+      <div className="flex md:hidden flex-col -space-y-[32px] min-[360px]:-space-y-[38px] min-[390px]:-space-y-[45px] pt-4 pb-20">
+        {ordered.map((article, index) => {
+          const isSelected = activeCardId === article.id
+          const isAnySelected = activeCardId !== null
+          const isOthersSelected = isAnySelected && !isSelected
+
+          return (
+            <motion.div
+              key={article.id}
+              style={{ zIndex: isSelected ? 500 : index + 1 }}
+              animate={
+                isSelected
+                  ? { y: -65, scale: 1.05, opacity: 1 }
+                  : isOthersSelected
+                    ? { y: 15, scale: 0.95, opacity: 0.1 }
+                    : { y: 0, scale: 1, opacity: 1 }
+              }
+              whileHover={activeCardId ? undefined : { y: -16, scale: 1.02, zIndex: 50 }}
+              whileTap={activeCardId ? undefined : { y: -24, scale: 0.97, zIndex: 100 }}
+              transition={{
+                type: "tween",
+                duration: isSelected ? 0.45 : 0.25,
+                ease: isSelected ? [0.25, 1, 0.5, 1] : "easeOut",
+              }}
+              className="w-full relative cursor-pointer"
+            >
+              <ArticleCard
+                article={article}
+                onSelect={handleCardSelect}
+                index={index}
+                isSelected={isSelected}
+                isMobileStack
+                className={isSelected ? "pointer-events-none" : ""}
+              />
+            </motion.div>
+          )
+        })}
       </div>
 
       {/* —— Desktop: cover grid —— */}

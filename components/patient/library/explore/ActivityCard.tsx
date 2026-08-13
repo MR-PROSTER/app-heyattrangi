@@ -14,6 +14,7 @@ interface ActivityCardProps {
   className?: string
   isMobileStack?: boolean
   index?: number
+  isSelected?: boolean
 }
 
 function CuteCharacter({ id, className = "w-40 h-40" }: { id: string; className?: string }) {
@@ -173,13 +174,13 @@ const ICON_PATHS: Record<string, string> = {
   moon: "M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z",
 }
 
-/** Reusable Explore activity card — keyboard accessible, hover elevation. */
 function ActivityCard({
   activity,
   onSelect,
   className = "",
   isMobileStack = false,
   index = 0,
+  isSelected = false,
 }: ActivityCardProps) {
   const style = getDeterministicCardStyle(index)
 
@@ -193,8 +194,19 @@ function ActivityCard({
           backgroundColor: style.bg,
           borderColor: style.border,
           color: style.text,
+          transform: isSelected
+            ? "perspective(800px) rotateX(0deg)"
+            : "perspective(800px) rotateX(-15deg)",
+          transformOrigin: "top center",
+          boxShadow: isSelected
+            ? `0 25px 55px ${style.border}cc, 0 20px 50px rgba(0, 0, 0, 0.18)`
+            : undefined,
         }}
-        className={`relative flex flex-col h-[155px] min-[360px]:h-[175px] min-[390px]:h-[200px] w-full text-left rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] border transition-all duration-300 overflow-hidden active:shadow-[0_16px_32px_rgba(0,0,0,0.12)] ${className}`}
+        className={`relative flex flex-col h-[155px] min-[360px]:h-[175px] min-[390px]:h-[200px] w-full text-left rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 border transition-all duration-300 overflow-hidden active:shadow-[0_16px_32px_rgba(0,0,0,0.12)] ${
+          isSelected
+            ? "z-50"
+            : "shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+        } ${className}`}
       >
         <span className="absolute inset-0 bg-white/20 opacity-0 active:opacity-100 transition-opacity duration-75 pointer-events-none rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] z-20" />
 

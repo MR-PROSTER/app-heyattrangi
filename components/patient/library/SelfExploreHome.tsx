@@ -75,6 +75,7 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
   const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [dbListenTracks, setDbListenTracks] = useState<ListenTrack[]>([])
+  const [activeCategoryName, setActiveCategoryName] = useState<string | null>(null)
 
   const firstName = session?.user?.name?.trim().split(/\s+/)[0] || "there"
   const isShelfMode = mode === "read" || mode === "listen"
@@ -152,38 +153,45 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
 
   const handleTabChange = (tab: ExploreMode) => {
     setMode(tab)
+    setActiveCategoryName(null)
   }
 
   return (
     <div className="space-y-4 min-[360px]:space-y-5 min-[390px]:space-y-6 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 w-full pb-28">
       {/* Mobile Title Header (image-1 design) */}
-      <div className="md:hidden pt-3 min-[360px]:pt-4 pb-1">
-        <h1 className="text-[26px] min-[360px]:text-[29px] min-[390px]:text-[32px] font-black text-slate-900 tracking-tight">
-          Explore
-        </h1>
-      </div>
-
-      {/* Default / desktop Explore header */}
-      <div
-        className={`flex items-start justify-between gap-4 ${
-          isShelfMode ? "hidden md:flex" : "hidden md:flex"
-        }`}
-      >
-        <div className="min-w-0">
-          <h1 className="font-extrabold text-[28px] md:text-[32px] text-slate-800 tracking-tight">
+      {!activeCategoryName && (
+        <div className="md:hidden pt-3 min-[360px]:pt-4 pb-1">
+          <h1 className="text-[26px] min-[360px]:text-[29px] min-[390px]:text-[32px] font-black text-slate-900 tracking-tight">
             Explore
           </h1>
-          <p className="mt-1.5 text-slate-500 font-medium text-sm md:text-[15px] leading-relaxed max-w-md">
-            Small things that might help, whenever you need them.
-          </p>
         </div>
-      </div>
+      )}
 
-      <ExploreTabSwitcher
-        value={mode}
-        onChange={handleTabChange}
-        hiddenTabs={hiddenTabs}
-      />
+      {/* Default / desktop Explore header */}
+      {!activeCategoryName && (
+        <div
+          className={`flex items-start justify-between gap-4 ${
+            isShelfMode ? "hidden md:flex" : "hidden md:flex"
+          }`}
+        >
+          <div className="min-w-0">
+            <h1 className="font-extrabold text-[28px] md:text-[32px] text-slate-800 tracking-tight">
+              Explore
+            </h1>
+            <p className="mt-1.5 text-slate-500 font-medium text-sm md:text-[15px] leading-relaxed max-w-md">
+              Small things that might help, whenever you need them.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {!activeCategoryName && (
+        <ExploreTabSwitcher
+          value={mode}
+          onChange={handleTabChange}
+          hiddenTabs={hiddenTabs}
+        />
+      )}
 
       <ExploreErrorBoundary
         title="This section couldn’t load"
@@ -210,7 +218,10 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
 
         {mode === "listen" && (
           <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200">
-            <ListenTabPanel initialTracks={listenTracks} />
+            <ListenTabPanel
+              initialTracks={listenTracks}
+              onCategorySelect={setActiveCategoryName}
+            />
           </div>
         )}
 
