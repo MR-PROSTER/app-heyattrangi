@@ -229,20 +229,20 @@ export default function SubscriptionSettings({ user, isTestMode = false }: Subsc
       {/* Parent Card Container */}
       <div className="bg-white rounded-[24px] shadow-[0_2px_20px_-5px_rgba(0,0,0,0.05)] border border-gray-100 overflow-visible w-full mt-0">
         {/* Header & Toggle Switch inside the card */}
-        <div className="p-8 border-b border-gray-50 flex flex-col items-center text-center">
-          <h2 className="text-3xl font-black text-gray-900 mb-2">Compare plans</h2>
-          <p className="text-sm text-gray-500 mb-6 font-medium">
+        <div className="p-[clamp(18px,5vw,32px)] border-b border-gray-50 flex flex-col items-center text-center">
+          <h2 className="text-[clamp(26px,7.5vw,30px)] font-black text-gray-900 mb-2 leading-tight tracking-tight whitespace-nowrap">Compare plans</h2>
+          <p className="text-[clamp(13px,3.5vw,14px)] text-gray-500 mb-[clamp(16px,4.8vw,24px)] font-medium leading-normal">
             Need more details before choosing?{" "}
             <a href="/pricing" className="font-extrabold text-gray-900 hover:underline">
               See feature breakdown &darr;
             </a>
           </p>
-
+ 
           {/* Toggle Switch */}
-          <div className="inline-flex items-center gap-1 bg-zinc-100 p-1.5 rounded-full border border-zinc-200">
+          <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-full border border-zinc-200 w-full max-w-[340px]">
             <button
               onClick={() => setIsMonthly(true)}
-              className={`px-6 py-2 rounded-full font-bold text-xs transition-all duration-300 ${
+              className={`flex-1 px-[clamp(12px,3.2vw,24px)] py-2.5 rounded-full font-bold text-[clamp(10px,2.8vw,12px)] transition-all duration-300 whitespace-nowrap cursor-pointer ${
                 isMonthly ? "bg-white text-[#0c1421] shadow-sm" : "text-gray-500 hover:text-[#0c1421]"
               }`}
             >
@@ -250,7 +250,7 @@ export default function SubscriptionSettings({ user, isTestMode = false }: Subsc
             </button>
             <button
               onClick={() => setIsMonthly(false)}
-              className={`px-6 py-2 rounded-full font-bold text-xs transition-all duration-300 ${
+              className={`flex-1 px-[clamp(12px,3.2vw,24px)] py-2.5 rounded-full font-bold text-[clamp(10px,2.8vw,12px)] transition-all duration-300 whitespace-nowrap cursor-pointer ${
                 !isMonthly ? "bg-white text-[#0c1421] shadow-sm" : "text-gray-500 hover:text-[#0c1421]"
               }`}
             >
@@ -258,12 +258,12 @@ export default function SubscriptionSettings({ user, isTestMode = false }: Subsc
             </button>
           </div>
         </div>
-
+ 
         {/* Plan Columns Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-gray-100 w-full items-stretch">
           
           {/* Listener Column */}
-          <div className="p-6 xl:p-8 flex flex-col hover:bg-gray-50/20 transition-colors">
+          <div className="p-[clamp(18px,5vw,24px)] xl:p-8 flex flex-col hover:bg-gray-50/20 transition-colors">
             <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
               <span className="text-xl">🎧</span> Listener
             </h3>
@@ -276,26 +276,26 @@ export default function SubscriptionSettings({ user, isTestMode = false }: Subsc
                 SAVE 67%
               </span>
             </div>
-
+ 
             <div className="flex items-baseline mb-1.5">
-              <span className="text-5xl font-black tracking-tight text-gray-900">
+              <span className="text-[clamp(40px,11vw,48px)] font-black tracking-tight text-gray-900">
                 {isMonthly ? "₹49" : "₹299"}
               </span>
-              <span className="text-sm text-gray-500 font-bold ml-1">
+              <span className="text-[clamp(12px,3.2vw,14px)] text-gray-500 font-bold ml-1">
                 {isMonthly ? "/mo" : "/6mo"}
               </span>
             </div>
-
+ 
             <p className="text-xs font-black text-orange-500 mb-6">
               {isMonthly ? "or ₹299/6 months" : "or ₹49/month"}
             </p>
-
+ 
             <p className="text-xs text-gray-600 mb-8 min-h-[48px] leading-relaxed">
               Daily check-ins, basic mood tracking, and limited voice conversations.
             </p>
-
+ 
             <div className="border-t border-gray-100 my-6"></div>
-
+ 
             {/* Features */}
             <div className="space-y-4 mb-8 text-xs">
               <div className="flex justify-between items-center">
@@ -311,7 +311,7 @@ export default function SubscriptionSettings({ user, isTestMode = false }: Subsc
                 <span className="font-extrabold text-gray-900">7-Day</span>
               </div>
             </div>
-
+ 
             {/* Action button */}
             <div className="mt-auto">
               {(() => {
@@ -338,18 +338,18 @@ export default function SubscriptionSettings({ user, isTestMode = false }: Subsc
               </div>
             </div>
           </div>
-
+ 
           {/* Companion Column (Recommended) */}
-          <div className="p-6 xl:p-8 flex flex-col hover:bg-gray-50/20 transition-colors relative border-2 border-orange-500 rounded-[24px] shadow-sm bg-white mt-6 lg:mt-0 lg:-mt-[6px] lg:-mb-[6px] lg:-my-8 lg:py-10 z-10">
+          <div className="p-[clamp(18px,5vw,24px)] xl:p-8 flex flex-col hover:bg-gray-50/20 transition-colors relative border-2 border-orange-500 rounded-[24px] shadow-sm bg-white mt-4 min-[360px]:mt-6 lg:mt-0 lg:-mt-[6px] lg:-mb-[6px] lg:-my-8 lg:py-10 z-10">
             <div className="absolute top-[-14px] left-1/2 -translate-x-1/2 bg-orange-50 border border-orange-200 text-orange-600 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm z-20 whitespace-nowrap flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
               RECOMMENDED
             </div>
-
+ 
             <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
               <span className="text-xl">🤝</span> Companion
             </h3>
-
+ 
             <div className="flex items-center gap-2 mb-1.5">
               <span className="text-xs line-through text-gray-400 font-bold">
                 {isMonthly ? "₹599" : "₹2799"}
@@ -358,26 +358,26 @@ export default function SubscriptionSettings({ user, isTestMode = false }: Subsc
                 SAVE 75%
               </span>
             </div>
-
+ 
             <div className="flex items-baseline mb-1.5">
-              <span className="text-5xl font-black tracking-tight text-gray-900">
+              <span className="text-[clamp(40px,11vw,48px)] font-black tracking-tight text-gray-900">
                 {isMonthly ? "₹149" : "₹699"}
               </span>
-              <span className="text-sm text-gray-500 font-bold ml-1">
+              <span className="text-[clamp(12px,3.2vw,14px)] text-gray-500 font-bold ml-1">
                 {isMonthly ? "/mo" : "/6mo"}
               </span>
             </div>
-
+ 
             <p className="text-xs text-gray-500 font-medium mb-6">
               {isMonthly ? "or ₹699/6 months" : "or ₹149/month"}
             </p>
-
+ 
             <p className="text-xs text-gray-600 mb-8 min-h-[48px] leading-relaxed">
               Unlimited AI support, real-time insights, and long-term memory.
             </p>
-
+ 
             <div className="border-t border-gray-100 my-6"></div>
-
+ 
             {/* Features */}
             <div className="space-y-4 mb-8 text-xs">
               <div className="flex justify-between items-center">
@@ -393,7 +393,7 @@ export default function SubscriptionSettings({ user, isTestMode = false }: Subsc
                 <span className="font-extrabold text-gray-900">Long-Term</span>
               </div>
             </div>
-
+ 
             {/* Action button */}
             <div className="mt-auto">
               {(() => {
@@ -412,7 +412,7 @@ export default function SubscriptionSettings({ user, isTestMode = false }: Subsc
                   </button>
                 )
               })()}
-
+ 
               <div className="text-center mt-3">
                 <a href="/pricing" className="text-[10px] font-black text-gray-400 hover:text-gray-600">
                   View Premium pricing &rsaquo;
@@ -420,27 +420,27 @@ export default function SubscriptionSettings({ user, isTestMode = false }: Subsc
               </div>
             </div>
           </div>
-
+ 
           {/* Organization Column */}
-          <div className="p-6 xl:p-8 flex flex-col hover:bg-gray-50/20 transition-colors mt-6 lg:mt-0">
+          <div className="p-[clamp(18px,5vw,24px)] xl:p-8 flex flex-col hover:bg-gray-50/20 transition-colors mt-4 min-[360px]:mt-6 lg:mt-0">
             <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
               <span className="text-xl">🏢</span> Organization
             </h3>
-
+ 
             <div className="flex items-baseline mb-1.5 mt-4">
-              <span className="text-5xl font-black tracking-tight text-gray-900 leading-none">Custom</span>
+              <span className="text-[clamp(40px,11vw,48px)] font-black tracking-tight text-gray-900 leading-none">Custom</span>
             </div>
-
+ 
             <p className="text-xs text-gray-500 font-bold mb-6 mt-2">
               Billed by institution
             </p>
-
+ 
             <p className="text-xs text-gray-600 mb-8 min-h-[48px] leading-relaxed">
               College or corporate plan with organization-managed billing.
             </p>
-
+ 
             <div className="border-t border-gray-100 my-6"></div>
-
+ 
             {/* Features */}
             <div className="space-y-4 mb-8 text-xs">
               <div className="flex justify-between items-center">
@@ -456,7 +456,7 @@ export default function SubscriptionSettings({ user, isTestMode = false }: Subsc
                 <span className="font-extrabold text-gray-900">Centralized</span>
               </div>
             </div>
-
+ 
             {/* Action button */}
             <div className="mt-auto">
               {(() => {
@@ -475,7 +475,7 @@ export default function SubscriptionSettings({ user, isTestMode = false }: Subsc
                   </button>
                 )
               })()}
-
+ 
               <div className="text-center mt-3">
                 <a href="/pricing" className="text-[10px] font-black text-gray-450 hover:text-gray-650">
                   View Org pricing &rsaquo;

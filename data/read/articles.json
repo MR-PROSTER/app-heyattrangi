@@ -11,7 +11,7 @@
     "displayOrder": 1,
     "author": "Hey Attrangi",
     "cover": "pause",
-    "coverImage": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80"
+    "coverImage": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786528343/Why_Your_Breath_Is_the_Fastest_Way_to_Feel_Calmer_l5sdrf.png"
   },
   {
     "id": "what-exam-season-actually-does-to-your-body",
@@ -25,7 +25,7 @@
     "displayOrder": 2,
     "author": "Hey Attrangi",
     "cover": "focus",
-    "coverImage": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80"
+    "coverImage": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786528343/What_Exam_Season_Actually_Does_to_Your_Body_vqsyuw.png"
   },
   {
     "id": "what-just-one-more-hour-costs-you",
@@ -39,7 +39,7 @@
     "displayOrder": 3,
     "author": "Hey Attrangi",
     "cover": "moon",
-    "coverImage": "https://images.unsplash.com/photo-1507400492013-162706c8c05e?auto=format&fit=crop&w=600&q=80"
+    "coverImage": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786528343/Why_Just_One_More_Hour_Costs_You_More_Than_Sleep_daaafr.png"
   },
   {
     "id": "homesick-isnt-small",
@@ -53,7 +53,7 @@
     "displayOrder": 4,
     "author": "Hey Attrangi",
     "cover": "heart",
-    "coverImage": "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=600&q=80"
+    "coverImage": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786528344/Homesick_Isn_t_Small_aebsev.png"
   },
   {
     "id": "the-thoughts-that-loop-at-2am",
@@ -67,6 +67,6 @@
     "displayOrder": 5,
     "author": "Hey Attrangi",
     "cover": "rest",
-    "coverImage": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=600&q=80"
+    "coverImage": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786528345/The_Thoughts_That_Loop_at_2_AM_jwfrhj.png"
   }
 ]

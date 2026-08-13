@@ -73,8 +73,8 @@ export default function PatientMessagesPage() {
 
          {/* 1. Left Sidebar: Contacts List */}
          <aside className="w-[320px] border-r border-gray-100 flex flex-col shrink-0">
-            <div className="p-8 flex items-center justify-between">
-               <h1 className="text-2xl font-bold tracking-tight">Messages</h1>
+            <div className="p-8 pt-14 md:pt-8 flex items-center justify-between">
+               <h1 className="text-2xl font-bold tracking-tight pl-10 md:pl-0">Messages</h1>
                <button className="text-gray-400 hover:text-gray-600">
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" /></svg>
                </button>

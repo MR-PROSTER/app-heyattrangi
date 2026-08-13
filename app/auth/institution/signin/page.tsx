@@ -121,7 +121,7 @@ export default function InstituteSignInPage() {
         userData.role !== "INSTITUTION_ADMIN" &&
         userData.role !== "ADMIN"
       ) {
-        setError("This email is registered as a patient/therapist account. Please use Patient login.")
+        setError("This email is registered as an individual/therapist account. Please use Individual User login.")
         setIsLoading(false)
         return
       }

@@ -9,18 +9,17 @@ interface SettingsLayoutProps {
   maxWidthClass?: string
 }
 
-/** Off-white page shell for Settings. */
 export default function SettingsLayout({
   title,
   backHref = "/dashboard/settings",
   children,
-  maxWidthClass = "max-w-lg",
+  maxWidthClass = "max-w-[430px]",
 }: SettingsLayoutProps) {
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-[var(--color-bg)]">
-      <div className={`mx-auto flex w-full min-w-0 flex-1 flex-col min-h-0 h-full ${maxWidthClass}`}>
+    <div className="flex min-h-full w-full flex-col bg-[var(--color-bg)]">
+      <div className={`mx-auto flex w-full min-w-0 flex-1 flex-col min-h-0 ${maxWidthClass}`}>
         <SettingsHeader title={title} backHref={backHref} />
-        <div className="flex-1 overflow-y-auto overscroll-contain px-5 pt-1 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
+        <div className="flex-1 px-4 min-[360px]:px-5 pt-1 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
           {children}
         </div>
       </div>

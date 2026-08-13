@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 const TOUCH =
-    "inline-flex min-h-11 min-w-11 items-center justify-center rounded-full " +
+    "inline-flex min-h-10 min-w-10 min-[360px]:min-h-11 min-[360px]:min-w-11 items-center justify-center rounded-full " +
     "text-[var(--color-text-primary)] transition-colors duration-150 " +
     "hover:bg-[var(--color-surface)]/80 active:scale-[0.98] " +
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2";
@@ -30,24 +30,24 @@ export default function ProfileHeader({
 
     return (
         <header
-            className="sticky top-0 z-20 grid grid-cols-[2.75rem_1fr_2.75rem] items-center gap-[var(--text-xs)]
-        px-[var(--text-xs)]
+            className="sticky top-0 z-20 flex items-center justify-between gap-2 min-[360px]:gap-3
+        px-2 min-[360px]:px-[var(--text-xs)]
         pt-[max(0.5rem,env(safe-area-inset-top))]
-        pb-[var(--text-xs)]
+        pb-2 min-[360px]:pb-[var(--text-xs)]
         bg-[color-mix(in_srgb,var(--color-bg)_92%,transparent)] backdrop-blur-sm"
         >
             <button type="button" onClick={goBack} aria-label="Go back" className={TOUCH}>
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.25} aria-hidden="true">
+                <svg className="h-[18px] w-[18px] min-[360px]:h-5 min-[360px]:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.25} aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
 
-            <h1 className="self-center text-center text-[var(--text-lg)] font-bold leading-[var(--leading-tight)] tracking-tight text-[var(--color-text-primary)]">
+            <h1 className="min-w-0 flex-1 text-center text-base min-[360px]:text-[var(--text-lg)] font-bold leading-[var(--leading-tight)] tracking-tight text-[var(--color-text-primary)]">
                 {title}
             </h1>
 
             <Link href={settingsHref} aria-label="Open settings" className={TOUCH}>
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                <svg className="h-[18px] w-[18px] min-[360px]:h-5 min-[360px]:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                     <path
                         strokeLinecap="round"
                         strokeLinejoin="round"

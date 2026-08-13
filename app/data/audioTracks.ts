@@ -55,6 +55,7 @@ export function mapAudioTrackToListenTrack(record: PrismaAudioTrack, index: numb
     audioSrc,
     isPremium: record.isPremium ?? false,
     imageUrl: record.imageUrl ?? undefined,
+    coverImage: record.imageUrl ?? undefined,
   };
 }
 

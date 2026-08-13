@@ -28,11 +28,11 @@ async function ProfileContent() {
 
     return (
         <main className="flex h-full min-h-screen w-full flex-col overflow-x-hidden bg-[var(--color-bg)]">
-            <div className="mx-auto flex w-full max-w-lg flex-1 flex-col min-w-0">
+            <div className="mx-auto flex w-full max-w-[430px] flex-1 flex-col min-w-0">
                 <ProfileHeader />
 
-                <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-5 pb-[max(2rem,env(safe-area-inset-bottom))]">
-                    <div className="rounded-[var(--radius-xl)] bg-gradient-to-b from-[var(--color-accent-light)] via-[var(--color-bg)] to-[var(--color-bg)] px-4 pb-6 pt-4">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-4 min-[360px]:px-5 pb-[max(2rem,env(safe-area-inset-bottom))]">
+                    <div className="rounded-[var(--radius-xl)] bg-gradient-to-b from-[var(--color-accent-light)] via-[var(--color-bg)] to-[var(--color-bg)] px-4 pb-5 pt-[14px] min-[360px]:pb-6 min-[360px]:pt-4">
                         <IdentityCard
                             name={user.name || ""}
                             email={user.email}
@@ -42,7 +42,7 @@ async function ProfileContent() {
                             planLabel={planLabel}
                         />
 
-                        <div className="mt-6">
+                        <div className="mt-5 min-[360px]:mt-6">
                             <StreakCard streakDays={streakDays} />
                         </div>
                     </div>

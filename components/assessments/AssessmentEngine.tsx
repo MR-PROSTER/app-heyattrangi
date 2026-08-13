@@ -268,41 +268,40 @@ export default function AssessmentEngine() {
         }
     }
 
-
     return (
         <div className="flex flex-col h-full bg-white w-full max-w-4xl mx-auto rounded-xl overflow-hidden border border-slate-200 shadow-sm">
             {/* Header */}
-            <div className="bg-white border-b border-slate-200 p-4 flex justify-between items-center z-10">
-                <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 relative rounded-full overflow-hidden flex items-center justify-center bg-orange-50/50">
+            <div className="bg-white border-b border-slate-200 p-3 sm:p-4 flex justify-between items-center z-10">
+                <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 relative rounded-full overflow-hidden flex items-center justify-center bg-orange-50/50 flex-shrink-0">
                         <Image src={DEFAULT_AVATAR} alt="Bot" fill className="object-contain p-1" />
                     </div>
                     <div>
-                        <h2 className="font-bold text-slate-800">Assessment Engine</h2>
-                        <p className="text-xs text-slate-500 font-medium">Guided clinical screener</p>
+                        <h2 className="font-bold text-slate-800 text-[17px] sm:text-lg md:text-xl leading-tight">Assessment Engine</h2>
+                        <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">Guided clinical screener</p>
                     </div>
                 </div>
                 <button 
                     onClick={() => router.push('/patient/library')}
-                    className="text-xs font-bold text-slate-500 hover:text-slate-800 uppercase tracking-wider"
+                    className="text-[11px] sm:text-xs font-bold text-slate-500 hover:text-slate-800 uppercase tracking-wider whitespace-nowrap flex-shrink-0 ml-4"
                 >
                     Cancel
                 </button>
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 bg-white relative scroll-smooth">
+            <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 md:p-8 space-y-5 sm:space-y-6 md:space-y-8 bg-white relative scroll-smooth">
                 {chatHistory.map((msg) => (
                     <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         {msg.role === 'bot' && (
-                             <div className="w-10 h-10 relative flex-shrink-0 mr-4 mt-1 bg-orange-50/50 rounded-full">
+                             <div className="w-8 h-8 sm:w-10 sm:h-10 relative flex-shrink-0 mr-2.5 sm:mr-4 mt-1 bg-orange-50/50 rounded-full">
                                  <Image src={DEFAULT_AVATAR} alt="Bot" fill className="object-contain p-1" />
-                             </div>
+                              </div>
                         )}
-                        <div className={`max-w-[85%] md:max-w-[75%] p-5 rounded-2xl leading-relaxed ${
+                        <div className={`w-fit max-w-[85%] md:max-w-[75%] p-3.5 sm:p-5 rounded-2xl leading-normal sm:leading-relaxed ${
                             msg.role === 'user' 
-                                ? 'bg-indigo-600 text-white rounded-tr-sm shadow-sm text-base font-semibold' 
-                                : 'bg-white text-slate-900 border border-slate-100 shadow-md rounded-tl-sm text-xl md:text-2xl font-bold tracking-tight'
+                                ? 'bg-indigo-600 text-white rounded-tr-sm shadow-sm text-sm sm:text-base font-semibold' 
+                                : 'bg-white text-slate-900 border border-slate-100 shadow-md rounded-tl-sm text-lg sm:text-xl md:text-2xl font-bold tracking-tight'
                         }`}>
                             {msg.text}
                         </div>
@@ -311,10 +310,10 @@ export default function AssessmentEngine() {
                 
                 {phase === "calculating" && (
                      <div className="flex justify-start animate-pulse">
-                         <div className="w-10 h-10 relative flex-shrink-0 mr-4 mt-1 bg-orange-50/50 rounded-full">
+                         <div className="w-8 h-8 sm:w-10 sm:h-10 relative flex-shrink-0 mr-2.5 sm:mr-4 mt-1 bg-orange-50/50 rounded-full">
                              <Image src={DEFAULT_AVATAR} alt="Bot" fill className="object-contain p-1" />
                          </div>
-                         <div className="bg-white text-slate-400 p-5 rounded-2xl rounded-tl-sm border border-slate-100 shadow-md text-lg font-medium">
+                         <div className="bg-white text-slate-400 p-3.5 sm:p-5 rounded-2xl rounded-tl-sm border border-slate-100 shadow-md text-base sm:text-lg font-medium">
                              typing...
                          </div>
                      </div>
@@ -324,12 +323,12 @@ export default function AssessmentEngine() {
             </div>
 
             {/* Input / Options Area */}
-            <div className="bg-white border-t border-slate-200 p-4 md:p-6 z-10 min-h-[140px] flex flex-col justify-center">
+            <div className="bg-white border-t border-slate-200 p-4 md:p-6 z-10 min-h-[110px] sm:min-h-[140px] flex flex-col justify-center">
                 {phase === "intro" && (
                     <div className="flex justify-center">
                         <button 
                             onClick={handleStartTriage}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full shadow-md transition-all uppercase tracking-wider text-sm"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full shadow-md transition-all uppercase tracking-wider text-xs sm:text-sm"
                         >
                             Start Assessment
                         </button>
@@ -342,7 +341,7 @@ export default function AssessmentEngine() {
                             <button
                                 key={i}
                                 onClick={() => handleTriageAnswer(opt)}
-                                className="bg-white border-2 border-indigo-100 hover:border-indigo-600 hover:bg-indigo-50 hover:shadow-md text-slate-800 font-bold py-5 px-6 rounded-2xl transition-all text-lg text-left"
+                                className="bg-white border-2 border-indigo-100 hover:border-indigo-600 hover:bg-indigo-50 hover:shadow-md text-slate-800 font-bold py-3.5 px-4 sm:py-5 sm:px-6 rounded-2xl transition-all text-base sm:text-lg text-left"
                             >
                                 {opt.label}
                             </button>
@@ -356,7 +355,7 @@ export default function AssessmentEngine() {
                             <button
                                 key={i}
                                 onClick={() => handleScreenerAnswer(opt)}
-                                className="bg-white border-2 border-indigo-100 hover:border-indigo-600 hover:bg-indigo-50 hover:shadow-md text-slate-800 font-bold py-5 px-6 rounded-2xl transition-all text-lg text-left"
+                                className="bg-white border-2 border-indigo-100 hover:border-indigo-600 hover:bg-indigo-50 hover:shadow-md text-slate-800 font-bold py-3.5 px-4 sm:py-5 sm:px-6 rounded-2xl transition-all text-base sm:text-lg text-left"
                             >
                                 {opt.label}
                             </button>
@@ -368,7 +367,7 @@ export default function AssessmentEngine() {
                     <div className="max-w-2xl mx-auto w-full text-center">
                         <button 
                             onClick={() => router.push('/patient/library')}
-                            className="bg-slate-800 hover:bg-black text-white font-bold py-3 px-8 rounded-full shadow-md transition-all uppercase tracking-wider text-sm"
+                            className="bg-slate-800 hover:bg-black text-white font-bold py-3 px-8 rounded-full shadow-md transition-all uppercase tracking-wider text-xs sm:text-sm"
                         >
                             Return to Library
                         </button>

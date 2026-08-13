@@ -19,7 +19,7 @@ function AttrangiLogo({ className = "" }: { className?: string }) {
 }
 
 function DoorIllustration({ variant }: { variant: "patient" | "institute" }) {
-  const label = variant === "patient" ? "Patient" : "Institute"
+  const label = variant === "patient" ? "Individual" : "Institute"
   const Icon = variant === "patient" ? (
     <svg className="w-10 h-10 text-[#e26843]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6">
       <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -121,7 +121,7 @@ export default function AuthWelcomePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               }
-              title="Patient"
+              title="Individual User"
               description="Decided to show up for a stronger self? Start your personal wellness journey."
               cta="Next"
             />
