@@ -180,74 +180,77 @@ export default function AssessmentPage() {
                                 </div>
                             </div>
 
-                            {/* Mobile Question Card */}
-                            <div className="bg-white rounded-[32px] px-6 pt-10 pb-[64px] shadow-[0_15px_45px_rgba(0,0,0,0.02)] w-full flex flex-col my-4 flex-none h-fit">
-                                <div className="mb-10">
-                                    <h2 className="text-[20px] font-bold text-slate-800 leading-[1.35] text-left">
-                                        {currentQuestion.text}
-                                    </h2>
-                                </div>
+                            {/* Centered Card Wrapper */}
+                            <div className="flex-1 flex flex-col justify-center py-2">
+                                {/* Mobile Question Card */}
+                                <div className="bg-white rounded-[32px] px-6 pt-10 pb-[64px] shadow-[0_15px_45px_rgba(0,0,0,0.02)] w-full flex flex-col flex-none h-fit">
+                                    <div className="mb-10">
+                                        <h2 className="text-[20px] font-bold text-slate-800 leading-[1.35] text-left">
+                                            {currentQuestion.text}
+                                        </h2>
+                                    </div>
 
-                                <div className="mt-4">
-                                    {isSegmentScale ? (
-                                        <>
-                                            {/* Selected Answer Label Above Scale */}
-                                            <div 
-                                                className="text-center font-bold text-[13px] mb-3.5 h-4 transition-colors duration-200" 
-                                                style={{ color: hasSelection ? getLabelColor(selectedIndex) : '#94A3B8' }}
-                                            >
-                                                {hasSelection ? currentQuestion.options[selectedIndex].text : "\u00A0"}
-                                            </div>
+                                    <div className="mt-4">
+                                        {isSegmentScale ? (
+                                            <>
+                                                {/* Selected Answer Label Above Scale */}
+                                                <div 
+                                                    className="text-center font-bold text-[13px] mb-3.5 h-4 transition-colors duration-200" 
+                                                    style={{ color: hasSelection ? getLabelColor(selectedIndex) : '#94A3B8' }}
+                                                >
+                                                    {hasSelection ? currentQuestion.options[selectedIndex].text : "\u00A0"}
+                                                </div>
 
-                                            {/* Segmented scale */}
-                                            <div className={`grid ${getGridColsClass(totalOptions)} gap-[3px] w-full`}>
-                                                {currentQuestion.options.map((opt: any, idx: number) => {
-                                                    const isLit = hasSelection && idx <= selectedIndex
-                                                    const color = isLit ? getProgressiveColor(idx, totalOptions) : "#E9E9EB"
+                                                {/* Segmented scale */}
+                                                <div className={`grid ${getGridColsClass(totalOptions)} gap-[3px] w-full`}>
+                                                    {currentQuestion.options.map((opt: any, idx: number) => {
+                                                        const isLit = hasSelection && idx <= selectedIndex
+                                                        const color = isLit ? getProgressiveColor(idx, totalOptions) : "#E9E9EB"
+                                                        return (
+                                                            <button
+                                                                key={idx}
+                                                                type="button"
+                                                                onClick={() => handleAnswer(opt.value)}
+                                                                className={`h-[34px] w-full ${getSegmentBorderRadius(idx, totalOptions)} transition-all duration-150 ease-out hover:brightness-95 active:scale-[0.96] active:brightness-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500`}
+                                                                style={{ backgroundColor: color }}
+                                                                aria-label={opt.text}
+                                                            />
+                                                        )
+                                                    })}
+                                                </div>
+
+                                                {/* Endpoint labels */}
+                                                <div className="flex justify-between w-full mt-2.5 px-1 text-[11px] font-medium text-slate-450">
+                                                    <span>{currentQuestion.options[0].text}</span>
+                                                    <span>{currentQuestion.options[totalOptions - 1].text}</span>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {currentQuestion.options.map((opt: any, i: number) => {
+                                                    const isSelected = answers[currentQuestionIdx] === opt.value
                                                     return (
                                                         <button
-                                                            key={idx}
-                                                            type="button"
+                                                            key={i}
                                                             onClick={() => handleAnswer(opt.value)}
-                                                            className={`h-[34px] w-full ${getSegmentBorderRadius(idx, totalOptions)} transition-all duration-150 ease-out hover:brightness-95 active:scale-[0.96] active:brightness-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500`}
-                                                            style={{ backgroundColor: color }}
-                                                            aria-label={opt.text}
-                                                        />
+                                                            className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all flex items-center justify-between gap-2.5 group ${isSelected
+                                                                ? "border-indigo-500 bg-indigo-50"
+                                                                : "border-slate-100 hover:border-indigo-200 hover:bg-slate-50"
+                                                                }`}
+                                                        >
+                                                            <span className={`font-semibold text-xs ${isSelected ? "text-indigo-700" : "text-slate-600"} min-w-0 flex-1`}>
+                                                                {opt.text}
+                                                            </span>
+                                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isSelected ? "border-indigo-500 bg-indigo-500" : "border-slate-200 group-hover:border-indigo-300"
+                                                                }`}>
+                                                                {isSelected && <Check className="w-3 h-3 text-white" />}
+                                                            </div>
+                                                        </button>
                                                     )
                                                 })}
                                             </div>
-
-                                            {/* Endpoint labels */}
-                                            <div className="flex justify-between w-full mt-2.5 px-1 text-[11px] font-medium text-slate-450">
-                                                <span>{currentQuestion.options[0].text}</span>
-                                                <span>{currentQuestion.options[totalOptions - 1].text}</span>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            {currentQuestion.options.map((opt: any, i: number) => {
-                                                const isSelected = answers[currentQuestionIdx] === opt.value
-                                                return (
-                                                    <button
-                                                        key={i}
-                                                        onClick={() => handleAnswer(opt.value)}
-                                                        className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all flex items-center justify-between gap-2.5 group ${isSelected
-                                                            ? "border-indigo-500 bg-indigo-50"
-                                                            : "border-slate-100 hover:border-indigo-200 hover:bg-slate-50"
-                                                            }`}
-                                                    >
-                                                        <span className={`font-semibold text-xs ${isSelected ? "text-indigo-700" : "text-slate-600"} min-w-0 flex-1`}>
-                                                            {opt.text}
-                                                        </span>
-                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isSelected ? "border-indigo-500 bg-indigo-500" : "border-slate-200 group-hover:border-indigo-300"
-                                                            }`}>
-                                                            {isSelected && <Check className="w-3 h-3 text-white" />}
-                                                        </div>
-                                                    </button>
-                                                )
-                                            })}
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
