@@ -10,6 +10,8 @@ interface ArticleCardProps {
   /** shelf = category shelf card; grid = default desktop grid card; row = list view row card */
   variant?: "shelf" | "grid" | "row"
   index?: number
+  isSelected?: boolean
+  isMobileStack?: boolean
 }
 
 function renderIllustrationIcon(illustration: ReadCoverIllustration, classNameClass: string = "w-11 h-11") {
@@ -177,6 +179,8 @@ export default function ArticleCard({
   className = "",
   variant = "grid",
   index = 0,
+  isSelected = false,
+  isMobileStack = false,
 }: ArticleCardProps) {
   const readTime =
     article.estimatedReadTime?.trim() || article.readTime?.trim() || ""
@@ -245,8 +249,23 @@ export default function ArticleCard({
         backgroundColor: style.bg,
         borderColor: style.border,
         color: style.text,
+        transform: isMobileStack
+          ? isSelected
+            ? "perspective(800px) rotateX(0deg)"
+            : "perspective(800px) rotateX(-15deg)"
+          : undefined,
+        transformOrigin: isMobileStack ? "top center" : undefined,
+        boxShadow: isMobileStack && isSelected
+          ? `0 25px 55px ${style.border}cc, 0 20px 50px rgba(0, 0, 0, 0.18)`
+          : undefined,
       }}
-      className={`group relative flex flex-col h-[155px] min-[360px]:h-[175px] min-[390px]:h-[200px] w-full text-left rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 shadow-[0_6px_20px_rgba(0,0,0,0.04)] border transition-all duration-300 ease-out overflow-hidden hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 ${className}`}
+      className={`group relative flex flex-col h-[155px] min-[360px]:h-[175px] min-[390px]:h-[200px] w-full text-left rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 border transition-all duration-300 ease-out overflow-hidden active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 ${
+        isMobileStack
+          ? isSelected
+            ? "z-50"
+            : "shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+          : "hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] shadow-[0_6px_20px_rgba(0,0,0,0.04)]"
+      } ${className}`}
     >
       {/* Glow overlay */}
       <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] z-20" />

@@ -29,6 +29,81 @@ const LISTEN_CARD_COLORS = [
   "#F2AAAB", // Soft Red/Pink
 ]
 
+const CALM_TRACK_IMAGES: Record<string, string> = {
+  "The Budding of Consciousness": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599505/The_Budding_of_Consciousness_fcaxbe.png",
+  "Up in the Sky": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599505/Up_in_the_Sky_pg6cxp.png",
+  "Gentle Ambient": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599499/Gentle_Ambient_kk2pg1.png",
+  "First Light": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599496/First_Light-2_cjyt6x.png",
+  "Calm Ambient": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599493/Calm_Ambient_gu1nfj.png",
+}
+
+const COMFORT_TRACK_IMAGES: Record<string, string> = {
+  "Deep Blue": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599495/Deep_Blue-1_yyip1l.png",
+  "The Budding of Consciousness": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599504/The_Budding_of_Consciousness-2_ocfumx.png",
+  "Tender Piano": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599504/Tender_Piano_x2lnvs.png",
+  "First Light": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599497/First_Light-3_ydgtmw.png",
+  "Gentle Emotional Piano": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599499/Gentle_Emotional_Piano_bbkbhw.png",
+  "Calm Piano": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599494/Calm_Piano-1_ljjyyy.png",
+  "Warm Ambient": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599506/Warm_Ambient_q9jw3r.png",
+}
+
+const GROUND_BREATHE_TRACK_IMAGES: Record<string, string> = {
+  "Deep Blue": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599495/Deep_Blue_tdigae.png",
+  "Wind Ambience": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599506/Wind_Ambience_vblqt3.png",
+  "Birds Before Rain": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599493/Birds_Before_Rain_avdsly.png",
+  "River Ambience": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599501/River_Ambience_msfvci.png",
+  "Forest Ambience — Extended": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599498/Forest_Ambience_Extended_mwmguk.png",
+  "Forest Ambience": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599498/Forest_Ambience_wa67uv.png",
+}
+
+const LIFT_MOOD_TRACK_IMAGES: Record<string, string> = {
+  "Sunset Plains": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599503/Sunset_Plains_wkcyzz.png",
+  "First Light": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599496/First_Light-2_cjyt6x.png",
+  "Another August": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599493/Another_August_py8huv.png",
+  "Calm Ambient": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599493/Calm_Ambient-1_igbhzd.png",
+  "Calm Piano": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599494/Calm_Piano_xcd8qr.png",
+}
+
+const REFLECT_TRACK_IMAGES: Record<string, string> = {
+  "The Budding of Consciousness": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599504/The_Budding_of_Consciousness-1_apkxp9.png",
+  "Slow Piano Intermission": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599502/Slow_Piano_Intermission_psbj7a.png",
+  "Quiet Piano": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599500/Quiet_Piano_ot6hyd.png",
+  "Piano Nostalgia": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599500/Piano_Nostalgia_g7kqxt.png",
+  "First Light": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599496/First_Light-1_xrekcz.png",
+  "Contemplation": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599494/Contemplation_wspqni.png",
+}
+
+const SLEEP_WIND_DOWN_TRACK_IMAGES: Record<string, string> = {
+  "Starfield Romance": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599502/Starfield_Romance_mqxrpe.png",
+  "Sleep Music": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599501/Sleep_Music_dkgagt.png",
+  "Strange Reality Warp": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599503/Strange_Reality_Warp_ipeaod.png",
+  "Conscious Swamp": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599494/Conscious_Swamp_rec7wf.png",
+  "Frozen Ocean Trip": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599499/Frozen_Ocean_Trip_tica2c.png",
+  "Dreaming of Leaves": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599495/Dreaming_of_Leaves_c8evcx.png",
+}
+
+const EMOTIONAL_RELEASE_TRACK_IMAGES: Record<string, string> = {
+  "Quiet Piano": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599500/Quiet_Piano_ot6hyd.png",
+  "Piano Nostalgia": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599500/Piano_Nostalgia_g7kqxt.png",
+  "Mystical Piano": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599494/Calm_Piano_xcd8qr.png",
+  "November Reflection": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599499/Frozen_Ocean_Trip_tica2c.png",
+  "First Light": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599496/First_Light-2_cjyt6x.png",
+  "First Night": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599496/First_Light-2_cjyt6x.png",
+  "Gentle Emotional Piano": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599499/Gentle_Emotional_Piano_bbkbhw.png",
+}
+
+const FOCUS_TRACK_IMAGES: Record<string, string> = {
+  "Slow Piano Intermission": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599502/Slow_Piano_Intermission_psbj7a.png",
+  "JRPG Piano": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599504/Tender_Piano_x2lnvs.png",
+  "Contemplation": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599494/Contemplation_wspqni.png",
+  "Lost in Your Eyes": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599502/Starfield_Romance_mqxrpe.png",
+  "Lost in your eyes": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599502/Starfield_Romance_mqxrpe.png",
+  "Love": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599494/Conscious_Swamp_rec7wf.png",
+  "Calm Piano": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599494/Calm_Piano_xcd8qr.png",
+  "Boredom": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599501/Sleep_Music_dkgagt.png",
+  "Night Driving": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599498/Forest_Ambience_Extended_mwmguk.png",
+}
+
 function getDeterministicCardStyle(index: number): CategoryColorTheme {
   const colorIndex = index % LISTEN_CARD_COLORS.length
   const bg = LISTEN_CARD_COLORS[colorIndex]
@@ -220,13 +295,32 @@ function CuteCategoryCharacter({ categoryName, className = "w-40 h-40" }: { cate
 interface ListenTabPanelProps {
   customCdnBase?: string
   initialTracks?: ListenTrack[]
+  onCategorySelect?: (categoryName: string | null) => void
 }
 
-function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelProps) {
+function ListenTabPanel({ customCdnBase, initialTracks = [], onCategorySelect }: ListenTabPanelProps) {
   const router = useRouter()
   const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null)
+  const [activeCardId, setActiveCardId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const { currentTrack, isPlaying, playTrack } = useListenPlayer()
+
+  useEffect(() => {
+    onCategorySelect?.(selectedCategoryName)
+  }, [selectedCategoryName, onCategorySelect])
+
+  useEffect(() => {
+    return () => {
+      setActiveCardId(null)
+    }
+  }, [])
+
+  const handleCategorySelect = (categoryName: string) => {
+    setActiveCardId(categoryName)
+    setTimeout(() => {
+      setSelectedCategoryName(categoryName)
+    }, 480)
+  }
 
   const [tracks, setTracks] = useState<ListenTrack[]>([])
 
@@ -319,7 +413,8 @@ function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelPro
         <div className="flex flex-col gap-2.5">
           <button
             onClick={() => {
-              window.location.href = "/patient/library?mode=listen"
+              setSelectedCategoryName(null)
+              setActiveCardId(null)
             }}
             className="self-start text-[11px] font-black text-slate-500 hover:text-slate-800 transition-colors uppercase tracking-widest flex items-center gap-1.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300"
           >
@@ -383,14 +478,54 @@ function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelPro
                   >
                     {/* Cover Image Container */}
                     <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[24px] bg-white border border-slate-100 shadow-[0_8px_24px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.04] flex items-center justify-center">
-                      {track.title === "The Budding of Consciousness" ? (
-                        <div className="w-full h-full flex items-center justify-center p-4">
-                          <img
-                            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786539260/Warm_Fireplace_Crackle_z9p7sb.png"
-                            alt={track.title}
-                            className="w-[135px] h-[135px] min-[360px]:w-[160px] min-[360px]:h-[160px] min-[390px]:w-[180px] min-[390px]:h-[180px] object-contain select-none pointer-events-none"
-                          />
-                        </div>
+                      {selectedCategoryName === "Calm Down" && CALM_TRACK_IMAGES[track.title] ? (
+                        <img
+                          src={CALM_TRACK_IMAGES[track.title]}
+                          alt={track.title}
+                          className="w-full h-full object-cover select-none pointer-events-none"
+                        />
+                      ) : selectedCategoryName === "Comfort" && COMFORT_TRACK_IMAGES[track.title] ? (
+                        <img
+                          src={COMFORT_TRACK_IMAGES[track.title]}
+                          alt={track.title}
+                          className="w-full h-full object-cover select-none pointer-events-none"
+                        />
+                      ) : selectedCategoryName === "Ground & Breathe" && GROUND_BREATHE_TRACK_IMAGES[track.title] ? (
+                        <img
+                          src={GROUND_BREATHE_TRACK_IMAGES[track.title]}
+                          alt={track.title}
+                          className="w-full h-full object-cover select-none pointer-events-none"
+                        />
+                      ) : selectedCategoryName === "Lift Your Mood" && LIFT_MOOD_TRACK_IMAGES[track.title] ? (
+                        <img
+                          src={LIFT_MOOD_TRACK_IMAGES[track.title]}
+                          alt={track.title}
+                          className="w-full h-full object-cover select-none pointer-events-none"
+                        />
+                      ) : selectedCategoryName === "Reflect" && REFLECT_TRACK_IMAGES[track.title] ? (
+                        <img
+                          src={REFLECT_TRACK_IMAGES[track.title]}
+                          alt={track.title}
+                          className="w-full h-full object-cover select-none pointer-events-none"
+                        />
+                      ) : selectedCategoryName === "Sleep & Wind Down" && SLEEP_WIND_DOWN_TRACK_IMAGES[track.title] ? (
+                        <img
+                          src={SLEEP_WIND_DOWN_TRACK_IMAGES[track.title]}
+                          alt={track.title}
+                          className="w-full h-full object-cover select-none pointer-events-none"
+                        />
+                      ) : selectedCategoryName === "Emotional Release" && EMOTIONAL_RELEASE_TRACK_IMAGES[track.title] ? (
+                        <img
+                          src={EMOTIONAL_RELEASE_TRACK_IMAGES[track.title]}
+                          alt={track.title}
+                          className="w-full h-full object-cover select-none pointer-events-none"
+                        />
+                      ) : selectedCategoryName === "Focus" && FOCUS_TRACK_IMAGES[track.title] ? (
+                        <img
+                          src={FOCUS_TRACK_IMAGES[track.title]}
+                          alt={track.title}
+                          className="w-full h-full object-cover select-none pointer-events-none"
+                        />
                       ) : (
                         <div className="w-14 h-14 rounded-full bg-orange-50 text-[#FF6A39] flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
                           <Music className="w-6 h-6 stroke-[2]" />
@@ -459,28 +594,51 @@ function ListenTabPanel({ customCdnBase, initialTracks = [] }: ListenTabPanelPro
   return (
     <div className="space-y-7 animate-in fade-in duration-300 w-full">
       {/* Mobile view: Overlapping 3D card deck list */}
-      <div className="flex md:hidden flex-col -space-y-[22px] min-[360px]:-space-y-[27px] min-[390px]:-space-y-8 pt-4 pb-20">
+      <div className="flex md:hidden flex-col -space-y-[32px] min-[360px]:-space-y-[38px] min-[390px]:-space-y-[45px] pt-4 pb-20">
         {categoriesWithCounts.map((category, index) => {
           const theme = getDeterministicCardStyle(index)
+          const isSelected = activeCardId === category.name
+          const isAnySelected = activeCardId !== null
+          const isOthersSelected = isAnySelected && !isSelected
 
           return (
             <motion.div
               key={category.name}
-              style={{ zIndex: index + 1 }}
-              whileHover={{ y: -16, scale: 1.02, zIndex: 50 }}
-              whileTap={{ y: -24, scale: 0.97, zIndex: 100 }}
-              transition={{ type: "spring", stiffness: 350, damping: 20 }}
+              style={{ zIndex: isSelected ? 500 : index + 1 }}
+              animate={
+                isSelected
+                  ? { y: -65, scale: 1.05, opacity: 1 }
+                  : isOthersSelected
+                    ? { y: 15, scale: 0.95, opacity: 0.1 }
+                    : { y: 0, scale: 1, opacity: 1 }
+              }
+              whileHover={activeCardId ? undefined : { y: -16, scale: 1.02, zIndex: 50 }}
+              whileTap={activeCardId ? undefined : { y: -24, scale: 0.97, zIndex: 100 }}
+              transition={{
+                type: "tween",
+                duration: isSelected ? 0.45 : 0.25,
+                ease: isSelected ? [0.25, 1, 0.5, 1] : "easeOut",
+              }}
               className="w-full relative cursor-pointer animate-in fade-in"
             >
               <button
                 type="button"
-                onClick={() => setSelectedCategoryName(category.name)}
+                onClick={() => handleCategorySelect(category.name)}
                 style={{
                   backgroundColor: theme.bg,
                   borderColor: theme.border,
                   color: theme.text,
+                  transform: isSelected
+                    ? "perspective(800px) rotateX(0deg)"
+                    : "perspective(800px) rotateX(-15deg)",
+                  transformOrigin: "top center",
+                  boxShadow: isSelected
+                    ? `0 25px 55px ${theme.border}cc, 0 20px 50px rgba(0, 0, 0, 0.18)`
+                    : undefined,
                 }}
-                className="relative flex flex-col h-[155px] min-[360px]:h-[175px] min-[390px]:h-[200px] w-full text-left rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] border transition-all duration-300 overflow-hidden active:shadow-[0_16px_32px_rgba(0,0,0,0.12)]"
+                className={`relative flex flex-col h-[155px] min-[360px]:h-[175px] min-[390px]:h-[200px] w-full text-left rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 border transition-all duration-300 overflow-hidden active:shadow-[0_16px_32px_rgba(0,0,0,0.12)] ${
+                  isSelected ? "z-50 pointer-events-none" : "shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+                }`}
               >
                 <span className="absolute inset-0 bg-white/20 opacity-0 active:opacity-100 transition-opacity duration-75 pointer-events-none rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] z-20" />
 
