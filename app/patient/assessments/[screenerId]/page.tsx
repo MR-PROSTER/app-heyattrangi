@@ -183,14 +183,14 @@ export default function AssessmentPage() {
                             {/* Centered Card Wrapper */}
                             <div className="flex-1 flex flex-col justify-center py-2">
                                 {/* Mobile Question Card */}
-                                <div className="bg-white rounded-[32px] px-6 pt-10 pb-[64px] shadow-[0_15px_45px_rgba(0,0,0,0.02)] w-full flex flex-col flex-none h-fit">
-                                    <div className="mb-10">
+                                <div className="bg-white rounded-[32px] px-6 pt-10 pb-12 shadow-[0_15px_45px_rgba(0,0,0,0.02)] w-full flex flex-col flex-none min-h-[390px] justify-between">
+                                    <div className="flex-1 flex flex-col justify-start">
                                         <h2 className="text-[20px] font-bold text-slate-800 leading-[1.35] text-left">
                                             {currentQuestion.text}
                                         </h2>
                                     </div>
 
-                                    <div className="mt-4">
+                                    <div className="mt-8">
                                         {isSegmentScale ? (
                                             <>
                                                 {/* Selected Answer Label Above Scale */}
@@ -255,7 +255,19 @@ export default function AssessmentPage() {
                             </div>
 
                             {/* Mobile Footer */}
-                            <div className="mt-auto flex flex-col items-center gap-4 pb-4 pt-6">
+                            <div className="mt-auto flex flex-col items-center gap-4 pb-4 pt-6 px-1">
+                                <div className="flex justify-between items-center w-full mb-2">
+                                    <button
+                                        onClick={() => setCurrentQuestionIdx(prev => Math.max(0, prev - 1))}
+                                        disabled={currentQuestionIdx === 0}
+                                        className="text-xs font-bold text-slate-400 hover:text-slate-700 disabled:opacity-30 transition-colors"
+                                    >
+                                        Previous Question
+                                    </button>
+                                    <span className="text-[10px] font-bold text-slate-300">
+                                        {Math.round(progress)}% Completed
+                                    </span>
+                                </div>
                                 <p className="text-[12px] text-slate-400 text-center font-medium">
                                     Responses are completely confidential
                                 </p>
