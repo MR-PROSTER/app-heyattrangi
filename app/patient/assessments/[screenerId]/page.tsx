@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { SCREENERS } from "@/lib/data/screeners"
-import { ArrowLeft, Check, AlertTriangle, ArrowRight, Activity } from "lucide-react"
+import { ArrowLeft, Check, AlertTriangle, ArrowRight, Activity, ChevronLeft } from "lucide-react"
 
 export default function AssessmentPage() {
     const params = useParams()
@@ -32,39 +32,13 @@ export default function AssessmentPage() {
         )
     }
 
-    const handleAnswer = (val: number) => {
-        const nextAnswers = { ...answers, [currentQuestionIdx]: val }
-        setAnswers(nextAnswers)
-
-
-        // Skip logic from spreadsheet (C-SSRS / ASQ) — driven by screener.skipLogic
-        const skip = screener.skipLogic
-        if (skip?.type === 'c-ssrs' && currentQuestionIdx === skip.gateQuestionIndex && val === skip.gateNoValue) {
-            setTimeout(() => setCurrentQuestionIdx(skip.jumpToIndex), 300)
-            return
-        }
-        if (skip?.type === 'asq' && currentQuestionIdx === Math.max(...skip.gateQuestionIndices)) {
-            const anyYes = skip.gateQuestionIndices.some((i: number) => (nextAnswers[i] ?? 0) > 0)
-            if (!anyYes) {
-                setTimeout(() => setIsComplete(true), 300)
-                return
-            }
-        }
-
-        if (currentQuestionIdx < screener.questions.length - 1) {
-            setTimeout(() => setCurrentQuestionIdx(prev => prev + 1), 300)
-        } else {
-            setTimeout(() => setIsComplete(true), 300)
-        }
-    }
-
-    const handleSubmit = async () => {
+    const handleSubmit = async (answersToSubmit: Record<number, number> = answers) => {
         setIsSubmitting(true)
         setSubmitError(null)
 
         try {
             // Map index-based answers to array of { questionId, selectedValue }
-            const responsePayload = Object.entries(answers).map(([idxStr, val]) => {
+            const responsePayload = Object.entries(answersToSubmit).map(([idxStr, val]) => {
                 const idx = parseInt(idxStr, 10)
                 return {
                     questionId: screener.questions[idx].id,
@@ -94,6 +68,38 @@ export default function AssessmentPage() {
             setSubmitError(err.message || 'An unexpected error occurred during submission.')
         } finally {
             setIsSubmitting(false)
+        }
+    }
+
+    const handleAnswer = (val: number) => {
+        const nextAnswers = { ...answers, [currentQuestionIdx]: val }
+        setAnswers(nextAnswers)
+
+
+        // Skip logic from spreadsheet (C-SSRS / ASQ) — driven by screener.skipLogic
+        const skip = screener.skipLogic
+        if (skip?.type === 'c-ssrs' && currentQuestionIdx === skip.gateQuestionIndex && val === skip.gateNoValue) {
+            setTimeout(() => setCurrentQuestionIdx(skip.jumpToIndex), 300)
+            return
+        }
+        if (skip?.type === 'asq' && currentQuestionIdx === Math.max(...skip.gateQuestionIndices)) {
+            const anyYes = skip.gateQuestionIndices.some((i: number) => (nextAnswers[i] ?? 0) > 0)
+            if (!anyYes) {
+                setTimeout(() => {
+                    setIsComplete(true)
+                    handleSubmit(nextAnswers)
+                }, 300)
+                return
+            }
+        }
+
+        if (currentQuestionIdx < screener.questions.length - 1) {
+            setTimeout(() => setCurrentQuestionIdx(prev => prev + 1), 300)
+        } else {
+            setTimeout(() => {
+                setIsComplete(true)
+                handleSubmit(nextAnswers)
+            }, 300)
         }
     }
 
@@ -130,9 +136,7 @@ export default function AssessmentPage() {
     }
 
     const getSegmentBorderRadius = (index: number, total: number) => {
-        if (index === 0) return "rounded-l-[14px] rounded-r-none"
-        if (index === total - 1) return "rounded-r-[14px] rounded-l-none"
-        return "rounded-none"
+        return "rounded-[12px]"
     }
 
     const getLabelColor = (index: number) => {
@@ -160,19 +164,19 @@ export default function AssessmentPage() {
                         {/* Mobile Design (md:hidden) */}
                         <div className="md:hidden flex-1 flex flex-col">
                             {/* Mobile Header */}
-                            <div className="flex flex-col mb-5 w-full px-1">
+                            <div className="flex flex-col mb-5 w-full px-1 relative">
                                 <button
                                     onClick={() => router.push('/patient/library')}
-                                    className="text-slate-700 hover:text-black transition-colors self-start mb-4"
+                                    className="text-slate-700 hover:text-black transition-colors absolute left-1 top-0.5"
                                     aria-label="Back to Library"
                                 >
-                                    <ArrowLeft className="w-6 h-6 stroke-[2.5]" />
+                                    <ChevronLeft className="w-6 h-6 stroke-[2]" />
                                 </button>
-                                <h1 className="font-semibold text-[17px] text-slate-500 tracking-tight mb-4">
+                                <h1 className="font-semibold text-[16px] text-slate-500 tracking-tight text-center">
                                     {screener.title}
                                 </h1>
                                 {/* Thin progress bar */}
-                                <div className="w-full bg-[#E9E9EB] h-[5px] rounded-full overflow-hidden">
+                                <div className="w-full bg-[#E9E9EB] h-[5px] rounded-full overflow-hidden mt-4">
                                     <div
                                         className="bg-blue-600 h-full rounded-full transition-all duration-500 ease-out"
                                         style={{ width: `${progress}%` }}
@@ -202,7 +206,7 @@ export default function AssessmentPage() {
                                                 </div>
 
                                                 {/* Segmented scale */}
-                                                <div className={`grid ${getGridColsClass(totalOptions)} gap-[3px] w-full`}>
+                                                <div className={`grid ${getGridColsClass(totalOptions)} gap-2 w-full`}>
                                                     {currentQuestion.options.map((opt: any, idx: number) => {
                                                         const isLit = hasSelection && idx <= selectedIndex
                                                         const color = isLit ? getProgressiveColor(idx, totalOptions) : "#E9E9EB"
@@ -211,7 +215,7 @@ export default function AssessmentPage() {
                                                                 key={idx}
                                                                 type="button"
                                                                 onClick={() => handleAnswer(opt.value)}
-                                                                className={`h-[34px] w-full ${getSegmentBorderRadius(idx, totalOptions)} transition-all duration-150 ease-out hover:brightness-95 active:scale-[0.96] active:brightness-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500`}
+                                                                className={`h-[40px] w-full ${getSegmentBorderRadius(idx, totalOptions)} transition-all duration-150 ease-out hover:brightness-95 active:scale-[0.96] active:brightness-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500`}
                                                                 style={{ backgroundColor: color }}
                                                                 aria-label={opt.text}
                                                             />
@@ -252,22 +256,32 @@ export default function AssessmentPage() {
                                         )}
                                     </div>
                                 </div>
+
+                                {/* Previous and Next Options Directly Below White Card */}
+                                <div className="flex justify-between items-center w-full mt-6 px-4">
+                                    <button
+                                        onClick={() => setCurrentQuestionIdx(prev => Math.max(0, prev - 1))}
+                                        disabled={currentQuestionIdx === 0}
+                                        className="text-[17px] font-semibold text-[#CBD5E1] disabled:opacity-40 hover:text-slate-500 transition-colors"
+                                    >
+                                        Previous
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (currentQuestionIdx < screener.questions.length - 1) {
+                                                setCurrentQuestionIdx(prev => prev + 1)
+                                            }
+                                        }}
+                                        disabled={!hasSelection || currentQuestionIdx === screener.questions.length - 1}
+                                        className="text-[17px] font-semibold text-[#CBD5E1] disabled:opacity-40 hover:text-slate-500 transition-colors"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Mobile Footer */}
                             <div className="mt-auto flex flex-col items-center gap-4 pb-4 pt-6 px-1">
-                                <div className="flex justify-between items-center w-full mb-2">
-                                    <button
-                                        onClick={() => setCurrentQuestionIdx(prev => Math.max(0, prev - 1))}
-                                        disabled={currentQuestionIdx === 0}
-                                        className="text-xs font-bold text-slate-400 hover:text-slate-700 disabled:opacity-30 transition-colors"
-                                    >
-                                        Previous Question
-                                    </button>
-                                    <span className="text-[10px] font-bold text-slate-300">
-                                        {Math.round(progress)}% Completed
-                                    </span>
-                                </div>
                                 <p className="text-[12px] text-slate-400 text-center font-medium">
                                     Responses are completely confidential
                                 </p>
@@ -369,7 +383,7 @@ export default function AssessmentPage() {
 
                             <div className="flex flex-col md:flex-row gap-4 justify-center">
                                 <button
-                                    onClick={handleSubmit}
+                                    onClick={() => handleSubmit()}
                                     className="px-8 py-3.5 bg-slate-900 hover:bg-black text-white rounded-full font-bold text-sm transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
                                 >
                                     Retry Submission
@@ -398,7 +412,7 @@ export default function AssessmentPage() {
                             </p>
 
                             <button
-                                onClick={handleSubmit}
+                                onClick={() => handleSubmit()}
                                 className="w-full md:w-auto px-10 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-full font-bold text-base transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 mx-auto active:scale-[0.98]"
                             >
                                 Submit Assessment <Check className="w-5 h-5" />

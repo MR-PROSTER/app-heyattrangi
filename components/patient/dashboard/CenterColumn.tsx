@@ -35,21 +35,21 @@ function getGreeting() {
   return "Good evening"
 }
 
-function renderEmojiFace(name: string, isSelected: boolean) {
+function renderEmojiFace(name: string, isSelected: boolean, isDimmed: boolean = false) {
   const getImagePath = () => {
     switch (name) {
       case "Low":
-        return "/images/moods/low.png"
-      case "Heavy":
-        return "/images/moods/heavy.png"
+        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Low_ntkoac.png"
+      case "Meh":
+        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Meh_xtcx8o.png"
       case "Okay":
-        return "/images/moods/okay.png"
+        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Okay_xxmvbz.png"
       case "Good":
-        return "/images/moods/good.png"
-      case "Bright":
-        return "/images/moods/bright.png"
+        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Good_cujvhx.png"
+      case "Great":
+        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Great_qh8yts.png"
       default:
-        return "/images/moods/okay.png"
+        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Okay_xxmvbz.png"
     }
   }
 
@@ -57,15 +57,16 @@ function renderEmojiFace(name: string, isSelected: boolean) {
   
   return (
     <div 
-      className={`w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 min-[390px]:w-12 min-[390px]:h-12 flex items-center justify-center transition-transform duration-200 ${
-        isSelected ? "scale-110 rounded-xl min-[390px]:rounded-2xl shadow-md" : "hover:scale-105"
+      className={`w-10 h-10 min-[360px]:w-11 min-[360px]:h-11 min-[390px]:w-12 min-[390px]:h-12 md:w-16 md:h-16 flex items-center justify-center transition-all duration-200 ${
+        isSelected ? "scale-110 rounded-xl min-[390px]:rounded-2xl shadow-md" : ""
       }`}
+      style={{ opacity: isDimmed ? 0.35 : 1 }}
     >
       <Image 
         src={imagePath} 
         alt={name} 
-        width={48} 
-        height={48} 
+        width={64} 
+        height={64} 
         className="w-full h-full object-contain rounded-xl min-[390px]:rounded-2xl"
       />
     </div>
@@ -260,6 +261,7 @@ export default function CenterColumn({
 
   // Saved mood state
   const [checkedInMood, setCheckedInMood] = useState<{ score: number; note: string } | null>(null)
+  const [hoveredMood, setHoveredMood] = useState<string | null>(null)
   const [isMoodModalOpen, setIsMoodModalOpen] = useState(false)
   const [modalInitialScore, setModalInitialScore] = useState<number>(2)
   const [modalInitialNote, setModalInitialNote] = useState<string>("")
@@ -292,11 +294,11 @@ export default function CenterColumn({
 
     // Map score to mood name for the API
     const moodMap: Record<number, string> = {
-      0: "SAD",
-      1: "BAD",
-      2: "NOT BAD",
+      0: "LOW",
+      1: "MEH",
+      2: "OKAY",
       3: "GOOD",
-      4: "HAPPY",
+      4: "GREAT",
     }
     const moodName = moodMap[score] || "Neutral"
 
@@ -439,31 +441,19 @@ export default function CenterColumn({
 
   const renderCalendarCircle = (item: any, isMobile: boolean = false) => {
     const isText = item.type === "text"
-    const circleStyle = (isText && isMobile)
-      ? { borderColor: "#64748B", color: "#64748B", backgroundColor: "#ffffff" }
-      : { backgroundColor: item.bg, color: item.color }
+    const circleStyle = isText
+      ? ((isMobile)
+        ? { borderColor: "#64748B", color: "#64748B", backgroundColor: "#ffffff" }
+        : { backgroundColor: item.bg, color: item.color })
+      : { backgroundColor: "transparent" }
 
     const sizeClass = isMobile ? "w-6 h-6" : "w-7 h-7"
     const borderClass = (isText && isMobile) ? "border border-[#64748B]" : ""
 
-    const handleClick = () => {
-      if (item.type === "emoji") {
-        handleOpenMoodModal(3)
-      } else if (item.type === "wave") {
-        setIsBreathingOpen(true)
-      } else if (item.type === "exercise") {
-        // Navigation disabled for now - will be implemented later
-      } else if (item.type === "close") {
-        handleOpenMoodModal(2)
-      }
-    }
-
     return (
-      <button 
-        type="button"
-        onClick={handleClick}
+      <div 
         style={circleStyle}
-        className={`${sizeClass} rounded-full flex items-center justify-center transition-transform hover:scale-110 active:scale-95 shadow-sm shrink-0 cursor-pointer focus-visible:outline-none ${borderClass}`}
+        className={`${sizeClass} rounded-full flex items-center justify-center shadow-sm shrink-0 ${borderClass}`}
       >
         {item.type === "text" && (
           <span className={`${isMobile ? "text-[10px]" : "text-[11px]"} font-bold leading-none`}>
@@ -471,36 +461,42 @@ export default function CenterColumn({
           </span>
         )}
         {item.type === "emoji" && (
-          <svg className={isMobile ? "w-2.5 h-2.5" : "w-3 h-3"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-            <line x1="8" y1="14" x2="16" y2="14" strokeLinecap="round" />
-            <circle cx="9" cy="9" r="1.5" fill="currentColor" stroke="none" />
-            <circle cx="15" cy="9" r="1.5" fill="currentColor" stroke="none" />
-          </svg>
+          <Image 
+            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Okay_xxmvbz.png" 
+            alt="Okay" 
+            width={28} 
+            height={28} 
+            className="w-full h-full object-contain rounded-full"
+          />
         )}
         {item.type === "wave" && (
-          <svg className={isMobile ? "w-2.5 h-2.5" : "w-3 h-3"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
-            <path d="M5 8c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 5 0" />
-            <path d="M5 12c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 5 0" />
-            <path d="M5 16c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 5 0" />
-          </svg>
+          <Image 
+            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Good_cujvhx.png" 
+            alt="Good" 
+            width={28} 
+            height={28} 
+            className="w-full h-full object-contain rounded-full"
+          />
         )}
         {item.type === "exercise" && (
-          <svg className={isMobile ? "w-2.5 h-2.5" : "w-3 h-3"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
-            <line x1="6.5" y1="6.5" x2="17.5" y2="17.5" />
-            <line x1="5" y1="9" x2="9" y2="5" />
-            <line x1="15" y1="19" x2="19" y2="15" />
-            <line x1="3.5" y1="7.5" x2="7.5" y2="3.5" />
-            <line x1="16.5" y1="20.5" x2="20.5" y2="16.5" />
-          </svg>
+          <Image 
+            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Great_qh8yts.png" 
+            alt="Great" 
+            width={28} 
+            height={28} 
+            className="w-full h-full object-contain rounded-full"
+          />
         )}
         {item.type === "close" && (
-          <svg className={isMobile ? "w-2.5 h-2.5" : "w-3 h-3"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
-            <circle cx="12" cy="12" r="8" />
-            <line x1="9" y1="9" x2="15" y2="15" />
-            <line x1="15" y1="9" x2="9" y2="15" />
-          </svg>
+          <Image 
+            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Low_ntkoac.png" 
+            alt="Low" 
+            width={28} 
+            height={28} 
+            className="w-full h-full object-contain rounded-full"
+          />
         )}
-      </button>
+      </div>
     )
   }
 
@@ -587,26 +583,36 @@ export default function CenterColumn({
           <div className="flex-1 px-3.5 min-[360px]:px-4 min-[390px]:px-5 pt-4 min-[360px]:pt-5 min-[390px]:pt-6 pb-8 min-[390px]:pb-12 flex flex-col gap-4 min-[360px]:gap-4.5 min-[390px]:gap-5">
             
             {/* Card 1: How's today, so far? */}
-            <div className="bg-white rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 border border-slate-100/90 shadow-[0_4px_24px_rgba(15,23,42,0.015)]">
-              <h4 className="text-slate-800 text-[13.5px] min-[360px]:text-[14.5px] min-[390px]:text-[15px] font-extrabold mb-2.5 min-[360px]:mb-3 min-[390px]:mb-4 tracking-tight">How&apos;s today, so far?</h4>
-              <div className="grid grid-cols-5 justify-items-center w-full gap-1 px-0.5">
+            <div className="bg-white rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 border border-slate-100/90 shadow-[0_4px_24px_rgba(15,23,42,0.015)] flex flex-col justify-center gap-4">
+              <h4 className="text-slate-800 text-[13.5px] min-[360px]:text-[14.5px] min-[390px]:text-[15px] font-extrabold mb-1 tracking-tight">How&apos;s today, so far?</h4>
+              <div className="flex justify-center items-center w-full gap-4 min-[360px]:gap-5 min-[390px]:gap-6 px-0.5">
                 {[
-                  { name: "Low", displayName: "Sad", score: 0 },
-                  { name: "Heavy", displayName: "Bad", score: 1 },
-                  { name: "Okay", displayName: "Not Bad", score: 2 },
+                  { name: "Low", displayName: "Low", score: 0 },
+                  { name: "Meh", displayName: "Meh", score: 1 },
+                  { name: "Okay", displayName: "Okay", score: 2 },
                   { name: "Good", displayName: "Good", score: 3 },
-                  { name: "Bright", displayName: "Happy", score: 4 },
+                  { name: "Great", displayName: "Great", score: 4 },
                 ].map((mood) => {
                   const isSelected = checkedInMood && checkedInMood.score === mood.score
+                  const isHovered = hoveredMood === mood.name
+                  const isAnyHovered = hoveredMood !== null
+                  const isDimmed = isAnyHovered && !isHovered
                   return (
                     <button
                       key={mood.name}
                       type="button"
                       onClick={() => handleOpenMoodModal(mood.score)}
-                      className="flex flex-col items-center focus-visible:outline-none transition-transform hover:scale-105"
+                      onMouseEnter={() => setHoveredMood(mood.name)}
+                      onMouseLeave={() => setHoveredMood(null)}
+                      className="flex flex-col items-center focus-visible:outline-none transition-all duration-200"
+                      style={{
+                        transform: isHovered ? "scale(1.08)" : "scale(1)",
+                      }}
                     >
-                      {renderEmojiFace(mood.name, !!isSelected)}
-                      <span className="text-[9.5px] min-[360px]:text-[10px] min-[390px]:text-[11px] font-bold mt-1.5 min-[390px]:mt-2 text-slate-400 whitespace-nowrap">{mood.displayName}</span>
+                      {renderEmojiFace(mood.name, !!isSelected, isDimmed)}
+                      <span className={`text-[9.5px] min-[360px]:text-[10px] min-[390px]:text-[11px] mt-1.5 min-[390px]:mt-2 whitespace-nowrap transition-colors duration-200 ${
+                        isHovered ? "text-slate-800 font-black" : "text-slate-400 font-bold"
+                      }`}>{mood.displayName}</span>
                     </button>
                   )
                 })}
@@ -856,31 +862,38 @@ export default function CenterColumn({
           {/* Grid Layout (Desktop) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Card 1: How's today, so far? */}
-            <div className="bg-white rounded-[32px] p-6 border border-slate-100/90 shadow-[0_4px_24px_rgba(15,23,42,0.015)] flex flex-col justify-between h-[230px]">
+            <div className="bg-white rounded-[32px] p-6 border border-slate-100/90 shadow-[0_4px_24px_rgba(15,23,42,0.015)] flex flex-col justify-center gap-6 h-[230px]">
               <div>
                 <h4 className="text-slate-800 text-[16px] font-extrabold tracking-tight">How&apos;s today, so far?</h4>
-                <p className="text-[13px] font-medium text-slate-500 mt-2 leading-relaxed">
-                  Select a mood below to log your daily check-in. Consistent tracking helps customize recommendations and session insights.
-                </p>
               </div>
-              <div className="flex justify-between items-center w-full px-0.5 mt-2">
+              <div className="flex justify-center items-center w-full gap-4 min-[360px]:gap-6 md:gap-8 px-0.5">
                 {[
-                  { name: "Low", displayName: "Sad", score: 0 },
-                  { name: "Heavy", displayName: "Bad", score: 1 },
-                  { name: "Okay", displayName: "Not Bad", score: 2 },
+                  { name: "Low", displayName: "Low", score: 0 },
+                  { name: "Meh", displayName: "Meh", score: 1 },
+                  { name: "Okay", displayName: "Okay", score: 2 },
                   { name: "Good", displayName: "Good", score: 3 },
-                  { name: "Bright", displayName: "Happy", score: 4 },
+                  { name: "Great", displayName: "Great", score: 4 },
                 ].map((mood) => {
                   const isSelected = checkedInMood && checkedInMood.score === mood.score
+                  const isHovered = hoveredMood === mood.name
+                  const isAnyHovered = hoveredMood !== null
+                  const isDimmed = isAnyHovered && !isHovered
                   return (
                     <button
                       key={mood.name}
                       type="button"
                       onClick={() => handleOpenMoodModal(mood.score)}
-                      className="flex flex-col items-center focus-visible:outline-none transition-transform hover:scale-105"
+                      onMouseEnter={() => setHoveredMood(mood.name)}
+                      onMouseLeave={() => setHoveredMood(null)}
+                      className="flex flex-col items-center focus-visible:outline-none transition-all duration-200"
+                      style={{
+                        transform: isHovered ? "scale(1.08)" : "scale(1)",
+                      }}
                     >
-                      {renderEmojiFace(mood.name, !!isSelected)}
-                      <span className="text-[11px] font-bold mt-2 text-slate-400">{mood.displayName}</span>
+                      {renderEmojiFace(mood.name, !!isSelected, isDimmed)}
+                      <span className={`text-[11px] mt-2 transition-colors duration-200 ${
+                        isHovered ? "text-slate-800 font-black" : "text-slate-400 font-bold"
+                      }`}>{mood.displayName}</span>
                     </button>
                   )
                 })}
