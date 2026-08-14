@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth.config"
-import { issueGuestSessionToken } from "@/lib/pragya/persistence"
+import { Platform } from "@prisma/client"
 import {
   PRAGYA_GUEST_TOKEN_COOKIE,
   startFreshAuthenticatedConversation,
   transferGuestConversationToUser,
+  extractGuestToken,
+  isAndroidRequest,
+  issueGuestSessionToken,
 } from "@/lib/pragya/persistence"
 
 export async function POST(req: NextRequest) {
@@ -27,7 +30,8 @@ export async function POST(req: NextRequest) {
 
   const { action, conversationId } = body as Record<string, unknown>
   const normalizedAction = typeof action === "string" ? action.trim().toLowerCase() : ""
-  const token = req.cookies.get(PRAGYA_GUEST_TOKEN_COOKIE)?.value?.trim() || null
+  const token = extractGuestToken(req)
+  const isAndroid = isAndroidRequest(req)
   const targetConversationId =
     typeof conversationId === "string" && conversationId.trim()
       ? conversationId.trim()
@@ -41,7 +45,7 @@ export async function POST(req: NextRequest) {
 
   if (normalizedAction === "continue") {
     if (!token) {
-      return NextResponse.json({ error: "guest session cookie is required for continue" }, { status: 400 })
+      return NextResponse.json({ error: "guest token is required for continue" }, { status: 400 })
     }
 
     if (!targetConversationId) {
@@ -71,14 +75,19 @@ export async function POST(req: NextRequest) {
     resolvedConversationId = freshConversation.id
   }
 
+  let rotatedGuestToken: string | null = null
+  if (token) {
+    rotatedGuestToken = await issueGuestSessionToken(isAndroid ? Platform.ANDROID : Platform.WEB)
+  }
+
   const response = NextResponse.json({
     success: true,
     action: normalizedAction,
     conversationId: resolvedConversationId,
+    ...(isAndroid && rotatedGuestToken ? { guestToken: rotatedGuestToken } : {}),
   })
 
-  if (token) {
-    const rotatedGuestToken = await issueGuestSessionToken()
+  if (token && !isAndroid && rotatedGuestToken) {
     response.cookies.set(PRAGYA_GUEST_TOKEN_COOKIE, rotatedGuestToken, {
       httpOnly: true,
       sameSite: "lax",

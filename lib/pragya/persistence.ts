@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server"
 import { randomUUID } from "crypto"
 import {
   ConversationStatus,
@@ -11,6 +12,30 @@ import { getPragyaMongoDb } from "@/lib/pragya/mongo-init"
 
 export const PRAGYA_GUEST_TOKEN_COOKIE = "pragya_guest_token"
 
+export function extractGuestToken(req: NextRequest): string | null {
+  const cookieToken = req.cookies.get(PRAGYA_GUEST_TOKEN_COOKIE)?.value ?? null
+  if (cookieToken) {
+    return cookieToken
+  }
+  const authHeader = req.headers.get("authorization")
+  if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
+    return authHeader.substring(7).trim() || null
+  }
+  return null
+}
+
+export function isAndroidRequest(req: NextRequest): boolean {
+  const platformHeader = req.headers.get("x-platform") || req.headers.get("x-client-platform")
+  if (platformHeader?.toUpperCase() === "ANDROID") {
+    return true
+  }
+  const authHeader = req.headers.get("authorization")
+  if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
+    return true
+  }
+  return false
+}
+
 type ChatRole = "user" | "assistant"
 
 type GuestChatContext = {
@@ -22,6 +47,8 @@ type GuestChatContext = {
   status: GuestStatus
   trialConsumed: boolean
   requiresLogin: boolean
+  limitReached?: boolean
+  sessionExpired?: boolean
 }
 
 type UserChatContext = {
@@ -44,24 +71,25 @@ async function getGuestSessionByToken(guestToken: string) {
   })
 }
 
-async function createGuestSession(guestToken: string) {
+async function createGuestSession(guestToken: string, platform: Platform = Platform.WEB) {
   return prisma.guestSession.create({
     data: {
       sessionToken: guestToken,
       status: GuestStatus.ACTIVE,
       trialConsumed: false,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      platform,
     },
   })
 }
 
-export async function issueGuestSessionToken() {
+export async function issueGuestSessionToken(platform: Platform = Platform.WEB) {
   const guestToken = randomUUID()
-  const guestSession = await createGuestSession(guestToken)
+  const guestSession = await createGuestSession(guestToken, platform)
   return guestSession.sessionToken
 }
 
-async function ensureGuestSession(guestToken?: string | null) {
+async function ensureGuestSession(guestToken?: string | null, platform: Platform = Platform.WEB) {
   const token = normalizeToken(guestToken) ?? randomUUID()
   const existing = await getGuestSessionByToken(token)
 
@@ -69,7 +97,7 @@ async function ensureGuestSession(guestToken?: string | null) {
     return { guestSession: existing, created: false, guestToken: token }
   }
 
-  const guestSession = await createGuestSession(token)
+  const guestSession = await createGuestSession(token, platform)
   return { guestSession, created: true, guestToken: guestSession.sessionToken }
 }
 
@@ -172,19 +200,35 @@ async function getOrCreateActiveConversation(params: {
   }
 }
 
-export async function resolveGuestChatContext(guestToken?: string | null) {
-  const { guestSession, created, guestToken: normalizedGuestToken } = await ensureGuestSession(guestToken)
+export async function resolveGuestChatContext(guestToken?: string | null, platform: Platform = Platform.WEB) {
+  const { guestSession, created, guestToken: normalizedGuestToken } = await ensureGuestSession(guestToken, platform)
 
-  if (guestSession.status === GuestStatus.LOCKED || guestSession.trialConsumed) {
+  const isExpired = guestSession.expiresAt < new Date() || guestSession.status === GuestStatus.EXPIRED
+  const isLimitReached = guestSession.trialConsumed || guestSession.status === GuestStatus.LOCKED
+
+  if (isExpired || isLimitReached) {
+    if (isExpired && guestSession.status !== GuestStatus.EXPIRED) {
+      try {
+        await prisma.guestSession.update({
+          where: { id: guestSession.id },
+          data: { status: GuestStatus.EXPIRED }
+        })
+      } catch (e) {
+        console.warn("Failed to update guest session status to EXPIRED:", e)
+      }
+    }
+
     return {
       guestToken: normalizedGuestToken,
       guestSessionId: guestSession.id,
       conversationId: null,
       createdGuestSession: created,
       createdConversation: false,
-      status: guestSession.status,
+      status: isExpired ? GuestStatus.EXPIRED : guestSession.status,
       trialConsumed: guestSession.trialConsumed,
       requiresLogin: true,
+      limitReached: isLimitReached,
+      sessionExpired: isExpired,
     } satisfies GuestChatContext
   }
 
@@ -204,6 +248,8 @@ export async function resolveGuestChatContext(guestToken?: string | null) {
       status: guestSession.status,
       trialConsumed: guestSession.trialConsumed,
       requiresLogin: false,
+      limitReached: false,
+      sessionExpired: false,
     } satisfies GuestChatContext
   }
 
@@ -216,6 +262,8 @@ export async function resolveGuestChatContext(guestToken?: string | null) {
     status: guestSession.status,
     trialConsumed: guestSession.trialConsumed,
     requiresLogin: false,
+    limitReached: false,
+    sessionExpired: false,
   } satisfies GuestChatContext
 }
 
@@ -364,6 +412,7 @@ async function createAuthenticatedConversation(userId: string) {
 export async function resolveChatContext(params: {
   userId?: string | null
   guestToken?: string | null
+  platform?: Platform
 }) : Promise<ChatContext> {
   if (params.userId) {
     const conversation = await getOrCreateActiveConversation({
@@ -380,7 +429,7 @@ export async function resolveChatContext(params: {
     }
   }
 
-  const guest = await resolveGuestChatContext(params.guestToken)
+  const guest = await resolveGuestChatContext(params.guestToken, params.platform)
   return { kind: "guest", guest }
 }
 
