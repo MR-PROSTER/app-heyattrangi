@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth.config"
 import { prisma } from "@/lib/prisma"
 import { getPragyaUpstreamBase } from "@/lib/pragya/upstream"
+import { Platform } from "@prisma/client"
 import {
   PRAGYA_GUEST_TOKEN_COOKIE,
   appendMessage,
   resolveChatContext,
+  extractGuestToken,
+  isAndroidRequest,
 } from "@/lib/pragya/persistence"
 import { getMemoryGraph, upsertMemoryGraph } from "@/lib/pragya/memory"
 
@@ -70,11 +73,18 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const guestToken = extractGuestToken(req)
+  const isAndroid = isAndroidRequest(req)
+
+  const platformHeader = req.headers.get("x-platform") || req.headers.get("x-client-platform")
+  const platform = platformHeader?.toUpperCase() === "ANDROID" ? Platform.ANDROID : Platform.WEB
+
   let context: Awaited<ReturnType<typeof resolveChatContext>>
   try {
     context = await resolveChatContext({
       userId: session?.user?.id ?? null,
-      guestToken: req.cookies.get(PRAGYA_GUEST_TOKEN_COOKIE)?.value ?? null,
+      guestToken,
+      platform,
     })
   } catch (ctxErr) {
     console.error("resolveChatContext failed:", ctxErr)
@@ -88,7 +98,12 @@ export async function POST(req: NextRequest) {
     conversationId = context.user.conversationId
   } else {
     if (context.guest.requiresLogin) {
-      return NextResponse.json({ requiresLogin: true })
+      return NextResponse.json({
+        requiresLogin: true,
+        requiresSignIn: true,
+        limitReached: context.guest.limitReached || false,
+        sessionExpired: context.guest.sessionExpired || false,
+      })
     }
     conversationId = context.guest.conversationId
     resolvedGuestToken = context.guest.guestToken
@@ -348,7 +363,7 @@ export async function POST(req: NextRequest) {
       plan,
     })
 
-    if (resolvedGuestToken) {
+    if (resolvedGuestToken && !isAndroid) {
       response.cookies.set(PRAGYA_GUEST_TOKEN_COOKIE, resolvedGuestToken, {
         httpOnly: true,
         sameSite: "lax",
@@ -364,7 +379,7 @@ export async function POST(req: NextRequest) {
       { error: "Invalid upstream response" },
       { status: 502 },
     )
-    if (resolvedGuestToken) {
+    if (resolvedGuestToken && !isAndroid) {
       response.cookies.set(PRAGYA_GUEST_TOKEN_COOKIE, resolvedGuestToken, {
         httpOnly: true,
         sameSite: "lax",

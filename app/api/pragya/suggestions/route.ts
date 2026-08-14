@@ -4,6 +4,8 @@ import { getPragyaUpstreamBase } from "@/lib/pragya/upstream"
 import {
   PRAGYA_GUEST_TOKEN_COOKIE,
   resolveChatContext,
+  extractGuestToken,
+  isAndroidRequest,
 } from "@/lib/pragya/persistence"
 
 export async function POST(req: NextRequest) {
@@ -21,14 +23,22 @@ export async function POST(req: NextRequest) {
   }
 
   const { session_id } = body as Record<string, unknown>
+  const guestToken = extractGuestToken(req)
+  const isAndroid = isAndroidRequest(req)
+
   const context = await resolveChatContext({
     userId: session?.user?.id ?? null,
-    guestToken: req.cookies.get(PRAGYA_GUEST_TOKEN_COOKIE)?.value ?? null,
+    guestToken,
   })
 
   try {
     if (context.kind === "guest" && context.guest.requiresLogin) {
-      return NextResponse.json({ requiresLogin: true })
+      return NextResponse.json({
+        requiresLogin: true,
+        requiresSignIn: true,
+        limitReached: context.guest.limitReached || false,
+        sessionExpired: context.guest.sessionExpired || false,
+      })
     }
 
     const upstreamSessionId =
@@ -57,7 +67,7 @@ export async function POST(req: NextRequest) {
       ...data,
     })
 
-    if (context.kind === "guest") {
+    if (context.kind === "guest" && !isAndroid) {
       response.cookies.set(PRAGYA_GUEST_TOKEN_COOKIE, context.guest.guestToken, {
         httpOnly: true,
         sameSite: "lax",
