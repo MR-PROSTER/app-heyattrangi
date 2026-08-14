@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Quicksand } from "next/font/google";
+import { Geist, Geist_Mono, Quicksand, Nunito } from "next/font/google";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -25,6 +25,12 @@ const quicksand = Quicksand({
   weight: ["300", "400", "500", "600", "700"],
 });
 
+const nunito = Nunito({
+  variable: "--font-nunito",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+});
+
 export const metadata: Metadata = {
   title: "Dashboard",
   description: "Comprehensive mental health support platform connecting patients, caregivers, and therapists",
@@ -46,7 +52,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${quicksand.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${quicksand.variable} ${nunito.variable} antialiased`}
         suppressHydrationWarning
       >
         <SessionProvider session={session}>{children}</SessionProvider>
