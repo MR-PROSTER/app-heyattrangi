@@ -28,8 +28,8 @@ const MOOD_CONFIG: Record<
 > = {
   0: {
     // SAD
-    label: "SAD",
-    background: "#a684ff",
+    label: "LOW",
+    background: "linear-gradient(to bottom, #E9C9FF, #D284FA)",
     primary: "#4d179a",
     muted: "rgba(77, 23, 154, 0.3)",
     face: {
@@ -40,8 +40,8 @@ const MOOD_CONFIG: Record<
   },
   1: {
     // BAD
-    label: "BAD",
-    background: "#0069a8",
+    label: "MEH",
+    background: "linear-gradient(to bottom, #C2DDF8, #86BDF3)",
     primary: "#024a70",
     muted: "rgba(2, 74, 112, 0.3)",
     face: {
@@ -52,20 +52,20 @@ const MOOD_CONFIG: Record<
   },
   2: {
     // NOT BAD
-    label: "NOT BAD",
-    background: "#F4A462",
+    label: "OKAY",
+    background: "linear-gradient(to bottom, #FFD5B7, #FE9E57)",
     primary: "#733E0A",
     muted: "rgba(115, 62, 10, 0.3)",
     face: {
       eyeLeft: { x: 50, y: 43, width: 50, height: 18, rx: 9 },
       eyeRight: { x: 140, y: 43, width: 50, height: 18, rx: 9 },
-      mouthD: "M 85,110 L 155,110",
+      mouthD: "M 85,120 Q 120,88 155,120",
     },
   },
   3: {
     // GOOD
     label: "GOOD",
-    background: "#AADB1E",
+    background: "linear-gradient(to bottom, #CEF8A4, #A4F06A)",
     primary: "#132D0E",
     muted: "rgba(19, 45, 14, 0.3)",
     face: {
@@ -76,14 +76,14 @@ const MOOD_CONFIG: Record<
   },
   4: {
     // HAPPY
-    label: "HAPPY",
-    background: "#ffd966",
+    label: "GREAT",
+    background: "linear-gradient(to bottom, #FCE5AF, #FFC141)",
     primary: "#733e0a",
     muted: "rgba(115, 62, 10, 0.3)",
     face: {
       eyeLeft: { x: 50, y: 43, width: 50, height: 18, rx: 9 },
       eyeRight: { x: 140, y: 43, width: 50, height: 18, rx: 9 },
-      mouthD: "M 80,95 Q 120,135 160,95",
+      mouthD: "M 85,120 Q 120,88 155,120",
     },
   },
 }
@@ -192,7 +192,7 @@ export default function MoodCheckInModal({
         aria-modal="true"
         aria-labelledby="mood-title"
         className="fixed inset-0 z-50 flex items-center justify-center p-6 transition-colors duration-300 select-none overflow-y-auto"
-        style={{ backgroundColor: activeMood.background }}
+        style={{ background: activeMood.background }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -371,7 +371,7 @@ export default function MoodCheckInModal({
                   opacity: score === 0 ? 1 : 0.5,
                 }}
               >
-                Sad
+                Low
               </button>
               <button
                 type="button"
@@ -382,7 +382,7 @@ export default function MoodCheckInModal({
                   opacity: score === 1 ? 1 : 0.5,
                 }}
               >
-                Bad
+                Meh
               </button>
               <button
                 type="button"
@@ -393,7 +393,7 @@ export default function MoodCheckInModal({
                   opacity: score === 2 ? 1 : 0.5,
                 }}
               >
-                Not bad
+                Okay
               </button>
               <button
                 type="button"
@@ -415,7 +415,7 @@ export default function MoodCheckInModal({
                   opacity: score === 4 ? 1 : 0.5,
                 }}
               >
-                Happy
+                Great
               </button>
             </div>
 
