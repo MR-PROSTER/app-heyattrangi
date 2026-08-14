@@ -934,13 +934,13 @@ export default function TryPragyaChat({
                     <div className="w-full flex flex-col h-full bg-transparent overflow-hidden relative">
                         {/* Header / Mode Toggle Area */}
                         <div
-                            className={`transition-all duration-700 ease-in-out w-full flex flex-col items-center shrink-0 relative z-10 pt-4 md:pt-8 ${!hasStarted ? "flex-1 justify-center -mt-16" : "pb-2"}`}
+                            className={`transition-all duration-700 ease-in-out w-full flex flex-col items-center shrink-0 relative z-10 pt-4 md:pt-8 ${!hasStarted ? "flex-1" : "pb-2"}`}
                         >
-                            {/* Avatar, Greeting & Title (Hides on start) */}
+                            {/* Greeting & Title (Hides on start) */}
                             <div
                                 className={`flex flex-col items-center transition-all duration-700 ease-in-out overflow-hidden w-full max-w-[500px] ${!hasStarted
-                                    ? "opacity-100 max-h-[800px] mb-8 scale-100"
-                                    : "opacity-0 max-h-0 mb-0 scale-95 pointer-events-none"
+                                    ? "opacity-100 max-h-[200px] scale-100"
+                                    : "opacity-0 max-h-0 scale-95 pointer-events-none"
                                     }`}
                             >
                                 <motion.h2 
@@ -951,8 +951,15 @@ export default function TryPragyaChat({
                                 <motion.h1 layoutId="chat-greeting" transition={{ layout: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }} className="text-[28px] md:text-[34px] font-extrabold text-[#004f69] leading-tight text-center font-sans tracking-tight mb-8">
                                     {currentGreeting}
                                 </motion.h1>
+                            </div>
 
-                                {/* Center Avatar with Surrounding Bubbles */}
+                            {/* Center Avatar with Surrounding Bubbles */}
+                            <div
+                                className={`flex flex-col flex-1 items-center justify-center transition-all duration-700 ease-in-out overflow-hidden w-full ${!hasStarted
+                                    ? "opacity-100 max-h-[800px] mb-8 scale-100"
+                                    : "opacity-0 max-h-0 mb-0 scale-95 pointer-events-none"
+                                    }`}
+                            >
                                 <div className="relative w-[340px] h-[300px] flex items-center justify-center">
                                     <motion.div layoutId="chat-avatar" transition={{ layout: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }} className="relative z-10 flex items-center justify-center shrink-0 transition-transform duration-700 ease-in-out pointer-events-none">
                                         <Image

@@ -419,23 +419,25 @@ export async function appendMessage(params: {
 }
 
 export async function getUserChatMessages(userId: string, limit = 100) {
-  return prisma.message.findMany({
+  const messages = await prisma.message.findMany({
     where: {
       conversation: {
         is: {
           userId,
+          status: ConversationStatus.ACTIVE,
         },
       },
     },
     orderBy: {
-      createdAt: "asc",
+      createdAt: "desc",
     },
     take: limit,
   })
+  return messages.reverse()
 }
 
 export async function getGuestChatMessages(guestToken: string, limit = 100) {
-  return prisma.message.findMany({
+  const messages = await prisma.message.findMany({
     where: {
       conversation: {
         is: {
@@ -444,14 +446,16 @@ export async function getGuestChatMessages(guestToken: string, limit = 100) {
               sessionToken: guestToken,
             },
           },
+          status: ConversationStatus.ACTIVE,
         },
       },
     },
     orderBy: {
-      createdAt: "asc",
+      createdAt: "desc",
     },
     take: limit,
   })
+  return messages.reverse()
 }
 
 export async function getUserMessagesByRoleSince(
