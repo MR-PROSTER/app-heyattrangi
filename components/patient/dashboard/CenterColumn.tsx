@@ -73,6 +73,39 @@ function renderEmojiFace(name: string, isSelected: boolean, isDimmed: boolean = 
   )
 }
 
+function generateDashboardPrompt(responseText: string): string {
+  if (!responseText) return "Would you like to continue where we left off?"
+  
+  const text = responseText.trim()
+  
+  const questions = text.match(/[^.!?]+\?/g)
+  if (questions && questions.length > 0) {
+     const lastQuestion = questions[questions.length - 1].trim()
+     if (lastQuestion.length > 12 && lastQuestion.length < 120) {
+        return lastQuestion.charAt(0).toUpperCase() + lastQuestion.slice(1)
+     }
+  }
+
+  const patterns = [
+    { regex: /feeling\s+([a-z\s]+?)(?:[.?!,:]|\s+and|\s+but|\s+because)/i, prefix: "feeling" },
+    { regex: /struggling\s+(?:to|with)\s+([a-z\s]+?)(?:[.?!,:]|\s+and|\s+but|\s+because)/i, prefix: "your struggles with" },
+    { regex: /sounds\s+like\s+you(?:'re| are)\s+([a-z\s]+?)(?:[.?!,:]|\s+and|\s+but|\s+because)/i, prefix: "being" },
+    { regex: /dealing\s+with\s+([a-z\s]+?)(?:[.?!,:]|\s+and|\s+but|\s+because)/i, prefix: "dealing with" }
+  ]
+
+  for (const { regex, prefix } of patterns) {
+    const match = text.match(regex)
+    if (match && match[1]) {
+      const topic = match[1].trim().split(/\s+/).slice(0, 5).join(" ")
+      if (topic.length > 3) {
+        return `Would you like to continue talking about ${prefix} ${topic}?`
+      }
+    }
+  }
+
+  return "Would you like to continue where we left off?"
+}
+
 export default function CenterColumn({
   displayName,
   plan,
@@ -136,6 +169,50 @@ export default function CenterColumn({
   } | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<"activity" | "read" | "listen" | "assessment" | null>(null)
   const [isChatExpanded, setIsChatExpanded] = useState(false)
+  const [latestBotMessage, setLatestBotMessage] = useState("Wanna talk about the conversation that we left ??")
+
+  useEffect(() => {
+    if (isChatExpanded) return
+
+    const controller = new AbortController()
+
+    fetch("/api/pragya/history", { signal: controller.signal })
+      .then((res) => res.json())
+      .then((data) => {
+        if (controller.signal.aborted) return
+
+        if (data && Array.isArray(data.messages) && data.messages.length > 0) {
+          const reversed = [...data.messages].reverse()
+          const lastBotMsg = reversed.find((m: any) => m.role?.toLowerCase() === "assistant" && m.content)
+
+          if (lastBotMsg && typeof lastBotMsg.content === "string") {
+            let content = lastBotMsg.content
+            const isCrisis =
+              content.includes("988") ||
+              content.includes("International Helplines") ||
+              content.toLowerCase().includes("emergency services") ||
+              content.toLowerCase().includes("trusted person") ||
+              content.toLowerCase().includes("suicide hotline")
+
+            if (isCrisis) {
+              content = content.split("**International Helplines:**")[0].trim()
+            }
+
+            if (content) {
+              const contextualPrompt = generateDashboardPrompt(content)
+              setLatestBotMessage(contextualPrompt)
+            }
+          }
+        }
+      })
+      .catch((err) => {
+        if (err?.name !== "AbortError") {
+          console.error("Failed to fetch chat history for dashboard:", err)
+        }
+      })
+
+    return () => controller.abort()
+  }, [isChatExpanded])
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -460,6 +537,9 @@ export default function CenterColumn({
                 <h1 className="text-[19px] min-[360px]:text-[24px] min-[390px]:text-[28px] font-black text-white tracking-tight leading-none whitespace-nowrap truncate">
                   Hello, {firstName}
                 </h1>
+                <span className="text-[#00829B] text-[13px] min-[360px]:text-[14px] min-[390px]:text-[15px] font-medium mt-2 min-[360px]:mt-3 line-clamp-3 leading-snug break-words pr-2">
+                  {latestBotMessage}
+                </span>
               </div>
               <div className="shrink-0">
                 <ProfileAvatar
@@ -736,8 +816,8 @@ export default function CenterColumn({
                 >
                   Hello, {firstName}
                 </motion.h1>
-                <span className="text-[#00829B] text-[16px] font-semibold mt-4">
-                  Wanna talk about the conversation that we left ??
+                <span className="text-[#00829B] text-[16px] font-semibold mt-4 line-clamp-2">
+                  {latestBotMessage}
                 </span>
               </div>
               <motion.div 

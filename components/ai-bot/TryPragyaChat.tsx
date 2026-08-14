@@ -226,7 +226,7 @@ const ChatLoadingIndicator = () => {
 
     return (
         <div className="flex justify-start animate-in fade-in duration-300">
-            <div className="bg-white/30 backdrop-blur-md border border-white/40 rounded-[24px] rounded-tl-sm p-4 shadow-sm flex flex-col gap-3 min-w-[150px]">
+            <div className="flex flex-col gap-3 min-w-[150px]">
                 <div className="flex items-center space-x-2">
                     <div className="w-2.5 h-2.5 bg-orange-400/60 rounded-full animate-bounce"></div>
                     <div
@@ -836,7 +836,7 @@ export default function TryPragyaChat({
                             </a>
                             {hasStarted && (
                                 <Image
-                                    src={getBotAvatar("NEUTRAL")}
+                                    src={"/bot_expressions/Attrangi_s_HQ/NEUTRAL 1.png"}
                                     alt="Pragya Bot"
                                     width={36}
                                     height={36}
@@ -929,112 +929,102 @@ export default function TryPragyaChat({
                         </div>
                     )}
 
-                    {/* Chat Limit Badge */}
-                    <div
-                        className={`absolute right-4 md:right-8 top-[84px] z-50 hidden lg:flex items-center transition-all duration-700 ${hasStarted ? "opacity-100" : "opacity-0 pointer-events-none"}`}
-                    >
-                        <div className="flex items-center gap-3 bg-white border border-gray-200 shadow-sm rounded-full pl-2 pr-5 py-1.5 backdrop-blur-sm bg-white/90 pointer-events-auto">
-                            <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
-                                <svg
-                                    className="w-4 h-4"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2.5"
-                                >
-                                    <rect
-                                        x="2"
-                                        y="5"
-                                        width="20"
-                                        height="14"
-                                        rx="2"
-                                        ry="2"
-                                    ></rect>
-                                    <line x1="2" y1="10" x2="22" y2="10"></line>
-                                </svg>
-                            </div>
-                            <div className="flex flex-col items-start leading-tight">
-                                <span className="text-[9px] text-gray-400 uppercase tracking-widest font-black">
-                                    Available
-                                </span>
-                                <span className="text-sm font-bold text-gray-800">
-                                    {isGuestSession
-                                        ? `${limitData.remaining} / ${GUEST_TRIAL_LIMIT} Free Trials`
-                                        : plan === "FREE"
-                                            ? `${limitData.remaining} / 10 Chats`
-                                            : plan === "ESSENTIAL"
-                                                ? `${limitData.remaining} / 25 Chats`
-                                                : "Unlimited Chats"}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
+                    {/* Chat Limit Badge Hidden as per UI requirement */}
                     {/* Unified Chat Layout with Smooth Transitions */}
                     <div className="w-full flex flex-col h-full bg-transparent overflow-hidden relative">
                         {/* Header / Mode Toggle Area */}
                         <div
-                            className={`transition-all duration-700 ease-in-out w-full flex flex-col items-center shrink-0 relative z-10 pt-4 md:pt-8 ${!hasStarted ? "flex-1 justify-center -mt-16" : "pb-2"}`}
+                            className={`transition-all duration-700 ease-in-out w-full flex flex-col items-center shrink-0 relative z-10 pt-4 md:pt-8 ${!hasStarted ? "flex-1" : "pb-2"}`}
                         >
-                            {/* Avatar, Greeting & Title (Hides on start) */}
+                            {/* Greeting & Title (Hides on start) */}
                             <div
-                                className={`flex flex-col items-center transition-all duration-700 ease-in-out overflow-hidden ${!hasStarted
-                                    ? "opacity-100 max-h-[400px] mb-8 scale-100"
-                                    : "opacity-0 max-h-0 mb-0 scale-95 pointer-events-none"
+                                className={`flex flex-col items-center transition-all duration-700 ease-in-out overflow-hidden w-full max-w-[500px] ${!hasStarted
+                                    ? "opacity-100 max-h-[200px] scale-100"
+                                    : "opacity-0 max-h-0 scale-95 pointer-events-none"
                                     }`}
                             >
-                                <motion.div layoutId="chat-avatar" transition={{ layout: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }} className="mb-4 flex items-center justify-center relative shrink-0 transition-transform duration-700 ease-in-out">
-                                    <Image
-                                        src={getBotAvatar(botExpression)}
-                                        alt="Pragya Bot"
-                                        width={96}
-                                        height={96}
-                                        className="object-contain"
-                                        priority
-                                    />
-                                </motion.div>
                                 <motion.h2 
-                                    className="text-[12px] uppercase tracking-[0.05em] font-bold text-[#004f69]/70 mb-6 font-sans mt-2"
+                                    className="text-[13px] uppercase tracking-[0.08em] font-bold text-[#004f69]/80 mb-2 font-sans mt-2"
                                 >
                                     HELLO {userName ? userName.toUpperCase() : "THERE"}!
                                 </motion.h2>
-                                <motion.h1 layoutId="chat-greeting" transition={{ layout: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }} className="text-[28px] md:text-[34px] font-extrabold text-[#004f69] leading-tight text-center font-sans tracking-tight">
+                                <motion.h1 layoutId="chat-greeting" transition={{ layout: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }} className="text-[28px] md:text-[34px] font-extrabold text-[#004f69] leading-tight text-center font-sans tracking-tight mb-8">
                                     {currentGreeting}
                                 </motion.h1>
                             </div>
 
-                            {/* Mode Buttons 2x2Grid */}
-                            {!hasStarted && (
-                                <motion.div 
-                                    className={`grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-[560px] transition-all duration-700 ease-in-out px-2 ${!hasStarted ? "opacity-100" : "opacity-0 pointer-events-none"}`}
-                                >
-                                    {CHAT_MODES.map((mode) => {
-                                        const getModeColor = (id: string) => {
-                                            switch (id) {
-                                                case "listen": return "bg-[#FFF6D4]";
-                                                case "reflect": return "bg-[#DFEDFF]";
-                                                case "think": return "bg-[#D2FBD6]";
-                                                case "direct": return "bg-[#FCE6EE]";
-                                                default: return "bg-gray-100";
-                                            }
-                                        };
-                                        return (
+                            {/* Center Avatar with Surrounding Bubbles */}
+                            <div
+                                className={`flex flex-col flex-1 items-center justify-center transition-all duration-700 ease-in-out overflow-hidden w-full ${!hasStarted
+                                    ? "opacity-100 max-h-[800px] mb-8 scale-100"
+                                    : "opacity-0 max-h-0 mb-0 scale-95 pointer-events-none"
+                                    }`}
+                            >
+                                <div className="relative w-[340px] h-[300px] flex items-center justify-center">
+                                    <motion.div layoutId="chat-avatar" transition={{ layout: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }} className="relative z-10 flex items-center justify-center shrink-0 transition-transform duration-700 ease-in-out pointer-events-none">
+                                        <Image
+                                            src={botExpression === "NEUTRAL" ? "/bot_expressions/Attrangi_s_HQ/NEUTRAL.png" : getBotAvatar(botExpression)}
+                                            alt="Pragya Bot"
+                                            width={140}
+                                            height={140}
+                                            className="object-contain"
+                                            priority
+                                        />
+                                    </motion.div>
+
+                                    {!hasStarted && (
+                                        <>
+                                            {/* Help Me Think - Top Left */}
                                             <button
-                                                key={mode.id}
                                                 onClick={() => {
-                                                    if (selectedMode !== mode.id) {
-                                                        setSelectedMode(mode.id);
-                                                    }
+                                                    if (selectedMode !== "think") setSelectedMode("think");
                                                 }}
-                                                className={`flex items-center gap-4 px-4 py-3 bg-white/30 backdrop-blur-md rounded-[20px] border ${selectedMode === mode.id ? "border-white/80 shadow-md" : "border-white/30"} shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:bg-white/40 hover:border-white/60 transition-all text-left group`}
+                                                className={`absolute top-0 left-[-10px] rounded-full px-5 py-3 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "think" ? "bg-[#004f69] text-white" : "bg-white text-[#004f69]"}`}
                                             >
-                                                <div className={`w-[26px] h-[26px] rounded-lg shrink-0 ${getModeColor(mode.id)}`}></div>
-                                                <span className="text-[13px] font-extrabold text-[#004f69] group-hover:text-[#00384d] transition-colors">{mode.title}</span>
+                                                <span>Help Me Think</span>
+                                                {/* Tail pointing bottom-right */}
+                                                <div className={`absolute right-5 -bottom-1.5 w-3 h-3 rotate-45 rounded-[2px] ${selectedMode === "think" ? "bg-[#004f69]" : "bg-white"}`} style={{ boxShadow: selectedMode === "think" ? "none" : "1px 1px 1px rgba(0,0,0,0.02)" }}></div>
                                             </button>
-                                        );
-                                    })}
-                                </motion.div>
-                            )}
+
+                                            {/* Answer Directly - Top Right */}
+                                            <button
+                                                onClick={() => {
+                                                    if (selectedMode !== "direct") setSelectedMode("direct");
+                                                }}
+                                                className={`absolute top-3 right-[-10px] rounded-full px-5 py-3 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "direct" ? "bg-[#004f69] text-white" : "bg-white text-[#004f69]"}`}
+                                            >
+                                                <span>Answer Directly</span>
+                                                {/* Tail pointing bottom-left */}
+                                                <div className={`absolute left-6 -bottom-1.5 w-3 h-3 rotate-45 rounded-[2px] ${selectedMode === "direct" ? "bg-[#004f69]" : "bg-white"}`} style={{ boxShadow: selectedMode === "direct" ? "none" : "-1px 1px 1px rgba(0,0,0,0.02)" }}></div>
+                                            </button>
+
+                                            {/* Just Listen - Top Left (Lower) */}
+                                            <button
+                                                onClick={() => {
+                                                    if (selectedMode !== "listen") setSelectedMode("listen");
+                                                }}
+                                                className={`absolute top-[75px] left-[-30px] rounded-full px-5 py-3 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "listen" ? "bg-[#004f69] text-white" : "bg-white text-[#004f69]"}`}
+                                            >
+                                                <span>Just Listen</span>
+                                                {/* Tail pointing bottom-right */}
+                                                <div className={`absolute right-5 -bottom-1.5 w-3 h-3 rotate-45 rounded-[2px] ${selectedMode === "listen" ? "bg-[#004f69]" : "bg-white"}`} style={{ boxShadow: selectedMode === "listen" ? "none" : "1px 1px 1px rgba(0,0,0,0.02)" }}></div>
+                                            </button>
+
+                                            {/* Reflect - Top Right (Lower) */}
+                                            <button
+                                                onClick={() => {
+                                                    if (selectedMode !== "reflect") setSelectedMode("reflect");
+                                                }}
+                                                className={`absolute top-[85px] right-[-30px] rounded-full px-5 py-3 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "reflect" ? "bg-[#004f69] text-white" : "bg-white text-[#004f69]"}`}
+                                            >
+                                                <span>Reflect</span>
+                                                {/* Tail pointing bottom-left */}
+                                                <div className={`absolute left-5 -bottom-1.5 w-3 h-3 rotate-45 rounded-[2px] ${selectedMode === "reflect" ? "bg-[#004f69]" : "bg-white"}`} style={{ boxShadow: selectedMode === "reflect" ? "none" : "-1px 1px 1px rgba(0,0,0,0.02)" }}></div>
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
                         {/* Chat Messages */}
@@ -1119,7 +1109,7 @@ export default function TryPragyaChat({
                                                         ))}
                                                     </div>
                                                 )}
-                                                {(msg.action?.type === "ATTENTION_ASSESSMENT" || msg.action?.type === "ASSESSMENT") && (!isTyping || idx < messages.length - 1) && (
+                                                {(msg.action?.type === "ATTENTION_ASSESSMENT" || msg.action?.type === "ASSESSMENT" || (msg.action?.type === "ACTIVITY" && !isCrisis)) && (!isTyping || idx < messages.length - 1) && (
                                                     <div className="mt-4 p-5 rounded-[24px] rounded-tl-sm bg-white/30 backdrop-blur-md border border-white/40 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500 text-[#004f69] font-sans shadow-sm">
                                                         <div className="flex items-start gap-4">
                                                             <div className="w-10 h-10 rounded-full bg-white/50 text-[#FF6812] flex items-center justify-center shrink-0 mt-0.5">
@@ -1139,7 +1129,7 @@ export default function TryPragyaChat({
                                                                     </span>
                                                                 </div>
                                                                 <p className="text-[13px] text-[#004f69]/80 font-medium leading-relaxed">
-                                                                    {(msg.action as any).rationale || "Based on your discussion, a structured evaluation is recommended."}
+                                                                    {(msg.action as any).rationale || (msg.action.type === "ACTIVITY" ? "We recommend trying this activity based on your thoughts." : "Based on your discussion, a structured evaluation is recommended.")}
                                                                 </p>
                                                                 <p className="text-[11px] text-[#004f69]/60 font-medium">
                                                                     Selection Confidence: {Math.round(((msg.action as any).confidence || 0.70) * 100)}%
@@ -1150,7 +1140,7 @@ export default function TryPragyaChat({
                                                             href={isGuestSession ? `/auth/signin?callbackUrl=${encodeURIComponent(msg.action.url)}` : msg.action.url}
                                                             className="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-[12px] font-black tracking-widest uppercase transition-all shadow-md hover:shadow-orange-500/20 whitespace-nowrap text-center self-stretch md:self-center flex items-center justify-center"
                                                         >
-                                                            Start Recommended Task
+                                                            {msg.action.type === "ACTIVITY" ? "Start Activity" : "Start Recommended Task"}
                                                         </Link>
                                                     </div>
                                                 )}
@@ -1295,87 +1285,84 @@ export default function TryPragyaChat({
                                         layoutId="chat-input-bar"
                                         transition={{ layout: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }}
                                         onSubmit={sendMessage}
-                                        className={`w-full bg-white/95 backdrop-blur-xl text-[#004f69] transition-all flex items-end gap-2 border border-white/80 shadow-lg ${!hasStarted ? "rounded-full py-2 pl-6 pr-2" : "rounded-[32px] py-2 pl-6 pr-2"}`}
+                                        className="w-full flex items-end gap-3"
                                     >
-                                        {isRecording ? (
-                                            <div className="flex-1 flex items-center justify-center gap-3 py-3 min-h-[44px]">
-                                                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
-                                                <span className="text-red-500 font-bold text-sm tracking-wider">
-                                                    Recording {formatTime(recordingTime)}
-                                                </span>
-                                            </div>
-                                        ) : isTranscribing ? (
-                                            <div className="flex-1 flex items-center justify-center gap-3 py-3 min-h-[44px]">
-                                                <div className="w-4 h-4 border-2 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
-                                                <span className="text-orange-500 font-bold text-[13px] tracking-widest uppercase">
-                                                    Transcribing...
-                                                </span>
-                                            </div>
-                                        ) : (
-                                            <textarea
-                                                ref={inputRef}
-                                                value={inputMessage}
-                                                onChange={handleInputChange}
-                                                onKeyDown={handleKeyDown}
-                                                placeholder={
-                                                    hasStarted
-                                                        ? "Type your message here..."
-                                                        : "Tell me what's been on your mind..."
-                                                }
-                                                rows={1}
-                                                className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 py-3 focus:outline-none resize-none min-h-[44px] max-h-[160px] leading-relaxed text-[15px] overflow-y-auto style-scrollbar"
-                                                disabled={isLoading || isRecording || isTranscribing}
-                                                autoFocus
-                                            />
-                                        )}
+                                        <div className={`flex-1 bg-white/95 backdrop-blur-xl text-[#004f69] transition-all flex items-end gap-2 border border-white/80 shadow-lg ${!hasStarted ? "rounded-full py-1.5 pl-6 pr-2" : "rounded-[32px] py-1.5 pl-6 pr-2"}`}>
+                                            {isRecording ? (
+                                                <div className="flex-1 flex items-center justify-center gap-3 py-3 min-h-[44px]">
+                                                    <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                                                    <span className="text-red-500 font-bold text-sm tracking-wider">
+                                                        Recording {formatTime(recordingTime)}
+                                                    </span>
+                                                </div>
+                                            ) : isTranscribing ? (
+                                                <div className="flex-1 flex items-center justify-center gap-3 py-3 min-h-[44px]">
+                                                    <div className="w-4 h-4 border-2 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
+                                                    <span className="text-orange-500 font-bold text-[13px] tracking-widest uppercase">
+                                                        Transcribing...
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <textarea
+                                                    ref={inputRef}
+                                                    value={inputMessage}
+                                                    onChange={handleInputChange}
+                                                    onKeyDown={handleKeyDown}
+                                                    placeholder="Tell me what's on your mind..."
+                                                    rows={1}
+                                                    className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 py-3 focus:outline-none resize-none min-h-[44px] max-h-[160px] leading-relaxed text-[15px] overflow-y-auto style-scrollbar"
+                                                    disabled={isLoading || isRecording || isTranscribing}
+                                                    autoFocus
+                                                />
+                                            )}
+
+                                            {!isRecording && (
+                                                <button
+                                                    type="submit"
+                                                    disabled={isLoading || !inputMessage.trim() || isTranscribing}
+                                                    className={`p-2.5 rounded-full h-[40px] w-[40px] shrink-0 mb-1 transition-all duration-300 flex items-center justify-center ${isLoading || !inputMessage.trim() || isTranscribing
+                                                        ? "text-gray-400 bg-[#f4f4f5]"
+                                                        : "text-gray-700 bg-[#f4f4f5] hover:bg-[#e4e4e7]"
+                                                        }`}
+                                                >
+                                                    <svg
+                                                        className="w-[18px] h-[18px] transform translate-x-[-1px] translate-y-[1px]"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                                    </svg>
+                                                </button>
+                                            )}
+                                        </div>
                                         
                                         <button
                                             type="button"
                                             onClick={toggleRecording}
                                             disabled={isLoading || isTranscribing}
-                                            className={`px-4 py-2 rounded-full h-[40px] shrink-0 mb-0.5 transition-all duration-300 flex items-center justify-center gap-2 font-bold text-[14px] ${
+                                            className={`rounded-[24px] w-[54px] h-[54px] shrink-0 mb-1 transition-all duration-300 flex items-center justify-center font-bold text-[14px] ${
                                                 isRecording ? "bg-red-500 text-white" :
                                                 (isLoading || isTranscribing) ? "bg-orange-300 text-white" :
-                                                "bg-[#f88f5f] text-white hover:bg-[#eb7a47] shadow-[0_2px_8px_rgba(248,143,95,0.4)]"
+                                                "bg-[#f4a261] text-white hover:bg-[#e39454] shadow-[0_2px_8px_rgba(244,162,97,0.4)]"
                                             }`}
                                             title={isRecording ? "Stop Recording" : "Start Voice Input"}
                                         >
                                             {isRecording ? (
-                                                <svg className="w-[16px] h-[16px]" fill="currentColor" viewBox="0 0 24 24">
+                                                <svg className="w-[20px] h-[20px]" fill="currentColor" viewBox="0 0 24 24">
                                                     <rect x="6" y="6" width="12" height="12" rx="2" />
                                                 </svg>
                                             ) : (
-                                                <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                                <svg className="w-[20px] h-[20px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                                                 </svg>
                                             )}
-                                            <span className="hidden sm:inline-block">{isRecording ? "Stop" : "Speak"}</span>
                                         </button>
-
-                                        {!isRecording && (
-                                            <button
-                                                type="submit"
-                                                disabled={isLoading || !inputMessage.trim() || isTranscribing}
-                                                className={`p-2.5 rounded-full h-10 w-10 shrink-0 mb-1 transition-all duration-300 flex items-center justify-center ${isLoading || !inputMessage.trim() || isTranscribing
-                                                    ? "text-gray-400 bg-[#f4f4f5]"
-                                                    : "text-gray-700 bg-[#f4f4f5] hover:bg-[#e4e4e7]"
-                                                    }`}
-                                            >
-                                                <svg
-                                                    className="w-[18px] h-[18px] transform translate-x-[-1px] translate-y-[1px]"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                                                </svg>
-                                            </button>
-                                        )}
                                     </motion.form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
                 </motion.div>
 
                 {/* Memory Policy Modal */}

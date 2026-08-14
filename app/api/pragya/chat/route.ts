@@ -245,6 +245,11 @@ export async function POST(req: NextRequest) {
         if (parsedNested.expression && !data.expression) {
           data.expression = parsedNested.expression;
         }
+        
+        // Ensure action is bubbled up if available
+        if (parsedNested.action && (!data.action || Object.keys(data.action).length === 0)) {
+          data.action = parsedNested.action;
+        }
       } catch (e) {
         // Not a valid JSON string, leave it alone
       }
@@ -277,6 +282,40 @@ export async function POST(req: NextRequest) {
         }
       } catch (error) {
         console.error("Failed to translate bot response, falling back to English:", error);
+      }
+    }
+
+    // --- Activity Recommendation Logic (Fallback) ---
+    if (userMessageEnglish && data.reply) {
+      const msgLower = userMessageEnglish.toLowerCase();
+      const matches = (regex: RegExp) => regex.test(msgLower);
+      
+      let explicitActivity: { title: string; url: string } | null = null;
+      if (matches(/\b(box breathing|guide.*box breathing)\b/i)) explicitActivity = { title: "Box Breathing", url: "/explore/activities/breathing?mode=box" };
+      else if (matches(/\b(4-7-8|four seven eight)\b/i)) explicitActivity = { title: "4-7-8 Breathing", url: "/explore/activities/breathing?mode=478" };
+      else if (matches(/\b(grounding exercise|ground myself|5-4-3-2-1)\b/i)) explicitActivity = { title: "5-4-3-2-1 Grounding", url: "/dashboard/explore?item=5-4-3-2-1-grounding" };
+      else if (matches(/\b(movement (exercise|break)|stretch|physical activity)\b/i)) explicitActivity = { title: "Micro Movement", url: "/dashboard/explore?item=micro-movement" };
+      else if (matches(/\b(progressive muscle relaxation|muscle relaxation exercise|relax my muscles)\b/i)) explicitActivity = { title: "Progressive Muscle Relaxation", url: "/dashboard/explore?item=progressive-muscle-relaxation" };
+      else if (matches(/\b(journal|write down what i'm feeling|reflection exercise)\b/i)) explicitActivity = { title: "Journal Reflection", url: "/dashboard/explore?item=journal-reflection" };
+
+      if (explicitActivity) {
+        // Explicit activity requests must override existing assessments
+        data.action = { type: "ACTIVITY", title: explicitActivity.title, url: explicitActivity.url };
+      } 
+      else if (!data.action || Object.keys(data.action).length === 0 || !(data.action as any).type) {
+        // Contextual matching triggers ONLY if no assessment took precedence
+        let contextActivity: { title: string; url: string } | null = null;
+        
+        if (matches(/\b(shoulders.*tense|muscle tension|tense muscles|jaw tension|physically tense|can't physically relax|tension in.*body)\b/i)) contextActivity = { title: "Progressive Muscle Relaxation", url: "/dashboard/explore?item=progressive-muscle-relaxation" };
+        else if (matches(/\b(sitting all day|sitting.*long|stiff|sluggish|body.*stuck)\b/i)) contextActivity = { title: "Micro Movement", url: "/dashboard/explore?item=micro-movement" };
+        else if (matches(/\b(feel(ing)? disconnected|detached|unreal|spaced out|mentally scattered|come back to the present|dissociating)\b/i)) contextActivity = { title: "5-4-3-2-1 Grounding", url: "/dashboard/explore?item=5-4-3-2-1-grounding" };
+        else if (matches(/\b(racing thoughts|take a breath|panic attack)\b/i)) contextActivity = { title: "Box Breathing", url: "/explore/activities/breathing?mode=box" };
+        else if (matches(/\b(difficulty relaxing|difficulty settling down)\b/i)) contextActivity = { title: "4-7-8 Breathing", url: "/explore/activities/breathing?mode=478" };
+        else if (matches(/\b(process thoughts|process feelings|write things down|lot on my mind)\b/i)) contextActivity = { title: "Journal Reflection", url: "/dashboard/explore?item=journal-reflection" };
+        
+        if (contextActivity) {
+          data.action = { type: "ACTIVITY", title: contextActivity.title, url: contextActivity.url };
+        }
       }
     }
 
