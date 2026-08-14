@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   // Ensure Prisma works correctly in Next.js
-  serverExternalPackages: ["@prisma/client", "prisma"],
+  serverExternalPackages: ["@prisma/client", "prisma", "@ffmpeg-installer/ffmpeg", "fluent-ffmpeg"],
   images: {
     remotePatterns: [
       {

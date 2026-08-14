@@ -607,11 +607,6 @@ export default function TryPragyaChat({
 
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInputMessage(e.target.value);
-        const textarea = inputRef.current;
-        if (textarea) {
-            textarea.style.height = "auto";
-            textarea.style.height = `${Math.min(textarea.scrollHeight, 180)}px`;
-        }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -753,13 +748,11 @@ export default function TryPragyaChat({
                     if (data.transcript) {
                         setInputMessage((prev) => {
                             const newText = prev.trim() ? `${prev} ${data.transcript}` : data.transcript;
-                            if (inputRef.current) {
                                 setTimeout(() => {
-                                    inputRef.current!.style.height = "auto";
-                                    inputRef.current!.style.height = `${Math.min(inputRef.current!.scrollHeight, 180)}px`;
-                                    inputRef.current!.focus();
+                                    if (inputRef.current) {
+                                        inputRef.current.focus();
+                                    }
                                 }, 50);
-                            }
                             return newText;
                         });
                     }
@@ -803,7 +796,7 @@ export default function TryPragyaChat({
     return (
         <>
             <motion.div className="flex flex-col h-full bg-gradient-to-b from-[#8BC8DF]/90 to-[#C8E2EF]/90 text-gray-800 overflow-hidden font-sans relative">
-                <div className="flex-1 flex flex-col w-full max-w-4xl mx-auto overflow-hidden relative h-full z-10 px-4 md:px-8">
+                <div className="flex-1 min-h-0 flex flex-col w-full max-w-4xl mx-auto overflow-hidden relative z-10 px-4 md:px-8">
                     {/* Top Navigation */}
                     <motion.div 
                         className="w-full flex items-center justify-between py-6 shrink-0 z-20"
@@ -931,10 +924,10 @@ export default function TryPragyaChat({
 
                     {/* Chat Limit Badge Hidden as per UI requirement */}
                     {/* Unified Chat Layout with Smooth Transitions */}
-                    <div className="w-full flex flex-col h-full bg-transparent overflow-hidden relative">
+                    <div className="w-full flex-1 min-h-0 flex flex-col bg-transparent overflow-hidden relative">
                         {/* Header / Mode Toggle Area */}
                         <div
-                            className={`transition-all duration-700 ease-in-out w-full flex flex-col items-center shrink-0 relative z-10 pt-4 md:pt-8 ${!hasStarted ? "flex-1" : "pb-2"}`}
+                            className={`transition-all duration-700 ease-in-out w-full flex flex-col items-center shrink-0 min-h-0 relative z-10 pt-4 md:pt-8 ${!hasStarted ? "flex-1" : "pb-2"}`}
                         >
                             {/* Greeting & Title (Hides on start) */}
                             <div
@@ -1029,7 +1022,7 @@ export default function TryPragyaChat({
 
                         {/* Chat Messages */}
                             <div
-                                className={`overflow-y-auto p-6 md:p-8 space-y-6 no-scrollbar bg-transparent transition-all duration-700 ease-in-out ${!hasStarted
+                                className={`overflow-y-auto p-6 md:p-8 space-y-6 no-scrollbar bg-transparent min-h-0 transition-all duration-700 ease-in-out ${!hasStarted
                                     ? "flex-none opacity-0 h-0 p-0 md:p-0"
                                     : "flex-1 opacity-100"
                                     }`}
@@ -1281,13 +1274,11 @@ export default function TryPragyaChat({
                                         </span>
                                     </div>
 
-                                    <motion.form
-                                        layoutId="chat-input-bar"
-                                        transition={{ layout: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }}
+                                    <form
                                         onSubmit={sendMessage}
                                         className="w-full flex items-end gap-3"
                                     >
-                                        <div className={`flex-1 bg-white/95 backdrop-blur-xl text-[#004f69] transition-all flex items-end gap-2 border border-white/80 shadow-lg ${!hasStarted ? "rounded-full py-1.5 pl-6 pr-2" : "rounded-[32px] py-1.5 pl-6 pr-2"}`}>
+                                        <div className={`flex-1 overflow-hidden bg-white/95 backdrop-blur-xl text-[#004f69] transition-colors duration-300 flex items-end gap-2 border border-white/80 shadow-lg rounded-3xl py-1.5 pl-6 pr-2`}>
                                             {isRecording ? (
                                                 <div className="flex-1 flex items-center justify-center gap-3 py-3 min-h-[44px]">
                                                     <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
@@ -1303,17 +1294,25 @@ export default function TryPragyaChat({
                                                     </span>
                                                 </div>
                                             ) : (
-                                                <textarea
-                                                    ref={inputRef}
-                                                    value={inputMessage}
-                                                    onChange={handleInputChange}
-                                                    onKeyDown={handleKeyDown}
-                                                    placeholder="Tell me what's on your mind..."
-                                                    rows={1}
-                                                    className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 py-3 focus:outline-none resize-none min-h-[44px] max-h-[160px] leading-relaxed text-[15px] overflow-y-auto style-scrollbar"
-                                                    disabled={isLoading || isRecording || isTranscribing}
-                                                    autoFocus
-                                                />
+                                                <div className="flex-1 relative">
+                                                    <div 
+                                                        className="invisible whitespace-pre-wrap break-words py-3 leading-relaxed text-[15px] min-h-[44px] max-h-[200px] pointer-events-none"
+                                                        aria-hidden="true"
+                                                    >
+                                                        {inputMessage + " "}
+                                                    </div>
+                                                    <textarea
+                                                        ref={inputRef}
+                                                        value={inputMessage}
+                                                        onChange={handleInputChange}
+                                                        onKeyDown={handleKeyDown}
+                                                        placeholder="Tell me what's on your mind..."
+                                                        rows={1}
+                                                        className="absolute inset-0 w-full h-full bg-transparent text-gray-800 placeholder-gray-400 py-3 focus:outline-none resize-none leading-relaxed text-[15px] overflow-y-auto style-scrollbar"
+                                                        disabled={isLoading || isRecording || isTranscribing}
+                                                        autoFocus
+                                                    />
+                                                </div>
                                             )}
 
                                             {!isRecording && (
@@ -1358,7 +1357,7 @@ export default function TryPragyaChat({
                                                 </svg>
                                             )}
                                         </button>
-                                    </motion.form>
+                                    </form>
                                  </div>
                              </div>
                          </div>
