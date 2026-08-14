@@ -3,18 +3,18 @@ import { Suspense } from "react"
 import { getCurrentUser } from "@/lib/auth"
 import SettingsLayout from "@/components/settings/SettingsLayout"
 import LoadingSkeleton from "@/components/settings/LoadingSkeleton"
-import SubscriptionSettings from "@/components/settings/subscription/SubscriptionSettings"
+import AppearanceSettings from "@/components/settings/appearance/AppearanceSettings"
 
 async function Content() {
   const user = await getCurrentUser()
   if (!user || user.role !== "PATIENT") redirect("/auth/unauthorized")
-  return <SubscriptionSettings user={user} isTestMode={false} />
+  return <AppearanceSettings />
 }
 
-export default function SubscriptionSettingsPage() {
+export default function AppearancePage() {
   return (
-    <SettingsLayout title="Subscription" backHref="/dashboard/settings" maxWidthClass="max-w-6xl">
-      <Suspense fallback={<LoadingSkeleton rows={5} />}>
+    <SettingsLayout title="Appearance" backHref="/dashboard/settings" maxWidthClass="max-w-[430px]">
+      <Suspense fallback={<LoadingSkeleton rows={2} />}>
         <Content />
       </Suspense>
     </SettingsLayout>

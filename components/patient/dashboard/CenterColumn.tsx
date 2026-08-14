@@ -39,17 +39,17 @@ function renderEmojiFace(name: string, isSelected: boolean, isDimmed: boolean = 
   const getImagePath = () => {
     switch (name) {
       case "Low":
-        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Low_ntkoac.png"
+        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Low_sujxbx.png"
       case "Meh":
-        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Meh_xtcx8o.png"
+        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Meh_fh0ndp.png"
       case "Okay":
-        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Okay_xxmvbz.png"
+        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Okay_ikdsom.png"
       case "Good":
-        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Good_cujvhx.png"
+        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730507/Good_qtm32o.png"
       case "Great":
         return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Great_qh8yts.png"
       default:
-        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Okay_xxmvbz.png"
+        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Okay_ikdsom.png"
     }
   }
 
@@ -58,7 +58,7 @@ function renderEmojiFace(name: string, isSelected: boolean, isDimmed: boolean = 
   return (
     <div 
       className={`w-10 h-10 min-[360px]:w-11 min-[360px]:h-11 min-[390px]:w-12 min-[390px]:h-12 md:w-16 md:h-16 flex items-center justify-center transition-all duration-200 ${
-        isSelected ? "scale-110 rounded-xl min-[390px]:rounded-2xl shadow-md" : ""
+        isSelected ? "scale-110 rounded-xl min-[390px]:rounded-2xl" : ""
       }`}
       style={{ opacity: isDimmed ? 0.35 : 1 }}
     >

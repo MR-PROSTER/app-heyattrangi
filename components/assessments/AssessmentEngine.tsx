@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { Activity, AlertTriangle, Brain, ListChecks, MessageSquare } from "lucide-react"
+import { Activity, AlertTriangle, Brain, ListChecks, MessageSquare, ChevronLeft, Info, Sparkles, ShieldAlert, ShieldCheck, Check } from "lucide-react"
 import { triageQuestions, screeners, TriageQuestion, Screener } from "@/lib/data/assessmentEngine"
 import { DEFAULT_AVATAR } from "@/lib/avatar"
 
@@ -14,6 +14,95 @@ type ChatMessage = {
 }
 
 type Phase = "intro" | "triage" | "screener" | "calculating" | "results"
+
+// Helper functions for redesigned results screen
+function formatDate(dateStr: string) {
+    if (!dateStr) return "";
+    try {
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+            const y = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10) - 1; // 0-based
+            const d = parseInt(parts[2], 10);
+            const utcDate = new Date(Date.UTC(y, m, d));
+            return utcDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+        }
+        const date = new Date(dateStr);
+        return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    } catch (e) {
+        return dateStr;
+    }
+}
+
+function getResultStyles(severity: string) {
+    const text = severity.toLowerCase();
+    if (text.includes("good") || text.includes("stable") || text.includes("high") || text.includes("minimal")) {
+        return {
+            bgClass: "bg-[#EBF5F3]",
+            titleClass: "text-[#2E626A]",
+            borderClass: "border-[#D1E7E3]"
+        };
+    } else if (text.includes("moderate") || text.includes("mild")) {
+        return {
+            bgClass: "bg-[#FEF7EC]",
+            titleClass: "text-[#D97706]",
+            borderClass: "border-[#FBE6C6]"
+        };
+    } else {
+        // Poor or Very Poor / Severe
+        return {
+            bgClass: "bg-[#FDF2EC]",
+            titleClass: "text-[#D96E34]",
+            borderClass: "border-[#FADCCB]"
+        };
+    }
+}
+
+function getRecommendationDetails(item: string) {
+    const text = item.toLowerCase();
+    
+    if (text.includes("sleep") || text.includes("nutrition") || text.includes("diet") || text.includes("hygiene")) {
+        return {
+            icon: "✨",
+            title: "Sleep & nutrition",
+            description: item || "Small changes can support your overall wellbeing."
+        };
+    }
+    if (text.includes("mood") || text.includes("tracking") || text.includes("tracker")) {
+        return {
+            icon: "📊",
+            title: "Mood Tracking",
+            description: item || "Tracking your patterns can help identify what helps or hurts."
+        };
+    }
+    if (text.includes("mindfulness") || text.includes("meditation") || text.includes("breathing") || text.includes("grounding") || text.includes("calm")) {
+        return {
+            icon: "🧘",
+            title: "Mindfulness & Grounding",
+            description: item || "Simple mental exercises help manage stress in real-time."
+        };
+    }
+    if (text.includes("therapist") || text.includes("counselor") || text.includes("consultation") || text.includes("psychiatrist") || text.includes("session")) {
+        return {
+            icon: "🤝",
+            title: "Professional Support",
+            description: item || "Consider talking to a qualified provider for deeper insights."
+        };
+    }
+    if (text.includes("cbt") || text.includes("journal") || text.includes("worksheets") || text.includes("module")) {
+        return {
+            icon: "✍️",
+            title: "Library Worksheets",
+            description: item || "Use our self-guided tools and journals to build coping skills."
+        };
+    }
+    
+    return {
+        icon: "💡",
+        title: "Wellbeing Tip",
+        description: item
+    };
+}
 
 export default function AssessmentEngine() {
     const router = useRouter()
@@ -374,150 +463,194 @@ export default function AssessmentEngine() {
                     </div>
                 )}
             </div>
-            
+
             {/* Results Overlay overlay on top if finished */}
             {phase === "results" && finalResults && (
-                <div className="absolute inset-0 bg-slate-50 z-20 overflow-y-auto p-6 md:p-12 flex flex-col items-center">
-                    <div className="w-full max-w-4xl">
-                        <div className="text-center mb-10">
-                            <h2 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">Clinical Assessment Report</h2>
-                            <p className="text-slate-500 font-medium text-lg">Completed on {finalResults.date}</p>
+                <div className="absolute inset-0 bg-[#FCFAF7] text-[#1E2429] z-20 overflow-y-auto p-4 sm:p-8 md:p-12 flex flex-col items-center">
+                    <div className="w-full max-w-xl mx-auto flex flex-col">
+                        {/* Header Navigation */}
+                        <div className="mb-6 flex flex-col items-start">
+                            <button
+                                onClick={() => router.push('/patient/library')}
+                                className="inline-flex items-center gap-1.5 text-[#2E626A] hover:text-[#204a50] font-semibold text-sm transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-[#2E626A] focus:ring-offset-2 rounded"
+                            >
+                                <ChevronLeft className="w-4 h-4" strokeWidth={3} /> Back to Assessments
+                            </button>
+                            <h2 className="text-3xl font-bold text-[#1E2429] leading-tight mb-1">Assessment Results</h2>
+                            <p className="text-[#7A828A] text-sm font-normal">Completed {formatDate(finalResults.date)}</p>
                         </div>
 
-                        {/* Section 1: Overall Assessment */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
-                            <div className="bg-indigo-600 px-8 py-5">
-                                <h3 className="font-bold text-white uppercase tracking-wider text-sm flex items-center gap-2">
-                                    <Activity className="w-5 h-5" /> 1. Overall Assessment
-                                </h3>
+                        {/* Primary Result Card */}
+                        {(() => {
+                            const who5Finding = finalResults.confidenceLevels.find((f: any) => f.id === 'who5');
+                            const who5Severity = who5Finding ? who5Finding.severity : "Good Wellbeing";
+                            const who5Confidence = who5Finding ? who5Finding.confidenceLevel : "High";
+                            const styles = getResultStyles(who5Severity);
+                            
+                            // Determine a short description based on severity
+                            let who5Desc = "Your responses suggest generally stable and positive wellbeing.";
+                            if (who5Severity.toLowerCase().includes("very poor")) {
+                                who5Desc = "Your responses suggest that you may be going through a very difficult period right now.";
+                            } else if (who5Severity.toLowerCase().includes("poor")) {
+                                who5Desc = "Your responses suggest that you may be going through a difficult period right now.";
+                            }
+                            
+                            return (
+                                <>
+                                    <div className={`w-full rounded-[28px] p-6 sm:p-8 ${styles.bgClass} border ${styles.borderClass} shadow-sm mb-4 transition-all duration-300`}>
+                                        <h3 className={`text-3xl font-bold ${styles.titleClass} mb-2 leading-tight`}>
+                                            {who5Severity}
+                                        </h3>
+                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">
+                                            WHO-5 Wellbeing Index
+                                        </p>
+                                        <p className="text-[#1E2429] text-base leading-relaxed font-medium">
+                                            {who5Desc}
+                                        </p>
+                                    </div>
+                                    
+                                    <p className="text-center text-[#7A828A] text-sm font-medium mb-6">
+                                        Confidence: {who5Confidence}
+                                    </p>
+                                </>
+                            );
+                        })()}
+
+                        {/* What This Means Card */}
+                        <div className="bg-white rounded-[28px] p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-[#EAE5DB]/60 mb-6">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-8 h-8 rounded-full bg-[#EBF5F3] flex items-center justify-center text-[#2E626A] flex-shrink-0">
+                                    <Info className="w-4 h-4" strokeWidth={2.5} />
+                                </div>
+                                <h3 className="font-bold text-[#1E2429] text-lg">What this means</h3>
                             </div>
-                            <div className="p-8">
-                                <p className="text-xl text-slate-800 leading-relaxed font-medium">
+                            <div className="space-y-4">
+                                <p className="text-[#5C6670] leading-relaxed text-sm sm:text-base font-medium">
                                     {finalResults.overallAssessment}
                                 </p>
-                            </div>
-                        </div>
-
-                        {/* Section 2: Confidence Levels */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
-                            <div className="bg-slate-100 border-b border-slate-200 px-8 py-5">
-                                <h3 className="font-bold text-slate-800 uppercase tracking-wider text-sm flex items-center gap-2">
-                                    <Brain className="w-5 h-5 text-indigo-600" /> 2. Findings & Confidence
-                                </h3>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="bg-slate-50 border-b border-slate-200">
-                                            <th className="py-4 px-8 font-semibold text-slate-600 text-sm">Domain</th>
-                                            <th className="py-4 px-8 font-semibold text-slate-600 text-sm">Status</th>
-                                            <th className="py-4 px-8 font-semibold text-slate-600 text-sm">Confidence</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        {finalResults.confidenceLevels.map((finding: any, idx: number) => (
-                                            <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                                                <td className="py-4 px-8 font-bold text-slate-900">{finding.fullName}</td>
-                                                <td className="py-4 px-8">
-                                                    <span className={`inline-flex px-3 py-1 rounded-md font-bold text-xs ${
-                                                        finding.severity.includes("Severe") || finding.severity.includes("Very Poor") ? "bg-red-100 text-red-700" :
-                                                        finding.severity.includes("Moderate") || finding.severity.includes("Poor") ? "bg-orange-100 text-orange-700" :
-                                                        finding.severity.includes("Mild") || finding.severity.includes("Flagged") ? "bg-yellow-100 text-yellow-700" :
-                                                        "bg-green-100 text-green-700"
-                                                    }`}>
-                                                        {finding.severity}
-                                                    </span>
-                                                </td>
-                                                <td className="py-4 px-8">
-                                                    <span className={`inline-flex items-center gap-1.5 font-medium text-sm ${
-                                                        finding.confidenceLevel === "High" ? "text-indigo-600" : "text-slate-500"
-                                                    }`}>
-                                                        {finding.confidenceLevel === "High" && <div className="w-1.5 h-1.5 rounded-full bg-indigo-600"></div>}
-                                                        {finding.confidenceLevel}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {/* Section 3: Prioritized Action Plan */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
-                            <div className="bg-slate-100 border-b border-slate-200 px-8 py-5">
-                                <h3 className="font-bold text-slate-800 uppercase tracking-wider text-sm flex items-center gap-2">
-                                    <ListChecks className="w-5 h-5 text-indigo-600" /> 3. Prioritized Action Plan
-                                </h3>
-                            </div>
-                            
-                            <div className="p-8 space-y-8">
-                                {/* Top Priorities */}
-                                <div>
-                                    <h4 className="text-lg font-bold text-red-600 mb-4 flex items-center gap-2">
-                                        <AlertTriangle className="w-5 h-5" /> Top Priorities
-                                    </h4>
-                                    <ul className="space-y-4">
-                                        {finalResults.topPriorities.length > 0 ? finalResults.topPriorities.map((item: any, idx: number) => (
-                                            <li key={idx} className="bg-red-50/50 rounded-xl p-5 border border-red-100">
-                                                <div className="font-bold text-slate-900 mb-1">{item.recommendation}</div>
-                                                <div className="text-sm text-slate-600">Reason: <span className="font-medium text-slate-800">{item.condition} ({item.status})</span></div>
-                                            </li>
-                                        )) : <li className="text-slate-500 italic">No urgent clinical actions required.</li>}
-                                    </ul>
-                                </div>
-
-                                {/* Additional Findings */}
-                                {finalResults.additionalFindings.length > 0 && (
-                                    <div>
-                                        <h4 className="text-md font-bold text-slate-800 mb-4">Additional Assessments Recommended</h4>
-                                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            {finalResults.additionalFindings.map((item: any, idx: number) => (
-                                                <li key={idx} className="bg-slate-50 rounded-lg p-4 border border-slate-100 flex items-center gap-3">
-                                                    <div className="w-2 h-2 rounded-full bg-slate-400"></div>
-                                                    <span className="font-medium text-slate-700">{item.condition}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-
-                                {/* Self Help */}
-                                {finalResults.selfHelp.length > 0 && (
-                                    <div>
-                                        <h4 className="text-md font-bold text-slate-800 mb-4">Self-Help Strategies</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {finalResults.selfHelp.map((item: string, idx: number) => (
-                                                <span key={idx} className="bg-indigo-50 text-indigo-700 font-medium px-4 py-2 rounded-full text-sm">
-                                                    {item}
-                                                </span>
-                                            ))}
-                                        </div>
+                                {finalResults.aiInterpretation && (
+                                    <div className="text-[#5C6670] leading-relaxed text-sm sm:text-base italic border-l-2 border-[#2E626A] pl-4 bg-[#FBF9F6]/50 py-2.5 rounded-r-xl">
+                                        "{finalResults.aiInterpretation}"
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        {/* Section 4: AI Clinical Interpretation */}
-                        <div className="bg-slate-900 rounded-2xl shadow-sm border border-slate-800 overflow-hidden mb-12">
-                            <div className="bg-slate-800 border-b border-slate-700 px-8 py-5">
-                                <h3 className="font-bold text-indigo-300 uppercase tracking-wider text-sm flex items-center gap-2">
-                                    <MessageSquare className="w-5 h-5" /> 4. AI Clinical Interpretation
-                                </h3>
-                            </div>
-                            <div className="p-8 text-slate-300 leading-relaxed text-lg italic">
-                                "{finalResults.aiInterpretation}"
-                            </div>
-                        </div>
-
-                        <div className="text-center">
-                            <button 
+                        {/* Action Buttons */}
+                        <div className="flex flex-col gap-3 w-full mb-6">
+                            <button
                                 onClick={() => router.push('/patient/library')}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-12 rounded-full shadow-lg transition-all uppercase tracking-wider text-sm"
+                                className="w-full h-14 bg-[#2E626A] hover:bg-[#204a50] active:scale-[0.99] text-white rounded-full font-semibold text-base transition-all flex items-center justify-center shadow-sm"
                             >
-                                Acknowledge & Return to Library
+                                Return to Assessments
+                            </button>
+                            <button
+                                onClick={() => router.push('/patient/wellbeing')}
+                                className="w-full h-14 bg-transparent border-2 border-[#2E626A] hover:bg-[#2E626A]/5 active:scale-[0.99] text-[#2E626A] rounded-full font-semibold text-base transition-all flex items-center justify-center"
+                            >
+                                Explore wellbeing tools
                             </button>
                         </div>
+
+                        {/* Recommendations */}
+                        {finalResults.selfHelp && finalResults.selfHelp.length > 0 && (
+                            <div className="mb-6">
+                                <h3 className="text-[#1E2429] font-bold text-lg mb-3">A few things that may help</h3>
+                                <div className="space-y-4">
+                                    {finalResults.selfHelp.map((item: string, idx: number) => {
+                                        const rec = getRecommendationDetails(item);
+                                        return (
+                                            <div key={idx} className="bg-white rounded-[24px] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-[#EAE5DB]/60 flex gap-4 items-start">
+                                                <div className="w-12 h-12 rounded-2xl bg-[#FBF9F6] border border-[#EAE5DB]/40 flex items-center justify-center text-xl flex-shrink-0">
+                                                    {rec.icon}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h4 className="font-bold text-[#1E2429] text-base mb-1">{rec.title}</h4>
+                                                    <p className="text-[#5C6670] text-sm leading-relaxed">{rec.description}</p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Domain Analysis / Detailed Findings */}
+                        {finalResults.confidenceLevels && finalResults.confidenceLevels.length > 0 && (
+                            <div className="mb-6">
+                                <h3 className="text-lg font-bold text-[#1E2429] mb-3">Domain Analysis</h3>
+                                <div className="space-y-3">
+                                    {finalResults.confidenceLevels.map((finding: any, idx: number) => {
+                                        const styles = getResultStyles(finding.severity);
+                                        return (
+                                            <div key={idx} className="bg-white rounded-[24px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.01)] border border-[#EAE5DB]/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                                <div>
+                                                    <h4 className="font-bold text-[#1E2429] text-base">{finding.fullName}</h4>
+                                                    <div className="flex items-center gap-2 mt-2">
+                                                        <span className={`inline-flex px-2.5 py-0.5 rounded-full font-bold text-[11px] ${styles.bgClass} ${styles.titleClass} ${styles.borderClass} border`}>
+                                                            {finding.severity}
+                                                        </span>
+                                                        <span className="text-xs text-slate-400 font-medium">
+                                                            Score: {finding.score}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-1.5 text-xs text-[#5C6670] font-medium sm:text-right">
+                                                    <span className="text-slate-400">Confidence:</span>
+                                                    <span className="inline-flex items-center gap-1">
+                                                        {finding.confidenceLevel === "High" && <div className="w-1.5 h-1.5 rounded-full bg-[#2E626A]"></div>}
+                                                        {finding.confidenceLevel}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Additional Recommended Assessments */}
+                        {finalResults.additionalFindings && finalResults.additionalFindings.length > 0 && (
+                            <div className="mb-6">
+                                <h4 className="text-sm font-bold text-[#1E2429] mb-3">Additional Recommended Assessments</h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {finalResults.additionalFindings.map((item: any, idx: number) => (
+                                        <div key={idx} className="bg-white rounded-xl p-4 border border-[#EAE5DB]/60 flex items-center gap-3">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-[#2E626A]"></div>
+                                            <span className="font-semibold text-[#1E2429] text-sm">{item.condition}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Prioritized Action Plan Status */}
+                        {finalResults.topPriorities && finalResults.topPriorities.length > 0 ? (
+                            <div className="mb-6 bg-[#FDF2EC] border border-[#FADCCB] rounded-[24px] p-6">
+                                <h4 className="text-[#D96E34] font-bold text-base mb-3 flex items-center gap-2">
+                                    <ShieldAlert className="w-5 h-5" /> Priorities & Clinical Actions
+                                </h4>
+                                <ul className="space-y-3">
+                                    {finalResults.topPriorities.map((item: any, idx: number) => (
+                                        <li key={idx} className="bg-white rounded-xl p-4 border border-[#FADCCB]/40">
+                                            <div className="font-bold text-[#1E2429] text-sm mb-1">{item.recommendation}</div>
+                                            <div className="text-xs text-[#5C6670]">
+                                                Screener: <span className="font-semibold text-[#1E2429]">{item.condition} ({item.status})</span>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-center gap-2 text-[#2E626A] font-semibold text-sm mb-8 py-3.5 bg-[#EBF5F3] rounded-full border border-[#D1E7E3] w-fit mx-auto px-6">
+                                <ShieldCheck className="w-5 h-5 text-[#2E626A]" /> No urgent clinical actions required.
+                            </div>
+                        )}
+
+                        {/* Disclaimer */}
+                        <p className="text-center text-xs text-[#7A828A] leading-relaxed max-w-md mx-auto mt-6 mb-12">
+                            This assessment is a screening tool and is not a diagnostic instrument. If you have concerns about your wellbeing, consider speaking with a qualified healthcare professional.
+                        </p>
                     </div>
                 </div>
             )}

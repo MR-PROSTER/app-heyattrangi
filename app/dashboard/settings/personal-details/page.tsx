@@ -31,7 +31,7 @@ async function Content() {
 
 export default function PersonalDetailsPage() {
   return (
-    <SettingsLayout title="Personal Details" backHref="/dashboard/settings">
+    <SettingsLayout title="Personal information" backHref="/dashboard/settings">
       <Suspense fallback={<LoadingSkeleton rows={3} />}>
         <Content />
       </Suspense>

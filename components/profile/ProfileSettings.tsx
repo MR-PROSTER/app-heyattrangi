@@ -161,7 +161,7 @@ function ProfileShell() {
 
       <div ref={contentRef} className="flex-1 min-w-0 overflow-y-auto scroll-smooth overscroll-y-contain">
         <div className="mx-auto w-full max-w-[1000px] px-4 sm:px-6 md:px-8 lg:px-10 pt-2 pb-20 sm:pt-3 md:pt-10 md:pb-24 max-md:px-4">
-          <div className="md:hidden sticky top-0 z-20 -mx-4 px-4 sm:-mx-6 sm:px-6 pt-2 pb-2 mb-1 bg-[#EEF0F8]/95 backdrop-blur-sm">
+          <div className="hidden sticky top-0 z-20 -mx-4 px-4 sm:-mx-6 sm:px-6 pt-2 pb-2 mb-1 bg-[#EEF0F8]/95 backdrop-blur-sm">
             <div className="grid grid-cols-[2.75rem_1fr_2.75rem] items-center gap-2">
               <Link
                 href="/patient/dashboard"
@@ -231,7 +231,7 @@ function ProfileShell() {
               <PersonalInfoSection />
             </ProfileErrorBoundary>
 
-            <div className="space-y-4 sm:space-y-5">
+            <div className="hidden md:block space-y-4 sm:space-y-5">
               <ProfileErrorBoundary title="Membership unavailable">
                 <MemoMembershipCard user={user} />
               </ProfileErrorBoundary>
@@ -278,28 +278,28 @@ function ProfileShell() {
                   </div>
                 </>
               )}
-            </div>
 
-            {showEmergency && (
-              <ProfileErrorBoundary title="Emergency Contact unavailable">
-                <EmergencyContactCard />
+              {showEmergency && (
+                <ProfileErrorBoundary title="Emergency Contact unavailable">
+                  <EmergencyContactCard />
+                </ProfileErrorBoundary>
+              )}
+
+              <ProfileErrorBoundary
+                title="Mind Matrix unavailable"
+                description="Your check-in history couldn't be loaded right now."
+              >
+                <MindMatrixCard />
               </ProfileErrorBoundary>
-            )}
 
-            <ProfileErrorBoundary
-              title="Mind Matrix unavailable"
-              description="Your check-in history couldn't be loaded right now."
-            >
-              <MindMatrixCard />
-            </ProfileErrorBoundary>
+              <ProfileErrorBoundary title="Preferences unavailable">
+                <PreferencesCard />
+              </ProfileErrorBoundary>
 
-            <ProfileErrorBoundary title="Preferences unavailable">
-              <PreferencesCard />
-            </ProfileErrorBoundary>
-
-            <ProfileErrorBoundary title="Privacy unavailable">
-              <PrivacyConsentCard />
-            </ProfileErrorBoundary>
+              <ProfileErrorBoundary title="Privacy unavailable">
+                <PrivacyConsentCard />
+              </ProfileErrorBoundary>
+            </div>
 
             {/* Account actions commented out per user request
             <ProfileErrorBoundary title="Account actions unavailable">

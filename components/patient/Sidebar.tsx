@@ -140,6 +140,11 @@ const toolItems: SidebarItem[] = [
         href: "/patient/library",
         icon: <LibraryIcon />,
     },
+    {
+        label: "My Wellbeing",
+        href: "/patient/wellbeing",
+        icon: <LeafIcon />,
+    },
 ]
 
 
@@ -239,6 +244,8 @@ export default function Sidebar() {
             icon = <HomeIcon className={isActive ? "text-[#3B82F6]" : "text-slate-500"} />
         } else if (item.label === "Explore") {
             icon = <GridIcon className={isActive ? "text-[#3B82F6]" : "text-slate-500"} />
+        } else if (item.label === "My Wellbeing") {
+            icon = <LeafIcon className={isActive ? "text-[#3B82F6]" : "text-slate-500"} />
         }
 
         return (
@@ -391,6 +398,8 @@ export default function Sidebar() {
                                 icon = <HomeIcon className={isActive ? "text-[#3B82F6]" : "text-slate-400"} />
                             } else if (item.label === "Explore") {
                                 icon = <GridIcon className={isActive ? "text-[#3B82F6]" : "text-slate-400"} />
+                            } else if (item.label === "My Wellbeing") {
+                                icon = <LeafIcon className={isActive ? "text-[#3B82F6]" : "text-slate-400"} />
                             }
 
                             return (
