@@ -50,7 +50,7 @@
 @theme inline {
   --color-background: var(--color-bg);
   --color-foreground: var(--color-text-primary);
-  --font-sans: var(--font-quicksand), var(--font-geist-sans);
+  --font-sans: var(--font-nunito), var(--font-quicksand), var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
   /* Activity / Explore session tokens */

@@ -30,7 +30,7 @@ const COMFORT_TRACK_IMAGES: Record<string, string> = {
   "First Light": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599497/First_Light-3_ydgtmw.png",
   "Gentle Emotional Piano": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599499/Gentle_Emotional_Piano_bbkbhw.png",
   "Calm Piano": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599494/Calm_Piano-1_ljjyyy.png",
-  "Warm Ambient": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599506/Warm_Ambient_q9jw3r.png",
+  "Warm Ambient": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786714203/Warm_Ambient_f9ufet.png",
 }
 
 const GROUND_BREATHE_TRACK_IMAGES: Record<string, string> = {
@@ -40,6 +40,7 @@ const GROUND_BREATHE_TRACK_IMAGES: Record<string, string> = {
   "River Ambience": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599501/River_Ambience_msfvci.png",
   "Forest Ambience — Extended": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599498/Forest_Ambience_Extended_mwmguk.png",
   "Forest Ambience": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599498/Forest_Ambience_wa67uv.png",
+  "Warm Ambient": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786714203/Warm_Ambient_f9ufet.png",
 }
 
 const LIFT_MOOD_TRACK_IMAGES: Record<string, string> = {
@@ -84,6 +85,10 @@ const FOCUS_TRACK_IMAGES: Record<string, string> = {
   "Contemplation": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599494/Contemplation_wspqni.png",
   "Lost in Your Eyes": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599502/Starfield_Romance_mqxrpe.png",
   "Lost in your eyes": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599502/Starfield_Romance_mqxrpe.png",
+  "Love": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599502/Starfield_Romance_mqxrpe.png",
+  "Calm Piano": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599494/Calm_Piano_xcd8qr.png",
+  "Boredom": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599501/Sleep_Music_dkgagt.png",
+  "Night Driving": "https://res.cloudinary.com/dxoiluua8/image/upload/v1786599498/Forest_Ambience_Extended_mwmguk.png",
 }
 
 function getTrackImage(track: ListenTrack): string | undefined {
