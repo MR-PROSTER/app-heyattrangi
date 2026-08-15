@@ -50,12 +50,20 @@ export default function PeriodSelector({
 
   return (
     <div ref={dropdownRef} className="relative z-30">
-      <button
+      <div
         onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            setIsOpen(!isOpen)
+          }
+        }}
+        role="button"
+        tabIndex={0}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-label={`Select ${type}`}
-        className="flex items-center gap-3 border border-slate-200 bg-white pl-4 pr-1.5 py-1.5 rounded-full shadow-sm hover:shadow-md hover:bg-slate-50 transition-all font-bold text-slate-600 text-sm select-none cursor-pointer"
+        className="flex items-center gap-3 border border-slate-200 bg-white pl-4 pr-1.5 py-1.5 rounded-full shadow-sm hover:shadow-md hover:bg-slate-50 transition-all font-bold text-slate-600 text-sm select-none cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-300"
       >
         <span className="tracking-wide text-slate-500 font-bold">{label}</span>
         <button
@@ -69,7 +77,7 @@ export default function PeriodSelector({
         >
           <Calendar className="w-4 h-4" />
         </button>
-      </button>
+      </div>
 
       {/* Dropdown Menu */}
       {isOpen && (
