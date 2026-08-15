@@ -57,6 +57,7 @@ function renderEmojiFace(name: string, isSelected: boolean, isDimmed: boolean = 
   
   return (
     <div 
+      className={`w-10 h-10 min-[360px]:w-11 min-[360px]:h-11 min-[390px]:w-12 min-[390px]:h-12 md:w-16 md:h-16 flex items-center justify-center transition-all duration-200 ${
         isSelected ? "scale-110" : ""
       }`}
       style={{ opacity: isDimmed ? 0.35 : 1 }}
