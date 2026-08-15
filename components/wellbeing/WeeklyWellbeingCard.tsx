@@ -34,7 +34,7 @@ export default function WeeklyWellbeingCard({
   isNextDisabled,
 }: WeeklyWellbeingCardProps) {
   return (
-    <div className="relative w-full max-w-2xl mx-auto select-none px-4 sm:px-6">
+    <div className="relative w-full max-w-2xl mx-auto select-none">
       {/* Main White Card */}
       <div className="bg-white rounded-[32px] p-5 sm:px-8 sm:py-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border border-slate-100/80 w-full flex flex-col gap-4 relative">
         

@@ -11,9 +11,10 @@ interface SubscriptionBillingDetailsProps {
     plan?: string | null
     updatedAt?: string | Date
   }
+  nextPaymentDate?: string
 }
 
-export default function SubscriptionBillingDetails({ user }: SubscriptionBillingDetailsProps) {
+export default function SubscriptionBillingDetails({ user, nextPaymentDate }: SubscriptionBillingDetailsProps) {
   const isPremium = user.plan === "PREMIUM"
 
   const premiumFeatures = [
@@ -25,6 +26,7 @@ export default function SubscriptionBillingDetails({ user }: SubscriptionBilling
 
   // Calculate dynamic mock next payment date (e.g. 24 September 2026, or exactly 1 month from now)
   const getNextPaymentDate = () => {
+    if (nextPaymentDate) return nextPaymentDate
     if (user.updatedAt) {
       const date = new Date(user.updatedAt)
       date.setMonth(date.getMonth() + 1)
@@ -78,7 +80,7 @@ export default function SubscriptionBillingDetails({ user }: SubscriptionBilling
         </div>
 
         {/* Manage Subscription Button */}
-        <Link href="/dashboard/settings/subscription/plans" className="block w-full">
+        <Link href="/dashboard/settings/subscription/plans?from=settings" className="block w-full">
           <button className="w-full h-14 min-[360px]:h-16 bg-[#FF6B4A] hover:bg-[#E85A3A] active:scale-[0.98] text-white text-[15px] font-black rounded-3xl shadow-sm transition-all text-center cursor-pointer">
             Manage subscription
           </button>
@@ -118,7 +120,7 @@ export default function SubscriptionBillingDetails({ user }: SubscriptionBilling
       </div>
 
       {/* Explore Premium Button */}
-      <Link href="/dashboard/settings/subscription/plans" className="block w-full">
+      <Link href="/dashboard/settings/subscription/plans?from=settings" className="block w-full">
         <button className="w-full h-14 min-[360px]:h-16 bg-[#FF6B4A] hover:bg-[#E85A3A] active:scale-[0.98] text-white text-[15px] font-black rounded-3xl shadow-sm transition-all text-center cursor-pointer">
           Explore Premium
         </button>

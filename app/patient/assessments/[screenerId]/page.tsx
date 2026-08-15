@@ -292,13 +292,6 @@ export default function AssessmentPage() {
                                     <div className="mt-8">
                                         {isSegmentScale ? (
                                             <>
-                                                {/* Selected Answer Label Above Scale */}
-                                                <div 
-                                                    className="text-center font-bold text-[13px] mb-3.5 h-4 transition-colors duration-200" 
-                                                    style={{ color: hasSelection ? getLabelColor(selectedIndex) : '#94A3B8' }}
-                                                >
-                                                    {hasSelection ? currentQuestion.options[selectedIndex].text : "\u00A0"}
-                                                </div>
 
                                                 {/* Segmented scale */}
                                                 <div className={`grid ${getGridColsClass(totalOptions)} gap-2 w-full`}>
@@ -384,7 +377,7 @@ export default function AssessmentPage() {
                         </div>
 
                         {/* Desktop Design (hidden md:flex) */}
-                        <div className="hidden md:flex flex-col flex-1">
+                        <div className="hidden md:flex flex-col flex-1 justify-center py-4 md:py-8">
                             <div className="mb-5 min-[360px]:mb-6 min-[390px]:mb-8">
                                 <h1 className="font-extrabold text-[22px] min-[360px]:text-[26px] min-[390px]:text-3xl text-slate-800 mb-1.5 min-[360px]:mb-2 tracking-tight leading-tight">{screener.title}</h1>
                                 <p className="text-slate-500 text-[12.5px] min-[360px]:text-[13px] min-[390px]:text-sm leading-relaxed">{screener.description}</p>
@@ -399,37 +392,68 @@ export default function AssessmentPage() {
                             </div>
 
                             {/* Question Card */}
-                            <div className="bg-white rounded-[20px] min-[360px]:rounded-[24px] p-4 min-[360px]:p-6 min-[390px]:p-8 md:p-10 shadow-sm border border-slate-100 flex-1 flex flex-col justify-center">
-                                <span className="text-[10px] min-[360px]:text-xs font-black text-indigo-500 uppercase tracking-widest mb-2 min-[360px]:mb-3 min-[390px]:mb-4 block">
-                                    Question {currentQuestionIdx + 1} of {screener.questions.length}
-                                </span>
-                                <h2 className="text-[17px] min-[360px]:text-[20px] min-[390px]:text-2xl font-bold text-slate-800 leading-snug mb-6 min-[360px]:mb-8 min-[390px]:mb-10">
-                                    {currentQuestion.text}
-                                </h2>
-
-                                <div className="space-y-3">
-                                    {currentQuestion.options.map((opt: any, i: number) => {
-                                        const isSelected = answers[currentQuestionIdx] === opt.value
-                                        return (
-                                            <button
-                                                key={i}
-                                                onClick={() => handleAnswer(opt.value)}
-                                                className={`w-full text-left px-4 py-3 min-[360px]:px-5 min-[360px]:py-3.5 min-[390px]:px-6 min-[390px]:py-4 rounded-xl border-2 transition-all flex items-center justify-between gap-2.5 group ${isSelected
-                                                    ? "border-indigo-500 bg-indigo-50"
-                                                    : "border-slate-100 hover:border-indigo-200 hover:bg-slate-50"
-                                                    }`}
-                                            >
-                                                <span className={`font-semibold text-[13px] min-[360px]:text-sm ${isSelected ? "text-indigo-700" : "text-slate-600"} min-w-0 flex-1`}>
-                                                    {opt.text}
-                                                </span>
-                                                <div className={`w-5 h-5 min-[360px]:w-6 min-[360px]:h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isSelected ? "border-indigo-500 bg-indigo-500" : "border-slate-200 group-hover:border-indigo-300"
-                                                    }`}>
-                                                    {isSelected && <Check className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 text-white" />}
-                                                </div>
-                                            </button>
-                                        )
-                                    })}
+                            <div className="bg-white rounded-[32px] p-6 md:p-10 shadow-[0_15px_45px_rgba(0,0,0,0.02)] border border-slate-100/90 w-full flex flex-col justify-between min-h-[380px] flex-none">
+                                <div className="flex-1 flex flex-col justify-start mb-6">
+                                    <span className="text-[10px] min-[360px]:text-xs font-black text-indigo-500 uppercase tracking-widest mb-2 min-[360px]:mb-3 min-[390px]:mb-4 block">
+                                        Question {currentQuestionIdx + 1} of {screener.questions.length}
+                                    </span>
+                                    <h2 className="text-[17px] min-[360px]:text-[20px] min-[390px]:text-2xl font-bold text-slate-800 leading-snug">
+                                        {currentQuestion.text}
+                                    </h2>
                                 </div>
+
+                                {isSegmentScale ? (
+                                    <>
+
+                                        {/* Segmented scale */}
+                                        <div className={`grid ${getGridColsClass(totalOptions)} gap-2.5 w-full`}>
+                                            {currentQuestion.options.map((opt: any, idx: number) => {
+                                                const isLit = hasSelection && idx <= selectedIndex
+                                                const color = isLit ? getProgressiveColor(idx, totalOptions) : "#E9E9EB"
+                                                return (
+                                                    <button
+                                                        key={idx}
+                                                        type="button"
+                                                        onClick={() => handleAnswer(opt.value)}
+                                                        className={`h-[48px] w-full ${getSegmentBorderRadius(idx, totalOptions)} transition-all duration-150 ease-out hover:brightness-95 active:scale-[0.96] active:brightness-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500`}
+                                                        style={{ backgroundColor: color }}
+                                                        aria-label={opt.text}
+                                                    />
+                                                )
+                                            })}
+                                        </div>
+
+                                        {/* Endpoint labels */}
+                                        <div className="flex justify-between w-full mt-3 px-1 text-[13px] font-medium text-slate-400">
+                                            <span>{currentQuestion.options[0].text}</span>
+                                            <span>{currentQuestion.options[totalOptions - 1].text}</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {currentQuestion.options.map((opt: any, i: number) => {
+                                            const isSelected = answers[currentQuestionIdx] === opt.value
+                                            return (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => handleAnswer(opt.value)}
+                                                    className={`w-full text-left px-4 py-3 min-[360px]:px-5 min-[360px]:py-3.5 min-[390px]:px-6 min-[390px]:py-4 rounded-xl border-2 transition-all flex items-center justify-between gap-2.5 group ${isSelected
+                                                        ? "border-indigo-500 bg-indigo-50"
+                                                        : "border-slate-100 hover:border-indigo-200 hover:bg-slate-50"
+                                                        }`}
+                                                >
+                                                    <span className={`font-semibold text-[13px] min-[360px]:text-sm ${isSelected ? "text-indigo-700" : "text-slate-600"} min-w-0 flex-1`}>
+                                                        {opt.text}
+                                                    </span>
+                                                    <div className={`w-5 h-5 min-[360px]:w-6 min-[360px]:h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isSelected ? "border-indigo-500 bg-indigo-500" : "border-slate-200 group-hover:border-indigo-300"
+                                                        }`}>
+                                                        {isSelected && <Check className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 text-white" />}
+                                                    </div>
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="mt-6 flex justify-between items-center">

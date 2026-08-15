@@ -10,7 +10,10 @@ export default function MoodPatternsCard() {
       
       {/* Left Content Area (55-60% width) */}
       <div className="flex flex-col gap-3 sm:gap-5 items-start flex-1 min-w-0 z-10 py-1 sm:py-2">
-        <h2 className="text-[22px] sm:text-[32px] md:text-[34px] font-bold text-[#1E1E2E] tracking-tight leading-none">
+        <h2 
+          className="font-semibold text-[20px] sm:text-[24px] leading-[17px] text-[#1E1E1E] w-auto sm:w-[230px] h-auto sm:h-[18px] whitespace-nowrap z-0 flex-none order-0 grow-0"
+          style={{ fontFamily: "Inter, sans-serif" }}
+        >
           Your mood patterns
         </h2>
         
@@ -31,7 +34,7 @@ export default function MoodPatternsCard() {
       {/* Right Content Area Image */}
       <div className="relative w-36 h-28 sm:w-56 sm:h-40 shrink-0 select-none pointer-events-none mr-[-10px] sm:mr-0">
         <Image
-          src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786729102/Your_mood_patterns_r4d34p.png"
+          src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786788703/moods_jxrmgs.png"
           alt="Your mood patterns illustration"
           width={224}
           height={160}

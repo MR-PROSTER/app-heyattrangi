@@ -37,7 +37,7 @@ export default function MonthlyWellbeing({
   hasData = true,
 }: MonthlyWellbeingProps) {
   return (
-    <div className="relative w-full max-w-2xl mx-auto select-none px-4 sm:px-6">
+    <div className="relative w-full max-w-2xl mx-auto select-none">
       {/* Main White Card with key transition */}
       <div 
         key={monthLabel}

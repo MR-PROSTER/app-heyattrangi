@@ -11,7 +11,7 @@ export default function UnlockFeaturesCard() {
           AI Insights, Weekly Summaries, Advanced Dashboard, Longer Recordings and more.
         </p>
         <Link
-          href="/dashboard/settings/subscription"
+          href="/dashboard/settings/subscription/plans?from=profile"
           className="inline-block bg-[#1A1A1A] hover:bg-[#333333] active:scale-[0.98] text-white text-[clamp(12px,3.8vw,13px)] font-extrabold px-4 py-2.5 min-[360px]:px-6 min-[360px]:py-3 rounded-xl min-[360px]:rounded-2xl shadow-sm transition-all text-center whitespace-nowrap"
           aria-label="Upgrade to Premium"
         >

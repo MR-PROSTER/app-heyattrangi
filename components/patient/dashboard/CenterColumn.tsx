@@ -39,7 +39,7 @@ function renderEmojiFace(name: string, isSelected: boolean, isDimmed: boolean = 
   const getImagePath = () => {
     switch (name) {
       case "Low":
-        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Low_sujxbx.png"
+        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786799140/Low_sujxbx.png"
       case "Meh":
         return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Meh_fh0ndp.png"
       case "Okay":
@@ -534,10 +534,10 @@ export default function CenterColumn({
             {/* Header Row: Title & Avatar */}
             <div className="flex items-center justify-between w-full z-10 relative gap-2 min-[360px]:gap-3">
               <div className="flex flex-col pl-1 min-[360px]:pl-2.5 min-[390px]:pl-4 min-w-0 flex-1">
-                <h1 className="text-[19px] min-[360px]:text-[24px] min-[390px]:text-[28px] font-black text-white tracking-tight leading-none whitespace-nowrap truncate">
+                <h1 className="font-sans font-[1000] text-[28px] min-[360px]:text-[32px] min-[390px]:text-[36px] leading-[34px] min-[390px]:leading-[38px] tracking-[-0.5px] text-white whitespace-nowrap truncate">
                   Hello, {firstName}
                 </h1>
-                <span className="text-[#00829B] text-[13px] min-[360px]:text-[14px] min-[390px]:text-[15px] font-medium mt-2 min-[360px]:mt-3 line-clamp-3 leading-snug break-words pr-2">
+                <span className="text-[#00829B] text-[13px] min-[360px]:text-[14px] min-[390px]:text-[15px] font-medium mt-2 min-[360px]:mt-3 line-clamp-3 leading-snug break-words pr-2 font-sans tracking-[-0.5px]">
                   {latestBotMessage}
                 </span>
               </div>
@@ -584,7 +584,7 @@ export default function CenterColumn({
             
             {/* Card 1: How's today, so far? */}
             <div className="bg-white rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 border border-slate-100/90 shadow-[0_4px_24px_rgba(15,23,42,0.015)] flex flex-col justify-center gap-4">
-              <h4 className="text-slate-800 text-[13.5px] min-[360px]:text-[14.5px] min-[390px]:text-[15px] font-extrabold mb-1 tracking-tight">How&apos;s today, so far?</h4>
+              <h4 className="text-slate-800 text-[13.5px] min-[360px]:text-[14.5px] min-[390px]:text-[15px] font-extrabold mb-1 font-sans tracking-[-0.5px]">How&apos;s today, so far?</h4>
               <div className="flex justify-center items-center w-full gap-4 min-[360px]:gap-5 min-[390px]:gap-6 px-0.5">
                 {[
                   { name: "Low", displayName: "Low", score: 0 },
@@ -610,7 +610,7 @@ export default function CenterColumn({
                       }}
                     >
                       {renderEmojiFace(mood.name, !!isSelected, isDimmed)}
-                      <span className={`text-[9.5px] min-[360px]:text-[10px] min-[390px]:text-[11px] mt-1.5 min-[390px]:mt-2 whitespace-nowrap transition-colors duration-200 ${
+                      <span className={`text-[9.5px] min-[360px]:text-[10px] min-[390px]:text-[11px] mt-1.5 min-[390px]:mt-2 whitespace-nowrap transition-colors duration-200 font-sans tracking-[-0.5px] ${
                         isHovered ? "text-slate-800 font-black" : "text-slate-400 font-bold"
                       }`}>{mood.displayName}</span>
                     </button>
@@ -641,10 +641,10 @@ export default function CenterColumn({
 
             {/* Card 3: Something I Noticed */}
             <div className="bg-[#FEF6F0] rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 border border-[#FBE6D8] shadow-[0_4px_24px_rgba(15,23,42,0.01)] flex flex-col gap-1.5 min-[360px]:gap-2">
-              <span className="text-[10px] min-[360px]:text-[11px] min-[390px]:text-[11.5px] font-black uppercase tracking-[0.15em] text-[#E8722A]">
+              <span className="text-[10px] min-[360px]:text-[11px] min-[390px]:text-[11.5px] font-black uppercase tracking-[-0.5px] text-[#E8722A] font-sans">
                 Something I Noticed
               </span>
-              <p className="text-[13.5px] min-[360px]:text-[14.5px] min-[390px]:text-[15px] font-medium text-slate-700 leading-relaxed">
+              <p className="text-[13.5px] min-[360px]:text-[14.5px] min-[390px]:text-[15px] font-medium text-slate-700 leading-relaxed font-sans tracking-[-0.5px]">
                 You&apos;ve mentioned exam stress a few times lately. If it helps, we can unpack what&apos;s weighing heaviest before it builds up.
               </p>
               <div className="flex items-center gap-4 mt-1">
@@ -670,7 +670,7 @@ export default function CenterColumn({
 
             {/* What you can do now Section */}
             <div className="flex flex-col gap-3 min-[360px]:gap-3.5 min-[390px]:gap-4 mt-1 min-[360px]:mt-1.5 min-[390px]:mt-2">
-              <h3 className="text-[16px] min-[360px]:text-[18px] min-[390px]:text-[19px] font-black text-slate-800 tracking-tight leading-none mb-0.5 min-[360px]:mb-1">
+              <h3 className="text-[16px] min-[360px]:text-[18px] min-[390px]:text-[19px] font-black text-slate-800 tracking-[-0.5px] leading-none mb-0.5 min-[360px]:mb-1 font-sans">
                What you can do now
               </h3>
               
@@ -689,10 +689,10 @@ export default function CenterColumn({
                           </svg>
                         </div>
                         <div className="flex flex-col min-w-0 flex-1">
-                          <span className="font-extrabold text-[14px] min-[390px]:text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                          <span className="font-extrabold text-[14px] min-[390px]:text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate font-sans tracking-[-0.5px]">
                             {suggestions.activity.title}
                           </span>
-                          <span className="text-[11.5px] min-[390px]:text-[12px] font-medium text-slate-500 leading-snug mt-0.5 min-[390px]:mt-1 line-clamp-2">
+                          <span className="text-[11.5px] min-[390px]:text-[12px] font-medium text-slate-500 leading-snug mt-0.5 min-[390px]:mt-1 line-clamp-2 font-sans tracking-[-0.5px]">
                             {suggestions.activity.description}
                           </span>
                         </div>
@@ -719,10 +719,10 @@ export default function CenterColumn({
                           </svg>
                         </div>
                         <div className="flex flex-col min-w-0 flex-1">
-                          <span className="font-extrabold text-[14px] min-[390px]:text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                          <span className="font-extrabold text-[14px] min-[390px]:text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate font-sans tracking-[-0.5px]">
                             {suggestions.read.title}
                           </span>
-                          <span className="text-[11.5px] min-[390px]:text-[12px] font-medium text-slate-500 leading-snug mt-0.5 min-[390px]:mt-1 line-clamp-2">
+                          <span className="text-[11.5px] min-[390px]:text-[12px] font-medium text-slate-500 leading-snug mt-0.5 min-[390px]:mt-1 line-clamp-2 font-sans tracking-[-0.5px]">
                             {suggestions.read.description}
                           </span>
                         </div>
@@ -749,10 +749,10 @@ export default function CenterColumn({
                           </svg>
                         </div>
                         <div className="flex flex-col min-w-0 flex-1">
-                          <span className="font-extrabold text-[14px] min-[390px]:text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                          <span className="font-extrabold text-[14px] min-[390px]:text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate font-sans tracking-[-0.5px]">
                             {suggestions.listen.title}
                           </span>
-                          <span className="text-[11.5px] min-[390px]:text-[12px] font-medium text-slate-500 leading-snug mt-0.5 min-[390px]:mt-1 line-clamp-2">
+                          <span className="text-[11.5px] min-[390px]:text-[12px] font-medium text-slate-500 leading-snug mt-0.5 min-[390px]:mt-1 line-clamp-2 font-sans tracking-[-0.5px]">
                             {suggestions.listen.description}
                           </span>
                         </div>
@@ -779,10 +779,10 @@ export default function CenterColumn({
                           </svg>
                         </div>
                         <div className="flex flex-col min-w-0 flex-1">
-                          <span className="font-extrabold text-[14px] min-[390px]:text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                          <span className="font-extrabold text-[14px] min-[390px]:text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate font-sans tracking-[-0.5px]">
                             {suggestions.assessment.title}
                           </span>
-                          <span className="text-[11.5px] min-[390px]:text-[12px] font-medium text-slate-500 leading-snug mt-0.5 min-[390px]:mt-1 line-clamp-2">
+                          <span className="text-[11.5px] min-[390px]:text-[12px] font-medium text-slate-500 leading-snug mt-0.5 min-[390px]:mt-1 line-clamp-2 font-sans tracking-[-0.5px]">
                             {suggestions.assessment.description}
                           </span>
                         </div>
@@ -812,11 +812,11 @@ export default function CenterColumn({
             <div className="flex items-center justify-between w-full">
               <div className="flex flex-col">
                 <motion.h1 
-                  className="text-[36px] font-black text-white tracking-tight leading-none"
+                  className="font-sans font-[1000] text-[45px] leading-[38px] tracking-[-0.5px] text-white w-[500px] h-[45px] max-w-full"
                 >
                   Hello, {firstName}
                 </motion.h1>
-                <span className="text-[#00829B] text-[16px] font-semibold mt-4 line-clamp-2">
+                <span className="text-[#00829B] text-[16px] font-semibold mt-4 line-clamp-2 font-sans tracking-[-0.5px]">
                   {latestBotMessage}
                 </span>
               </div>
@@ -864,7 +864,7 @@ export default function CenterColumn({
             {/* Card 1: How's today, so far? */}
             <div className="bg-white rounded-[32px] p-6 border border-slate-100/90 shadow-[0_4px_24px_rgba(15,23,42,0.015)] flex flex-col justify-center gap-6 h-[230px]">
               <div>
-                <h4 className="text-slate-800 text-[16px] font-extrabold tracking-tight">How&apos;s today, so far?</h4>
+                <h4 className="text-slate-800 text-[16px] font-extrabold font-sans tracking-[-0.5px]">How&apos;s today, so far?</h4>
               </div>
               <div className="flex justify-center items-center w-full gap-4 min-[360px]:gap-6 md:gap-8 px-0.5">
                 {[
@@ -891,7 +891,7 @@ export default function CenterColumn({
                       }}
                     >
                       {renderEmojiFace(mood.name, !!isSelected, isDimmed)}
-                      <span className={`text-[11px] mt-2 transition-colors duration-200 ${
+                      <span className={`text-[11px] mt-2 transition-colors duration-200 font-sans tracking-[-0.5px] ${
                         isHovered ? "text-slate-800 font-black" : "text-slate-400 font-bold"
                       }`}>{mood.displayName}</span>
                     </button>
@@ -919,10 +919,10 @@ export default function CenterColumn({
 
           {/* Card 3: Something I Noticed (Desktop) */}
           <div className="bg-[#FEF6F0] rounded-[32px] p-8 border border-[#FBE6D8] shadow-[0_4px_24px_rgba(15,23,42,0.01)] flex flex-col gap-4">
-            <span className="text-[12px] font-black uppercase tracking-[0.15em] text-[#E8722A]">
+            <span className="text-[12px] font-black uppercase tracking-[-0.5px] text-[#E8722A] font-sans">
               Something I Noticed
             </span>
-            <p className="text-[16px] font-medium text-slate-700 leading-relaxed">
+            <p className="text-[16px] font-medium text-slate-700 leading-relaxed font-sans tracking-[-0.5px]">
               You&apos;ve mentioned exam stress a few times lately. If it helps, we can unpack what&apos;s weighing heaviest before it builds up.
             </p>
             <div className="flex items-center gap-4 mt-2">
@@ -948,7 +948,7 @@ export default function CenterColumn({
 
           {/* What you can do now Section (Desktop) */}
           <div className="flex flex-col gap-4">
-            <h3 className="text-[20px] font-black text-slate-800 tracking-tight leading-none mb-1">
+            <h3 className="text-[20px] font-black text-slate-800 tracking-[-0.5px] leading-none mb-1 font-sans">
               What you can do now
             </h3>
             
@@ -967,10 +967,10 @@ export default function CenterColumn({
                         </svg>
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
-                        <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                        <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate font-sans tracking-[-0.5px]">
                           {suggestions.activity.title}
                         </span>
-                        <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2">
+                        <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2 font-sans tracking-[-0.5px]">
                           {suggestions.activity.description}
                         </span>
                       </div>
@@ -997,10 +997,10 @@ export default function CenterColumn({
                         </svg>
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
-                        <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                        <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate font-sans tracking-[-0.5px]">
                           {suggestions.read.title}
                         </span>
-                        <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2">
+                        <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2 font-sans tracking-[-0.5px]">
                           {suggestions.read.description}
                         </span>
                       </div>
@@ -1027,10 +1027,10 @@ export default function CenterColumn({
                         </svg>
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
-                        <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                        <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate font-sans tracking-[-0.5px]">
                           {suggestions.listen.title}
                         </span>
-                        <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2">
+                        <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2 font-sans tracking-[-0.5px]">
                           {suggestions.listen.description}
                         </span>
                       </div>
@@ -1057,10 +1057,10 @@ export default function CenterColumn({
                         </svg>
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
-                        <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate">
+                        <span className="font-extrabold text-[15px] sm:text-[16px] text-slate-900 leading-tight truncate font-sans tracking-[-0.5px]">
                           {suggestions.assessment.title}
                         </span>
-                        <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2">
+                        <span className="text-[12px] font-medium text-slate-500 leading-snug mt-1 line-clamp-2 font-sans tracking-[-0.5px]">
                           {suggestions.assessment.description}
                         </span>
                       </div>

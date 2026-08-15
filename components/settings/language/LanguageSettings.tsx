@@ -25,7 +25,7 @@ export default function LanguageSettings({
 }: LanguageSettingsProps) {
   const router = useRouter()
   const languages = listSettingsLanguages()
-  const seeded = isSettingsLanguage(currentLanguage) ? currentLanguage : "English"
+  const seeded = currentLanguage === "English" ? "English" : "English"
   const [selected, setSelected] = useState<SettingsLanguage>(seeded)
   const [saving, setSaving] = useState(false)
 
@@ -91,22 +91,31 @@ export default function LanguageSettings({
           <div className="divide-y divide-zinc-50">
             {languages.map((lang) => {
               const active = selected === lang
+              const isAvailable = lang === "English"
               return (
                 <button
                   key={lang}
                   type="button"
-                  disabled={saving}
+                  disabled={saving || !isAvailable}
                   onClick={() => void handleSelect(lang)}
-                  className={`w-full px-6 py-4 flex items-center justify-between transition-colors duration-150 cursor-pointer text-left ${
-                    active ? "bg-zinc-50/20" : "hover:bg-zinc-50/40"
+                  className={`w-full px-6 py-4 flex items-center justify-between transition-colors duration-150 text-left ${
+                    !isAvailable
+                      ? "cursor-not-allowed bg-transparent"
+                      : active
+                        ? "bg-zinc-50/20 cursor-pointer"
+                        : "hover:bg-zinc-50/40 cursor-pointer"
                   }`}
                 >
-                  <span className={`text-[15px] min-[360px]:text-[16px] tracking-wide font-medium ${
-                    active ? "font-bold text-[#1C2038]" : "text-zinc-700 font-semibold"
+                  <span className={`text-[15px] min-[360px]:text-[16px] tracking-wide ${
+                    !isAvailable
+                      ? "text-zinc-300 font-medium"
+                      : active
+                        ? "font-bold text-[#1C2038]"
+                        : "text-zinc-700 font-semibold"
                   }`}>
                     {lang}
                   </span>
-                  {active && (
+                  {active && isAvailable && (
                     <Check className="w-5 h-5 text-[#E8722A] stroke-[3.5]" />
                   )}
                 </button>

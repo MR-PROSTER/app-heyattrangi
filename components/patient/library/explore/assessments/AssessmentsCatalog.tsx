@@ -28,28 +28,28 @@ export default function AssessmentsCatalog({ searchQuery = "", onNavigateLibrary
   return (
     <div className="space-y-8">
       {/* Hero */}
-      <div className="relative w-full rounded-[28px] overflow-hidden bg-[#161434] shadow-xl text-white h-auto md:h-64 flex items-center border border-[#2a2656]">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute bottom-[-20%] left-[20%] w-[50%] h-[60%] bg-pink-500/30 blur-[90px] rounded-full mix-blend-screen" />
-          <div className="absolute bottom-[-10%] left-[40%] w-[40%] h-[50%] bg-purple-500/30 blur-[100px] rounded-full mix-blend-screen" />
-          <div className="absolute bottom-[-30%] left-[-10%] w-[40%] h-[50%] bg-blue-500/20 blur-[80px] rounded-full mix-blend-screen" />
-        </div>
-
-        <div className="relative z-10 w-full p-6 md:px-12 md:py-0 flex flex-col md:flex-row justify-between items-center h-full">
-          <div className="max-w-md mb-6 md:mb-0">
-            <h2 className="text-[24px] md:text-[28px] font-bold mb-3 tracking-tight text-white/95">
-              Know Yourself, Grow Yourself
+      <div 
+        className="relative w-full rounded-[28px] overflow-hidden shadow-xl text-white h-auto md:h-64 flex items-center border border-white/10"
+        style={{
+          backgroundImage: "url('https://res.cloudinary.com/dxoiluua8/image/upload/v1786789037/Banner_bg_rrixld.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="relative z-10 w-full p-8 md:px-12 md:py-8 flex flex-col md:flex-row justify-between items-center h-full">
+          <div className="max-w-md mb-4 md:mb-0">
+            <h2 className="text-[24px] md:text-[30px] font-sans font-[1000] mb-3 tracking-[-0.5px] leading-tight text-black">
+              Understand How You&apos;re Doing
             </h2>
-            <p className="text-white/70 text-sm leading-relaxed mb-6 font-medium">
-              Explore scientifically designed assessments to understand your
-              mental, emotional, and lifestyle well-being.
+            <p className="text-black/85 text-[14px] md:text-[15px] leading-relaxed mb-6 font-medium font-sans tracking-[-0.3px]">
+              Take a closer look at your emotional, social, and everyday wellbeing through guided assessments.
             </p>
             <Link
               href="/patient/assessments/engine"
-              className="inline-flex items-center gap-3 bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/10 text-white/90 text-sm px-5 py-2.5 rounded-full font-semibold transition-all group shadow-[0_0_15px_rgba(255,255,255,0.05)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              className="inline-flex items-center gap-3 bg-black hover:bg-zinc-900 text-white text-sm px-6 py-3 rounded-full font-bold transition-all duration-150 group shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40"
             >
-              Start Dynamic Assessment
-              <div className="bg-white text-[#161434] rounded-full p-1 group-hover:translate-x-0.5 transition-transform">
+              Start an Assessment
+              <div className="bg-white text-black rounded-full p-1 group-hover:translate-x-0.5 transition-transform">
                 <svg
                   className="w-3.5 h-3.5"
                   fill="none"

@@ -275,7 +275,7 @@ export default function Sidebar() {
     return (
         <>
         {/* Mobile hamburger — hidden on Profile */}
-        {pathname !== "/patient/profile" ? (
+        {pathname !== "/dashboard/profile" ? (
         <button
             type="button"
             onClick={() => setIsMobileOpen(true)}

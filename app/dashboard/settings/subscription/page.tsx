@@ -1,19 +1,44 @@
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
 import { getCurrentUser } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 import SettingsLayout from "@/components/settings/SettingsLayout"
 import LoadingSkeleton from "@/components/settings/LoadingSkeleton"
-import SubscriptionSettings from "@/components/settings/subscription/SubscriptionSettings"
+import SubscriptionBillingDetails from "@/components/settings/subscription/SubscriptionBillingDetails"
 
 async function Content() {
   const user = await getCurrentUser()
   if (!user || user.role !== "PATIENT") redirect("/auth/unauthorized")
-  return <SubscriptionSettings user={user} isTestMode={false} />
+
+  // Find the latest successful subscription transaction
+  const latestTxn = await prisma.transaction.findFirst({
+    where: {
+      userId: user.id,
+      type: "SUBSCRIPTION",
+      status: "SUCCESS",
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  })
+
+  let nextPaymentDate: string | undefined
+  if (latestTxn) {
+    const date = new Date(latestTxn.createdAt)
+    date.setMonth(date.getMonth() + 1)
+    nextPaymentDate = date.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+  }
+
+  return <SubscriptionBillingDetails user={user} nextPaymentDate={nextPaymentDate} />
 }
 
 export default function SubscriptionSettingsPage() {
   return (
-    <SettingsLayout title="Subscription" backHref="/dashboard/settings" maxWidthClass="max-w-6xl">
+    <SettingsLayout title="Subscription & billing" backHref="/dashboard/settings" maxWidthClass="max-w-[430px]">
       <Suspense fallback={<LoadingSkeleton rows={5} />}>
         <Content />
       </Suspense>

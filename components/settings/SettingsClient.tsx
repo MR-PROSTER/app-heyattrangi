@@ -13,7 +13,6 @@ import {
   LifeBuoy,
   CreditCard,
   LogOut,
-  Trash2,
   ChevronRight,
   HelpCircle,
 } from "lucide-react"
@@ -232,8 +231,12 @@ export default function SettingsClient({ user }: SettingsClientProps) {
           className="w-full flex items-center justify-between p-3 min-[360px]:p-4 hover:bg-red-100/30 active:bg-red-100/50 transition-all text-left cursor-pointer"
         >
           <div className="flex items-center">
-            <div className="w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 rounded-[12px] min-[360px]:rounded-2xl bg-red-100/50 text-red-700 flex items-center justify-center">
-              <Trash2 className="w-[18px] h-[18px] min-[360px]:w-5 min-[360px]:h-5" />
+            <div className="w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 rounded-[12px] min-[360px]:rounded-2xl bg-red-100/50 text-red-700 flex items-center justify-center overflow-hidden">
+              <img
+                src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786785602/Sign_out_vwjtfv.png"
+                alt="Delete account"
+                className="w-[18px] h-[18px] min-[360px]:w-5 min-[360px]:h-5 object-contain"
+              />
             </div>
             <span className="text-[clamp(13.5px,4.0vw,15px)] font-bold text-red-700 ml-3 min-[360px]:ml-4">Delete account</span>
           </div>

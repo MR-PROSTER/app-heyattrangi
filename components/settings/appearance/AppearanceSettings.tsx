@@ -35,8 +35,11 @@ export default function AppearanceSettings() {
       <div className="bg-white rounded-[32px] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.015)] border border-zinc-100 flex flex-col gap-6 text-left">
         
         {/* Card Header Text */}
-        <h2 className="text-zinc-800 font-extrabold text-[clamp(20px,6.8vw,28px)] leading-[1.2] tracking-tight">
-          Personalize your viewing experience<br />instantly.
+        <h2 
+          style={{ fontFamily: 'var(--font-geist-sans)' }}
+          className="font-semibold text-[15.5381px] leading-[20px] text-[#1E1E2E] max-w-[316.57px] w-full"
+        >
+          Personalize your viewing experience instantly.
         </h2>
 
         {/* Theme Selector */}
