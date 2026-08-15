@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
         </p>
         <div className="mt-8">
           <Link
-            href="/patient/profile"
+            href="/dashboard/profile"
             className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5
               text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors duration-150
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"

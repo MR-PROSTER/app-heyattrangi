@@ -20,72 +20,49 @@ const MOOD_CONFIG: Record<
     background: string
     primary: string
     muted: string
-    face: {
-      eyeLeft: { x: number; y: number; width: number; height: number; rx: number }
-      eyeRight: { x: number; y: number; width: number; height: number; rx: number }
-      mouthD: string
-    }
+    image: string
+    textLight: string
   }
 > = {
   0: {
-    // SAD
     label: "LOW",
     background: "linear-gradient(to bottom, #E9C9FF, #D284FA)",
     primary: "#4d179a",
     muted: "rgba(77, 23, 154, 0.3)",
-    face: {
-      eyeLeft: { x: 50, y: 43, width: 50, height: 18, rx: 9 },
-      eyeRight: { x: 140, y: 43, width: 50, height: 18, rx: 9 },
-      mouthD: "M 85,120 Q 120,88 155,120",
-    },
+    image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786799192/Low-emotion_vbpanv.png",
+    textLight: "#E9C9FF",
   },
   1: {
-    // BAD
     label: "MEH",
     background: "linear-gradient(to bottom, #C2DDF8, #86BDF3)",
     primary: "#024a70",
     muted: "rgba(2, 74, 112, 0.3)",
-    face: {
-      eyeLeft: { x: 51, y: 31, width: 48, height: 48, rx: 24 },
-      eyeRight: { x: 141, y: 31, width: 48, height: 48, rx: 24 },
-      mouthD: "M 85,120 Q 120,88 155,120",
-    },
+    image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Meh-emotion_nozhzi.png",
+    textLight: "#C2DDF8",
   },
   2: {
-    // NOT BAD
     label: "OKAY",
     background: "linear-gradient(to bottom, #FFD5B7, #FE9E57)",
     primary: "#733E0A",
     muted: "rgba(115, 62, 10, 0.3)",
-    face: {
-      eyeLeft: { x: 50, y: 43, width: 50, height: 18, rx: 9 },
-      eyeRight: { x: 140, y: 43, width: 50, height: 18, rx: 9 },
-      mouthD: "M 85,120 Q 120,88 155,120",
-    },
+    image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Okay-emotion_sscj34.png",
+    textLight: "#FFD5B7",
   },
   3: {
-    // GOOD
     label: "GOOD",
     background: "linear-gradient(to bottom, #CEF8A4, #A4F06A)",
     primary: "#132D0E",
     muted: "rgba(19, 45, 14, 0.3)",
-    face: {
-      eyeLeft: { x: 51, y: 31, width: 48, height: 48, rx: 24 },
-      eyeRight: { x: 141, y: 31, width: 48, height: 48, rx: 24 },
-      mouthD: "M 85,95 Q 120,130 155,95",
-    },
+    image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Good-emotion_jimbfs.png",
+    textLight: "#CEF8A4",
   },
   4: {
-    // HAPPY
     label: "GREAT",
     background: "linear-gradient(to bottom, #FCE5AF, #FFC141)",
     primary: "#733e0a",
     muted: "rgba(115, 62, 10, 0.3)",
-    face: {
-      eyeLeft: { x: 50, y: 43, width: 50, height: 18, rx: 9 },
-      eyeRight: { x: 140, y: 43, width: 50, height: 18, rx: 9 },
-      mouthD: "M 85,120 Q 120,88 155,120",
-    },
+    image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Great-emotion_rbwtzb.png",
+    textLight: "#FCE5AF",
   },
 }
 
@@ -248,57 +225,51 @@ export default function MoodCheckInModal({
           >
             <h2
               id="mood-title"
-              className="font-extrabold text-[24px] sm:text-[32px] text-center tracking-tight mb-7 sm:mb-9"
+              className="font-sans font-extrabold text-[24px] sm:text-[32px] text-center tracking-[-0.5px] mb-7 sm:mb-9"
               style={{ color: activeMood.primary }}
             >
               How is your Mood?
             </h2>
           </motion.div>
 
-          {/* Animated Mood Face */}
+          {/* Dynamic Mood Face Image */}
           <motion.div 
             animate={{ 
               scale: isExpanded ? 0.75 : 1,
-              y: isExpanded ? 0 : 0
             }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="w-[280px] h-[190px] sm:w-[320px] sm:h-[220px] flex items-center justify-center transition-all duration-300"
+            className="w-[280px] h-[190px] sm:w-[320px] sm:h-[220px] flex items-center justify-center transition-all duration-300 select-none pointer-events-none"
           >
-            <svg viewBox="0 0 240 160" className="w-full h-full">
-              {/* Left Eye */}
-              <motion.rect
-                animate={{
-                  x: activeMood.face.eyeLeft.x,
-                  y: activeMood.face.eyeLeft.y,
-                  width: activeMood.face.eyeLeft.width,
-                  height: activeMood.face.eyeLeft.height,
-                  rx: activeMood.face.eyeLeft.rx,
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={score}
+                initial={{ opacity: 0, scale: 0.94 }}
+                animate={{ 
+                  opacity: 1, 
+                  scale: 1,
+                  y: [0, -4, 0] // Subtle idle breathing animation
                 }}
-                transition={{ type: "spring", stiffness: 220, damping: 26 }}
-                fill={activeMood.primary}
-              />
-              {/* Right Eye */}
-              <motion.rect
-                animate={{
-                  x: activeMood.face.eyeRight.x,
-                  y: activeMood.face.eyeRight.y,
-                  width: activeMood.face.eyeRight.width,
-                  height: activeMood.face.eyeRight.height,
-                  rx: activeMood.face.eyeRight.rx,
+                exit={{ opacity: 0, scale: 0.94 }}
+                transition={{
+                  opacity: { duration: 0.3, ease: "easeInOut" },
+                  scale: { duration: 0.3, ease: "easeInOut" },
+                  y: {
+                    repeat: Infinity,
+                    duration: 4,
+                    ease: "easeInOut"
+                  }
                 }}
-                transition={{ type: "spring", stiffness: 220, damping: 26 }}
-                fill={activeMood.primary}
-              />
-              {/* Mouth */}
-              <motion.path
-                animate={{ d: activeMood.face.mouthD }}
-                transition={{ type: "spring", stiffness: 220, damping: 26 }}
-                fill="none"
-                stroke={activeMood.primary}
-                strokeWidth="12"
-                strokeLinecap="round"
-              />
-            </svg>
+                className="relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] flex items-center justify-center"
+              >
+                <Image
+                  src={activeMood.image}
+                  alt={`${activeMood.label} mood`}
+                  fill
+                  priority
+                  className="object-contain animate-fade-in"
+                />
+              </motion.div>
+            </AnimatePresence>
           </motion.div>
 
           {/* Large Mood Text Label - Animates out in expanded state */}
@@ -312,7 +283,7 @@ export default function MoodCheckInModal({
             className="flex items-center justify-center overflow-hidden"
           >
             <span
-              className="font-black text-[46px] sm:text-[54px] tracking-wider select-none text-center leading-none"
+              className="font-sans font-black text-[46px] sm:text-[54px] tracking-[-0.5px] select-none text-center leading-none"
               style={{ color: activeMood.primary }}
             >
               {activeMood.label}
@@ -328,55 +299,106 @@ export default function MoodCheckInModal({
               pointerEvents: isExpanded ? "none" : "auto"
             }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="relative w-full px-2 py-4 overflow-hidden"
+            className="relative w-full px-2 py-4 overflow-visible"
           >
-            <div
-              className="relative w-full h-[3px] rounded-full"
-              style={{ backgroundColor: activeMood.muted }}
-            >
-              {/* Snap Point Dots */}
+            {/* Slider wrapper with safe horizontal padding */}
+            <div className="relative px-5 py-4 w-full overflow-visible">
+              
+              {/* Slider Track (background & progress fill, overflow: hidden) */}
               <div
-                className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: activeMood.primary }}
-              />
-              <div
-                className="absolute left-[25%] top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: activeMood.primary }}
-              />
-              <div
-                className="absolute left-[50%] top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: activeMood.primary }}
-              />
-              <div
-                className="absolute left-[75%] top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: activeMood.primary }}
-              />
-              <div
-                className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: activeMood.primary }}
-              />
+                className="relative w-full h-[3px] rounded-full overflow-hidden"
+                style={{ backgroundColor: activeMood.muted }}
+              >
+                {/* Visual track progress fill */}
+                <motion.div
+                  className="absolute left-0 top-0 bottom-0 rounded-full"
+                  style={{ backgroundColor: activeMood.primary }}
+                  animate={{
+                    width:
+                      score === 0 ? "0%" :
+                      score === 1 ? "25%" :
+                      score === 2 ? "50%" :
+                      score === 3 ? "75%" : "100%",
+                  }}
+                  transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                />
+              </div>
 
-              {/* Large Selected Thumb */}
-              <motion.div
-                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-lg pointer-events-none"
-                style={{ backgroundColor: activeMood.primary }}
-                animate={{
-                  left:
-                    score === 0 ? "0%" :
-                    score === 1 ? "25%" :
-                    score === 2 ? "50%" :
-                    score === 3 ? "75%" : "100%",
-                }}
-                transition={{ type: "spring", stiffness: 350, damping: 28 }}
-              />
+              {/* Snap Point Dots (Rendered above track background but below thumb) */}
+              <div className="absolute left-5 right-5 inset-y-0 pointer-events-none overflow-visible z-10 flex items-center">
+                <div className="relative w-full h-0 overflow-visible">
+                  <div
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: activeMood.primary }}
+                  />
+                  <div
+                    className="absolute left-[25%] top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: activeMood.primary }}
+                  />
+                  <div
+                    className="absolute left-[50%] top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: activeMood.primary }}
+                  />
+                  <div
+                    className="absolute left-[75%] top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: activeMood.primary }}
+                  />
+                  <div
+                    className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: activeMood.primary }}
+                  />
+                </div>
+              </div>
+
+              {/* Thumb Layer (renders sibling to track, overflow: visible, z-20) */}
+              <div className="absolute left-5 right-5 inset-y-0 pointer-events-none overflow-visible z-20 flex items-center">
+                <div className="relative w-full h-0 overflow-visible">
+                  {/* Large Selected Thumb */}
+                  <motion.div
+                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-lg flex items-center justify-center overflow-visible"
+                    style={{ backgroundColor: activeMood.primary }}
+                    animate={{
+                      left:
+                        score === 0 ? "0%" :
+                        score === 1 ? "25%" :
+                        score === 2 ? "50%" :
+                        score === 3 ? "75%" : "100%",
+                    }}
+                    transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                  >
+                    {/* Visual pulse/ring and scale animation on selection change */}
+                    <motion.div
+                      key={score}
+                      initial={{ scale: 0.85, opacity: 0.7 }}
+                      animate={{ 
+                        scale: [0.85, 1.12, 1.0],
+                        opacity: 1
+                      }}
+                      transition={{ duration: 0.35, ease: "easeOut" }}
+                      className="w-full h-full rounded-full bg-current relative flex items-center justify-center overflow-visible"
+                      style={{ color: activeMood.primary }}
+                    >
+                      {/* Subtle outer glowing ring */}
+                      <motion.div
+                        initial={{ scale: 1, opacity: 0.5 }}
+                        animate={{ scale: 1.5, opacity: 0 }}
+                        transition={{ duration: 0.4, ease: "easeOut" }}
+                        className="absolute inset-0 rounded-full border-2"
+                        style={{ borderColor: activeMood.primary }}
+                      />
+                    </motion.div>
+                  </motion.div>
+                </div>
+              </div>
+
             </div>
 
             {/* Slider Labels */}
-            <div className="flex justify-between mt-4">
+            <div className="flex justify-between px-5 mt-4">
               <button
                 type="button"
                 onClick={() => setScore(0)}
-                className="text-[13px] font-bold tracking-wide transition-all focus-visible:outline-none"
+                className="font-sans text-[13px] font-bold tracking-[-0.5px] transition-all focus-visible:outline-none"
                 style={{
                   color: activeMood.primary,
                   opacity: score === 0 ? 1 : 0.5,
@@ -387,7 +409,7 @@ export default function MoodCheckInModal({
               <button
                 type="button"
                 onClick={() => setScore(1)}
-                className="text-[13px] font-bold tracking-wide transition-all focus-visible:outline-none"
+                className="font-sans text-[13px] font-bold tracking-[-0.5px] transition-all focus-visible:outline-none"
                 style={{
                   color: activeMood.primary,
                   opacity: score === 1 ? 1 : 0.5,
@@ -398,7 +420,7 @@ export default function MoodCheckInModal({
               <button
                 type="button"
                 onClick={() => setScore(2)}
-                className="text-[13px] font-bold tracking-wide transition-all focus-visible:outline-none"
+                className="font-sans text-[13px] font-bold tracking-[-0.5px] transition-all focus-visible:outline-none"
                 style={{
                   color: activeMood.primary,
                   opacity: score === 2 ? 1 : 0.5,
@@ -409,7 +431,7 @@ export default function MoodCheckInModal({
               <button
                 type="button"
                 onClick={() => setScore(3)}
-                className="text-[13px] font-bold tracking-wide transition-all focus-visible:outline-none"
+                className="font-sans text-[13px] font-bold tracking-[-0.5px] transition-all focus-visible:outline-none"
                 style={{
                   color: activeMood.primary,
                   opacity: score === 3 ? 1 : 0.5,
@@ -420,7 +442,7 @@ export default function MoodCheckInModal({
               <button
                 type="button"
                 onClick={() => setScore(4)}
-                className="text-[13px] font-bold tracking-wide transition-all focus-visible:outline-none"
+                className="font-sans text-[13px] font-bold tracking-[-0.5px] transition-all focus-visible:outline-none"
                 style={{
                   color: activeMood.primary,
                   opacity: score === 4 ? 1 : 0.5,
@@ -443,7 +465,7 @@ export default function MoodCheckInModal({
               aria-valuemax={4}
               aria-valuenow={score}
               aria-valuetext={activeMood.label}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              className="absolute inset-y-0 left-5 right-5 w-auto opacity-0 cursor-pointer"
             />
           </motion.div>
 
@@ -526,8 +548,8 @@ export default function MoodCheckInModal({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="shrink-0 inline-flex items-center gap-1.5 px-6 py-3 rounded-full text-[14px] font-black text-white hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
-                  style={{ backgroundColor: activeMood.primary }}
+                  className="shrink-0 inline-flex items-center gap-1.5 px-6 py-3 rounded-full text-[14px] font-black hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+                  style={{ backgroundColor: activeMood.primary, color: activeMood.textLight }}
                 >
                   <span>{isSubmitting ? "Saving..." : "Submit"}</span>
                   <svg
@@ -544,6 +566,15 @@ export default function MoodCheckInModal({
               </div>
             </motion.div>
           </form>
+
+          {/* Preload mood images for seamless transition */}
+          <div className="hidden" aria-hidden="true">
+            <img src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786799192/Low-emotion_vbpanv.png" alt="" />
+            <img src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Meh-emotion_nozhzi.png" alt="" />
+            <img src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Okay-emotion_sscj34.png" alt="" />
+            <img src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Good-emotion_jimbfs.png" alt="" />
+            <img src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Great-emotion_rbwtzb.png" alt="" />
+          </div>
         </div>
       </motion.div>
     </AnimatePresence>

@@ -30,7 +30,7 @@ export default function SettingsHeader({
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
       </Link>
-      <h1 className="flex-1 text-[clamp(24px,7vw,32px)] font-bold leading-[1.1] tracking-tight text-[var(--color-text-primary)]">
+      <h1 className="flex-1 font-sans font-extrabold text-[24px] leading-[33px] tracking-[-0.5px] text-[#1E1E2E]">
         {title}
       </h1>
       <span className="w-[38px] min-[360px]:w-11 shrink-0" aria-hidden="true" />

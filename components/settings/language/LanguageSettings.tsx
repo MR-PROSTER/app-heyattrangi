@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast, Toaster } from "sonner"
+import { Globe, ChevronDown, Check } from "lucide-react"
 import {
   isSettingsLanguage,
   listSettingsLanguages,
@@ -18,29 +19,20 @@ interface LanguageSettingsProps {
   currentLanguage: string
 }
 
-/**
- * Current language + selectable list. Persists to preferences + patient.preferredLanguage.
- * Architecture supports future localization via SETTINGS_LANGUAGES.
- */
 export default function LanguageSettings({
   userId,
   currentLanguage,
 }: LanguageSettingsProps) {
   const router = useRouter()
   const languages = listSettingsLanguages()
-  const seeded = isSettingsLanguage(currentLanguage) ? currentLanguage : "English"
+  const seeded = currentLanguage === "English" ? "English" : "English"
   const [selected, setSelected] = useState<SettingsLanguage>(seeded)
-  const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
 
   const handleSelect = async (lang: SettingsLanguage) => {
-    if (saving || lang === selected) {
-      setOpen(false)
-      return
-    }
+    if (saving || lang === selected) return
     const previous = selected
     setSelected(lang)
-    setOpen(false)
     setSaving(true)
     try {
       const prefs = readPreferences(userId, lang)
@@ -66,71 +58,78 @@ export default function LanguageSettings({
   }
 
   return (
-    <div className="space-y-4 pt-2">
+    <div className="w-full max-w-[430px] mx-auto select-none animate-in fade-in duration-300 space-y-6">
       <Toaster position="top-center" richColors closeButton />
 
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        aria-label={`Current language ${selected}. Open language list`}
-        disabled={saving}
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full min-h-11 items-center justify-between rounded-[var(--radius-xl)] border border-[var(--color-border)]
-          bg-[var(--color-surface)] px-4 py-3.5 text-left transition-colors duration-150
-          hover:bg-[var(--color-bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2
-          disabled:opacity-60"
-      >
-        <span>
-          <span className="block text-[var(--text-xs)] font-bold uppercase tracking-[0.08em] text-[var(--color-text-secondary)]">
-            Current language
-          </span>
-          <span className="mt-1 block text-[var(--text-base)] font-medium text-[var(--color-text-primary)]">
-            {selected}
-          </span>
+      <div className="space-y-3">
+        <span className="text-[12px] min-[360px]:text-[13px] font-black text-[#8E8B83] tracking-[0.15em] uppercase ml-1 block text-left">
+          App Language
         </span>
-        <span className="text-[var(--text-sm)] font-semibold text-[var(--color-brand)]">
-          {open ? "Close" : "Change"}
-        </span>
-      </button>
 
-      {open ? (
-        <ul
-          role="listbox"
-          aria-label="Languages"
-          aria-busy={saving}
-          className="overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)]"
-        >
-          {languages.map((lang, index) => {
-            const active = selected === lang
-            return (
-              <li key={lang} className="list-none">
+        {/* Outer Rounded Container Card */}
+        <div className="bg-white rounded-[32px] overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.015)] border border-zinc-100">
+          
+          {/* Header Row */}
+          <div className="w-full px-5 py-4.5 flex items-center justify-between border-b border-zinc-50 bg-zinc-50/20">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border bg-zinc-50 border-zinc-100">
+                <Globe className="w-5.5 h-5.5 text-[#1C2038] stroke-[2.5]" />
+              </div>
+              <span className="text-[15px] min-[360px]:text-[16px] font-bold text-[#1C2038] tracking-tight">
+                Language
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 text-zinc-400">
+              <span className="text-[14px] font-bold text-[#8E8B83]">
+                {selected}
+              </span>
+              <ChevronDown className="w-4 h-4 stroke-[2.5]" />
+            </div>
+          </div>
+
+          {/* List of Options */}
+          <div className="divide-y divide-zinc-50">
+            {languages.map((lang) => {
+              const active = selected === lang
+              const isAvailable = lang === "English"
+              return (
                 <button
+                  key={lang}
                   type="button"
-                  role="option"
-                  aria-selected={active}
-                  disabled={saving}
+                  disabled={saving || !isAvailable}
                   onClick={() => void handleSelect(lang)}
-                  className="flex w-full min-h-11 items-center justify-between px-4 py-3.5 text-left text-[var(--text-base)] font-medium
-                    text-[var(--color-text-primary)] transition-colors duration-150 hover:bg-[var(--color-bg)]
-                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-brand)]
-                    disabled:opacity-60"
+                  className={`w-full px-6 py-4 flex items-center justify-between transition-colors duration-150 text-left ${
+                    !isAvailable
+                      ? "cursor-not-allowed bg-transparent"
+                      : active
+                        ? "bg-zinc-50/20 cursor-pointer"
+                        : "hover:bg-zinc-50/40 cursor-pointer"
+                  }`}
                 >
-                  {lang}
-                  {active ? (
-                    <span className="text-[var(--color-brand)]" aria-hidden="true">
-                      ✓
-                    </span>
-                  ) : null}
+                  <span className={`text-[15px] min-[360px]:text-[16px] tracking-wide ${
+                    !isAvailable
+                      ? "text-zinc-300 font-medium"
+                      : active
+                        ? "font-bold text-[#1C2038]"
+                        : "text-zinc-700 font-semibold"
+                  }`}>
+                    {lang}
+                  </span>
+                  {active && isAvailable && (
+                    <Check className="w-5 h-5 text-[#E8722A] stroke-[3.5]" />
+                  )}
                 </button>
-                {index < languages.length - 1 ? (
-                  <div className="h-px w-full bg-[var(--color-border)]" role="separator" />
-                ) : null}
-              </li>
-            )
-          })}
-        </ul>
-      ) : null}
+              )
+            })}
+          </div>
+
+        </div>
+      </div>
+
+      <span className="block text-center text-[12.5px] font-bold text-zinc-400 italic">
+        More languages are coming soon.
+      </span>
+
     </div>
   )
 }

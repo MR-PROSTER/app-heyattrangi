@@ -22,7 +22,7 @@ async function AppointmentsContent() {
           <h2 className="text-2xl font-black text-gray-900 mb-3">Finish setting up your profile</h2>
           <p className="text-gray-400 font-bold mb-8">Add a few details so we can show your appointments here when you book.</p>
           <Link
-            href="/patient/profile"
+            href="/dashboard/profile"
             className="inline-flex items-center px-8 py-4 bg-orange-500 text-white font-black rounded-2xl hover:bg-orange-600 transition-all shadow-lg shadow-orange-100"
           >
             Complete profile

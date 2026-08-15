@@ -3,7 +3,102 @@
 import React, { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { SCREENERS } from "@/lib/data/screeners"
-import { ArrowLeft, Check, AlertTriangle, ArrowRight, Activity, ChevronLeft } from "lucide-react"
+import { ArrowLeft, Check, AlertTriangle, ArrowRight, Activity, ChevronLeft, Info } from "lucide-react"
+
+function formatDate(date: Date = new Date()) {
+    return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+    });
+}
+
+interface AssessmentScoreGaugeProps {
+  score: number;
+  screenerId: string;
+  screener: any;
+}
+
+function AssessmentScoreGauge({ score, screenerId, screener }: AssessmentScoreGaugeProps) {
+  let maxScore = 0;
+  if (screenerId === 'phq-9') maxScore = 27;
+  else if (screenerId === 'gad-7') maxScore = 21;
+  else if (screenerId === 'asrs') maxScore = 6;
+  else if (screenerId === 'ptsd') maxScore = 5;
+  else if (screenerId === 'ocd') maxScore = 72;
+  else if (screener?.questions) {
+    screener.questions.forEach((q: any) => {
+      if (q.options) {
+        const maxVal = Math.max(...q.options.map((opt: any) => opt.value || 0));
+        maxScore += maxVal;
+      }
+    });
+  }
+  if (maxScore === 0) maxScore = 100;
+
+  const targetProgress = Math.min(Math.max(score / maxScore, 0), 1);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setProgress(targetProgress);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [targetProgress]);
+
+  const r = 80;
+  const cx = 100;
+  const cy = 100;
+  const strokeLength = Math.PI * r;
+  const strokeOffset = strokeLength * (1 - progress);
+
+  const angle = Math.PI - progress * Math.PI;
+  const knobX = cx + r * Math.cos(angle);
+  const knobY = cy - r * Math.sin(angle);
+
+  return (
+    <div className="relative w-full max-w-[240px] mx-auto mb-2">
+      <svg viewBox="0 0 200 115" className="w-full h-auto">
+        <path
+          d="M 20 100 A 80 80 0 0 1 180 100"
+          fill="none"
+          stroke="#EBF3F5"
+          strokeWidth="15"
+          strokeLinecap="round"
+        />
+        <path
+          d="M 20 100 A 80 80 0 0 1 180 100"
+          fill="none"
+          stroke="#52B76E"
+          strokeWidth="15"
+          strokeLinecap="round"
+          strokeDasharray={strokeLength}
+          strokeDashoffset={strokeOffset}
+          className="transition-all duration-700 ease-out"
+        />
+        <circle
+          cx={knobX}
+          cy={knobY}
+          r="12"
+          fill="#FFFFFF"
+          stroke="#52B76E"
+          strokeWidth="4"
+          className="transition-all duration-700 ease-out shadow-sm"
+        />
+        <circle
+          cx={knobX}
+          cy={knobY}
+          r="6"
+          fill="#52B76E"
+          className="transition-all duration-700 ease-out"
+        />
+      </svg>
+      <div className="absolute bottom-2 inset-x-0 flex flex-col items-center justify-end select-none">
+        <span className="text-5xl font-black text-[#1E2429] tracking-tight">{score}</span>
+      </div>
+    </div>
+  );
+}
 
 export default function AssessmentPage() {
     const params = useParams()
@@ -149,7 +244,7 @@ export default function AssessmentPage() {
     }
 
     return (
-        <div className="flex-1 h-screen overflow-y-auto w-full bg-[#FFF9F8] text-slate-800 flex flex-col font-sans">
+        <div className="flex-1 h-screen overflow-y-auto w-full bg-[#FCFAF7] text-slate-800 flex flex-col font-sans">
             <div className="px-3.5 py-4 min-[360px]:px-4.5 min-[360px]:py-5 min-[390px]:px-5 md:p-8 flex-1 w-full max-w-3xl mx-auto flex flex-col">
 
                 <button
@@ -197,13 +292,6 @@ export default function AssessmentPage() {
                                     <div className="mt-8">
                                         {isSegmentScale ? (
                                             <>
-                                                {/* Selected Answer Label Above Scale */}
-                                                <div 
-                                                    className="text-center font-bold text-[13px] mb-3.5 h-4 transition-colors duration-200" 
-                                                    style={{ color: hasSelection ? getLabelColor(selectedIndex) : '#94A3B8' }}
-                                                >
-                                                    {hasSelection ? currentQuestion.options[selectedIndex].text : "\u00A0"}
-                                                </div>
 
                                                 {/* Segmented scale */}
                                                 <div className={`grid ${getGridColsClass(totalOptions)} gap-2 w-full`}>
@@ -289,7 +377,7 @@ export default function AssessmentPage() {
                         </div>
 
                         {/* Desktop Design (hidden md:flex) */}
-                        <div className="hidden md:flex flex-col flex-1">
+                        <div className="hidden md:flex flex-col flex-1 justify-center py-4 md:py-8">
                             <div className="mb-5 min-[360px]:mb-6 min-[390px]:mb-8">
                                 <h1 className="font-extrabold text-[22px] min-[360px]:text-[26px] min-[390px]:text-3xl text-slate-800 mb-1.5 min-[360px]:mb-2 tracking-tight leading-tight">{screener.title}</h1>
                                 <p className="text-slate-500 text-[12.5px] min-[360px]:text-[13px] min-[390px]:text-sm leading-relaxed">{screener.description}</p>
@@ -304,37 +392,68 @@ export default function AssessmentPage() {
                             </div>
 
                             {/* Question Card */}
-                            <div className="bg-white rounded-[20px] min-[360px]:rounded-[24px] p-4 min-[360px]:p-6 min-[390px]:p-8 md:p-10 shadow-sm border border-slate-100 flex-1 flex flex-col justify-center">
-                                <span className="text-[10px] min-[360px]:text-xs font-black text-indigo-500 uppercase tracking-widest mb-2 min-[360px]:mb-3 min-[390px]:mb-4 block">
-                                    Question {currentQuestionIdx + 1} of {screener.questions.length}
-                                </span>
-                                <h2 className="text-[17px] min-[360px]:text-[20px] min-[390px]:text-2xl font-bold text-slate-800 leading-snug mb-6 min-[360px]:mb-8 min-[390px]:mb-10">
-                                    {currentQuestion.text}
-                                </h2>
-
-                                <div className="space-y-3">
-                                    {currentQuestion.options.map((opt: any, i: number) => {
-                                        const isSelected = answers[currentQuestionIdx] === opt.value
-                                        return (
-                                            <button
-                                                key={i}
-                                                onClick={() => handleAnswer(opt.value)}
-                                                className={`w-full text-left px-4 py-3 min-[360px]:px-5 min-[360px]:py-3.5 min-[390px]:px-6 min-[390px]:py-4 rounded-xl border-2 transition-all flex items-center justify-between gap-2.5 group ${isSelected
-                                                    ? "border-indigo-500 bg-indigo-50"
-                                                    : "border-slate-100 hover:border-indigo-200 hover:bg-slate-50"
-                                                    }`}
-                                            >
-                                                <span className={`font-semibold text-[13px] min-[360px]:text-sm ${isSelected ? "text-indigo-700" : "text-slate-600"} min-w-0 flex-1`}>
-                                                    {opt.text}
-                                                </span>
-                                                <div className={`w-5 h-5 min-[360px]:w-6 min-[360px]:h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isSelected ? "border-indigo-500 bg-indigo-500" : "border-slate-200 group-hover:border-indigo-300"
-                                                    }`}>
-                                                    {isSelected && <Check className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 text-white" />}
-                                                </div>
-                                            </button>
-                                        )
-                                    })}
+                            <div className="bg-white rounded-[32px] p-6 md:p-10 shadow-[0_15px_45px_rgba(0,0,0,0.02)] border border-slate-100/90 w-full flex flex-col justify-between min-h-[380px] flex-none">
+                                <div className="flex-1 flex flex-col justify-start mb-6">
+                                    <span className="text-[10px] min-[360px]:text-xs font-black text-indigo-500 uppercase tracking-widest mb-2 min-[360px]:mb-3 min-[390px]:mb-4 block">
+                                        Question {currentQuestionIdx + 1} of {screener.questions.length}
+                                    </span>
+                                    <h2 className="text-[17px] min-[360px]:text-[20px] min-[390px]:text-2xl font-bold text-slate-800 leading-snug">
+                                        {currentQuestion.text}
+                                    </h2>
                                 </div>
+
+                                {isSegmentScale ? (
+                                    <>
+
+                                        {/* Segmented scale */}
+                                        <div className={`grid ${getGridColsClass(totalOptions)} gap-2.5 w-full`}>
+                                            {currentQuestion.options.map((opt: any, idx: number) => {
+                                                const isLit = hasSelection && idx <= selectedIndex
+                                                const color = isLit ? getProgressiveColor(idx, totalOptions) : "#E9E9EB"
+                                                return (
+                                                    <button
+                                                        key={idx}
+                                                        type="button"
+                                                        onClick={() => handleAnswer(opt.value)}
+                                                        className={`h-[48px] w-full ${getSegmentBorderRadius(idx, totalOptions)} transition-all duration-150 ease-out hover:brightness-95 active:scale-[0.96] active:brightness-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500`}
+                                                        style={{ backgroundColor: color }}
+                                                        aria-label={opt.text}
+                                                    />
+                                                )
+                                            })}
+                                        </div>
+
+                                        {/* Endpoint labels */}
+                                        <div className="flex justify-between w-full mt-3 px-1 text-[13px] font-medium text-slate-400">
+                                            <span>{currentQuestion.options[0].text}</span>
+                                            <span>{currentQuestion.options[totalOptions - 1].text}</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {currentQuestion.options.map((opt: any, i: number) => {
+                                            const isSelected = answers[currentQuestionIdx] === opt.value
+                                            return (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => handleAnswer(opt.value)}
+                                                    className={`w-full text-left px-4 py-3 min-[360px]:px-5 min-[360px]:py-3.5 min-[390px]:px-6 min-[390px]:py-4 rounded-xl border-2 transition-all flex items-center justify-between gap-2.5 group ${isSelected
+                                                        ? "border-indigo-500 bg-indigo-50"
+                                                        : "border-slate-100 hover:border-indigo-200 hover:bg-slate-50"
+                                                        }`}
+                                                >
+                                                    <span className={`font-semibold text-[13px] min-[360px]:text-sm ${isSelected ? "text-indigo-700" : "text-slate-600"} min-w-0 flex-1`}>
+                                                        {opt.text}
+                                                    </span>
+                                                    <div className={`w-5 h-5 min-[360px]:w-6 min-[360px]:h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isSelected ? "border-indigo-500 bg-indigo-500" : "border-slate-200 group-hover:border-indigo-300"
+                                                        }`}>
+                                                        {isSelected && <Check className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 text-white" />}
+                                                    </div>
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="mt-6 flex justify-between items-center">
@@ -420,69 +539,89 @@ export default function AssessmentPage() {
                         </div>
                     </div>
                 ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center animate-in slide-in-from-bottom-8 duration-700 pb-20">
+                    <div className="flex-1 flex flex-col items-center justify-start w-full max-w-xl mx-auto px-4 py-6 sm:py-8 md:py-12 select-none animate-in fade-in duration-500">
+                        {/* Header Navigation */}
+                        <div className="w-full mb-6 flex flex-col items-start">
+                            <button
+                                onClick={() => router.push('/patient/library')}
+                                className="inline-flex items-center gap-1.5 text-[#2E626A] hover:text-[#204a50] font-semibold text-sm transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-[#2E626A] focus:ring-offset-2 rounded"
+                            >
+                                <ChevronLeft className="w-4 h-4" strokeWidth={3} /> Back to Assessments
+                            </button>
+                            <h2 className="text-3xl font-bold text-[#1E2429] leading-tight mb-1">Assessment Results</h2>
+                            <p className="text-[#7A828A] text-sm font-normal">Completed {formatDate()}</p>
+                        </div>
 
-                        {/* Results Card */}
-                        <div className="bg-white rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-5 min-[360px]:p-8 min-[390px]:p-10 shadow-lg border border-slate-100 w-full text-center relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+                        {/* Main Score Card */}
+                        <div className="bg-white rounded-[28px] p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-[#EAE5DB]/60 w-full text-center mb-6">
+                            <h3 className="font-bold text-[#1E2429] text-lg mb-6">Your Score</h3>
+                            
+                            <AssessmentScoreGauge
+                                score={results.score}
+                                screenerId={screenerId}
+                                screener={screener}
+                            />
 
-                            <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <Activity className="w-10 h-10 text-indigo-500" />
-                            </div>
-
-                            <h2 className="text-3xl font-extrabold text-slate-800 mb-2">Assessment Complete</h2>
-                            <p className="text-slate-500 text-sm mb-8">Thank you for taking the time to complete the {screener.title.split(' ')[0]} screener.</p>
-
-                            <div className="space-y-6">
-                                <div className="bg-slate-50 rounded-2xl p-4 min-[360px]:p-6 inline-block min-w-[160px] min-[360px]:min-w-[200px]">
-                                    <span className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Your Score</span>
-                                    <div className="text-4xl font-black text-indigo-600 mb-1">{results.score}</div>
-                                    <div className="text-sm font-bold text-slate-600 bg-white px-3 py-1.5 rounded-full shadow-sm inline-block mt-2">
-                                        {results.severity}
-                                    </div>
-                                </div>
-
-                                {(results.interpretation || results.recommendation) && (
-                                    <div className="text-left space-y-4 max-w-lg mx-auto">
-                                        {results.interpretation && (
-                                            <div>
-                                                <span className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Interpretation</span>
-                                                <p className="text-sm text-slate-600 leading-relaxed">{results.interpretation}</p>
-                                            </div>
-                                        )}
-                                        {results.recommendation && (
-                                            <div>
-                                                <span className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Recommendation</span>
-                                                <p className="text-sm text-slate-600 leading-relaxed">{results.recommendation}</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {results.hasCrisisRisk && (
-                                    <div className="bg-red-50 border border-red-100 rounded-2xl p-5 text-left flex gap-4 mt-6">
-                                        <AlertTriangle className="w-6 h-6 text-red-500 flex-shrink-0" />
-                                        <div>
-                                            <h4 className="font-bold text-red-800 text-sm mb-1">Please seek immediate help</h4>
-                                            <p className="text-red-600 text-xs leading-relaxed">
-                                                Based on your responses, we strongly recommend speaking with a professional or contacting a crisis hotline immediately.
-                                             </p>
-                                            <a href="/patient/library" className="inline-block mt-3 text-xs font-bold text-red-600 border-b border-red-300 pb-0.5 hover:text-red-700">
-                                                View Support Hotlines &rarr;
-                                            </a>
-                                        </div>
-                                    </div>
-                                )}
+                            <div className="text-center font-bold text-[#5C6670] text-sm mt-4 leading-normal max-w-xs mx-auto">
+                                {results.severity}
                             </div>
                         </div>
 
-                        <button
-                            onClick={() => router.push('/patient/library')}
-                            className="mt-10 px-8 py-3.5 bg-slate-900 hover:bg-black text-white rounded-full font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2"
-                        >
-                            Return to Dashboard <ArrowRight className="w-4 h-4" />
-                        </button>
-                        <p className="text-[10px] text-slate-400 mt-6 max-w-sm text-center">
+                        {/* What This Means Card */}
+                        {(results.interpretation || results.recommendation) && (
+                            <div className="bg-white rounded-[28px] p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-[#EAE5DB]/60 w-full mb-6 text-left">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-8 h-8 rounded-full bg-[#EBF5F3] flex items-center justify-center text-[#2E626A] flex-shrink-0">
+                                        <Info className="w-4 h-4" strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="font-bold text-[#1E2429] text-lg">What this means</h3>
+                                </div>
+                                <div className="space-y-4">
+                                    {results.interpretation && (
+                                        <p className="text-[#5C6670] leading-relaxed text-sm sm:text-base font-medium">
+                                            {results.interpretation}
+                                        </p>
+                                    )}
+                                    {results.recommendation && (
+                                        <div className="pt-4 border-t border-[#F0EAE1]">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Recommendation</span>
+                                            <p className="text-[#5C6670] leading-relaxed text-sm sm:text-base">
+                                                {results.recommendation}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Crisis Risk Alert */}
+                        {results.hasCrisisRisk && (
+                            <div className="bg-[#FDF2EC] border border-[#FADCCB] rounded-[24px] p-5 text-left flex gap-4 w-full mb-6">
+                                <AlertTriangle className="w-6 h-6 text-[#D96E34] flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <h4 className="font-bold text-[#D96E34] text-sm mb-1">Please seek immediate help</h4>
+                                    <p className="text-[#5C6670] text-xs leading-relaxed">
+                                        Based on your responses, we strongly recommend speaking with a professional or contacting a crisis hotline immediately.
+                                    </p>
+                                    <a href="/patient/library" className="inline-block mt-3 text-xs font-bold text-[#D96E34] border-b border-[#FADCCB] pb-0.5 hover:text-[#D96E34]/80">
+                                        View Support Hotlines &rarr;
+                                    </a>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Return to Assessments Button */}
+                        <div className="w-full mb-6">
+                            <button
+                                onClick={() => router.push('/patient/library')}
+                                className="w-full h-14 bg-[#2C332E] hover:bg-[#1E2420] active:scale-[0.99] text-white rounded-full font-semibold text-base transition-all flex items-center justify-center shadow-sm"
+                            >
+                                Return to Assessments
+                            </button>
+                        </div>
+
+                        {/* Disclaimer */}
+                        <p className="text-center text-xs text-[#7A828A] leading-relaxed max-w-sm mx-auto mt-2">
                             This is a screening tool, not a diagnostic instrument. Please consult with a qualified healthcare provider for a formal diagnosis.
                         </p>
                     </div>

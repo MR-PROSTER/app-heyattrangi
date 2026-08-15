@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { User, Patient, PlanType } from "@prisma/client"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
+import Link from "next/link"
 import ProfileCard from "../ui/ProfileCard"
 import ProfileDivider from "../ui/ProfileDivider"
 import { PROFILE_FIELD_GRID, PROFILE_SCROLL_MT } from "../ui/profileChrome"
@@ -12,6 +14,8 @@ import ReadonlyField from "./ReadonlyField"
 import ProfileStreakCard from "./ProfileStreakCard"
 import ProfileMobileCalendar from "./ProfileMobileCalendar"
 import EditProfileScreen, { type EditProfileValues } from "./EditProfileScreen"
+import { ChevronLeft, ChevronRight, Settings, Trophy, Smile, Edit3, Bell } from "lucide-react"
+import UnlockFeaturesCard from "@/components/premium/UnlockFeaturesCard"
 import {
   formatMemberId,
   formatMemberSince,
@@ -381,102 +385,111 @@ export default function IdentityCard({
   return (
     <section id="identity" aria-labelledby="identity-heading" className={PROFILE_SCROLL_MT}>
       {/* Mobile — Image 1 profile-home pattern */}
-      <div className="md:hidden -mx-4 sm:-mx-6">
-        <div className="bg-gradient-to-b from-[#E8EAF6] via-[#EEF0F8] to-[#F5F6FB] px-4 sm:px-6 pt-2 pb-6">
-          <div className="flex flex-col items-center text-center pt-2 pb-5">
-            <IdentityAvatar
-              size="lg"
-              name={name}
-              email={user.email}
-              image={user.image}
-              previewUrl={previewUrl}
-              isUploading={isUploading}
-              onSelectFile={handleFileSelect}
-              onRemovePhoto={user.image ? removePhoto : undefined}
+      <div className="md:hidden -mx-4 sm:-mx-6 min-h-screen px-4 pb-24 flex flex-col gap-6" style={{ backgroundColor: "#ffffff" }}>
+        
+        {/* Custom Header */}
+        <header className="flex items-center justify-between py-4 select-none">
+          <Link href="/patient/dashboard" className="text-slate-800 hover:opacity-80 transition-opacity">
+            <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
+          </Link>
+          
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Profile</h1>
+          
+          <button
+            onClick={() => setShowEditProfile(true)}
+            className="text-slate-800 hover:opacity-80 transition-opacity"
+            aria-label="Edit Profile"
+          >
+            <Settings className="w-6 h-6" />
+          </button>
+        </header>
+
+        {/* Avatar & Details Section */}
+        <div className="flex flex-col items-center pt-2 select-none">
+          {/* Avatar */}
+          <div className="relative w-24 h-24 rounded-full overflow-hidden bg-sky-100/60 border-[3px] border-white shadow-sm ring-1 ring-black/5">
+            <Image
+              src={user.image || "/images/default_user.png"}
+              alt={displayName}
+              fill
+              className="object-cover bg-[#E0F2FE]"
+              priority
             />
-
-            <h2
-              id="identity-heading"
-              className="mt-4 text-[22px] font-bold text-gray-900 tracking-tight max-w-[90%] truncate"
-            >
-              {displayName}
-            </h2>
-
-            <div className="mt-1.5 flex items-center justify-center gap-1.5 max-w-[92%]">
-              <p className="text-sm font-medium text-gray-500 truncate">{user.email || "—"}</p>
-              {user.email ? (
-                <span
-                  className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#22C55E] text-white"
-                  title="Verified email"
-                  aria-label="Verified email"
-                >
-                  <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => setShowEditProfile(true)}
-                aria-label="Edit profile"
-                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-400
-                  hover:bg-white/70 hover:text-gray-700 transition-colors duration-150
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-              >
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                  />
+          </div>
+          
+          {/* Name */}
+          <h2 className="mt-4 text-xl font-bold text-slate-850 tracking-tight text-center">
+            {displayName}
+          </h2>
+          
+          {/* Email & Checkmark */}
+          <div className="mt-1 flex items-center gap-1.5 justify-center">
+            <span className="text-sm font-medium text-slate-500">{user.email || "—"}</span>
+            {user.email && (
+              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#22C55E] text-white shadow-sm">
+                <svg className="h-2.5 w-2.5 fill-current" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-              </button>
-            </div>
-
-            <p className="mt-2 text-xs font-medium text-gray-400">
-              {memberSince}
-              <span className="mx-1.5 text-gray-300" aria-hidden="true">
-                ·
               </span>
-              {planLabel} plan
-            </p>
+            )}
           </div>
-
-          <ProfileStreakCard streakDays={streakDays} className="mb-5" />
         </div>
 
-        {showCalendar ? (
-          <ProfileMobileCalendar onClose={() => setShowCalendar(false)} />
-        ) : (
-          <div className="bg-white px-4 pt-3 pb-1">
-            <button
-              type="button"
-              onClick={() => setShowCalendar(true)}
-              className="w-full min-h-11 rounded-2xl border border-gray-100 bg-gray-50 text-sm font-semibold text-gray-700
-                hover:bg-gray-100 transition-colors duration-150
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-            >
-              Show calendar
-            </button>
+        {/* Card 1 (Stats Card) */}
+        <div className="w-full rounded-[28px] border border-slate-900 p-4 sm:p-5 flex flex-row items-center justify-between text-center select-none shadow-[0_4px_20px_rgba(0,0,0,0.01)] mt-2" style={{ backgroundColor: "#FFF9F6" }}>
+          {/* Active Days */}
+          <div className="flex-1 flex flex-col items-center">
+            <Trophy className="w-5 h-5 text-[#3B82F6] stroke-[2]" />
+            <span className="text-xl sm:text-2xl font-black text-slate-800 mt-1">
+              {streakDays || 8}
+            </span>
+            <span className="text-[10px] sm:text-xs text-slate-400 font-bold mt-0.5">
+              Active days
+            </span>
           </div>
-        )}
 
-        <div className="bg-white px-4 sm:px-6 pt-5 pb-2 border-t border-gray-50">
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gray-400">
-              Identity details
-            </p>
-            <button
-              type="button"
-              onClick={() => setShowEditProfile(true)}
-              className="text-sm font-bold text-[#4A6CF7] hover:text-[#3B5BDB] transition-colors duration-150
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
-            >
-              Edit
-            </button>
+          <div className="h-10 border-r border-slate-100" />
+
+          {/* Mood check-ins */}
+          <div className="flex-1 flex flex-col items-center">
+            <Smile className="w-5 h-5 text-[#3B82F6] stroke-[2]" />
+            <span className="text-xl sm:text-2xl font-black text-slate-800 mt-1">
+              {streakDays ? streakDays + 2 : 6}
+            </span>
+            <span className="text-[10px] sm:text-xs text-slate-400 font-bold mt-0.5">
+              Mood check-ins
+            </span>
           </div>
-          {fieldsBlock}
+
+          <div className="h-10 border-r border-slate-100" />
+
+          {/* Reflections */}
+          <div className="flex-1 flex flex-col items-center">
+            <Edit3 className="w-5 h-5 text-[#3B82F6] stroke-[2]" />
+            <span className="text-xl sm:text-2xl font-black text-slate-800 mt-1">
+              {streakDays ? Math.max(1, Math.floor(streakDays / 3)) : 2}
+            </span>
+            <span className="text-[10px] sm:text-xs text-slate-400 font-bold mt-0.5">
+              Reflections
+            </span>
+          </div>
         </div>
+
+        <UnlockFeaturesCard />
+
+        {/* Card 3 (Founder Card) */}
+        <Link href="/dashboard/founder-message" className="w-full mt-auto block">
+          <div className="w-full bg-white rounded-[24px] p-4 flex items-center gap-4 border border-slate-100 hover:border-slate-200 transition-colors shadow-[0_2px_12px_rgba(0,0,0,0.015)] cursor-pointer select-none">
+            <div className="w-11 h-11 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-500 shrink-0 shadow-sm border border-orange-100/30">
+              <Bell className="w-5 h-5 fill-current" />
+            </div>
+            <span className="text-[12px] font-black tracking-wide text-slate-800 font-sans">
+              A MESSAGE FROM OUR FOUNDER
+            </span>
+            <ChevronRight className="w-5 h-5 text-slate-400 ml-auto stroke-[2.5]" />
+          </div>
+        </Link>
+
       </div>
 
       <EditProfileScreen

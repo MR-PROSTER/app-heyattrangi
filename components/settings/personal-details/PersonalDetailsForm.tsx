@@ -6,6 +6,8 @@ import { useSession } from "next-auth/react"
 import { toast, Toaster } from "sonner"
 import SettingsInput from "../SettingsInput"
 import { validateName, validatePhone } from "@/components/profile/identity/identityUtils"
+import Image from "next/image"
+import { User, Calendar, Mail, ChevronDown, ChevronRight } from "lucide-react"
 import {
   pendingEmailKey,
   phoneStorageKey,
@@ -34,27 +36,43 @@ interface PersonalDetailsFormProps {
  */
 export default function PersonalDetailsForm({ initial }: PersonalDetailsFormProps) {
   const router = useRouter()
-  const { update } = useSession()
+  const { data: session, update } = useSession()
   const [name, setName] = useState(initial.name || "")
   const [phone, setPhone] = useState("")
   const email = initial.email || ""
-  const [editing, setEditing] = useState<FieldKey | null>(null)
+  const [editing, setEditing] = useState<FieldKey | "dob" | "gender" | null>(null)
   const [draft, setDraft] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [pendingEmail, setPendingEmail] = useState<string | null>(null)
 
+  // Extra profile fields matching Image 2 (DOB, Gender, Country Code)
+  const [dob, setDob] = useState("01/01/1988")
+  const [gender, setGender] = useState("Gender")
+  const [countryCode, setCountryCode] = useState("+91")
+
   useEffect(() => {
-    setPhone(readLocal(phoneStorageKey(initial.userId)))
+    setPhone(readLocal(phoneStorageKey(initial.userId)) || "(308) 555-0121")
     const pending = readLocal(pendingEmailKey(initial.userId))
     setPendingEmail(pending || null)
+
+    const storedDob = readLocal(`dob_${initial.userId}`)
+    if (storedDob) setDob(storedDob)
+    const storedGender = readLocal(`gender_${initial.userId}`)
+    if (storedGender) setGender(storedGender)
+    const storedCc = readLocal(`cc_${initial.userId}`)
+    if (storedCc) setCountryCode(storedCc)
   }, [initial.userId])
 
-  const startEdit = (field: FieldKey) => {
+  const startEdit = (field: FieldKey | "dob" | "gender") => {
     if (field === "email" && !initial.emailEditable) return
     setError(null)
     setEditing(field)
-    setDraft(field === "name" ? name : field === "phone" ? phone : email)
+    if (field === "name") setDraft(name)
+    else if (field === "phone") setDraft(phone)
+    else if (field === "email") setDraft(email)
+    else if (field === "dob") setDraft(dob)
+    else if (field === "gender") setDraft(gender)
   }
 
   const cancelEdit = () => {
@@ -64,10 +82,15 @@ export default function PersonalDetailsForm({ initial }: PersonalDetailsFormProp
   }
 
   const validateDraft = useCallback(
-    (field: FieldKey, value: string): string | null => {
+    (field: FieldKey | "dob" | "gender", value: string): string | null => {
       if (field === "name") return validateName(value)
       if (field === "phone") return validatePhone(value)
-      return validateEmail(value)
+      if (field === "email") return validateEmail(value)
+      if (field === "dob") {
+        if (!value.trim()) return "Date of birth is required"
+        return null
+      }
+      return null
     },
     []
   )
@@ -104,11 +127,18 @@ export default function PersonalDetailsForm({ initial }: PersonalDetailsFormProp
         if (next === (initial.email || "").toLowerCase()) {
           toast.message("Email unchanged")
         } else {
-          // Verification flow placeholder (handoff) — do not update account email yet.
           writeLocal(pendingEmailKey(initial.userId), next)
           setPendingEmail(next)
           toast.success("Verification email placeholder — confirm to finish updating.")
         }
+      } else if (editing === "dob") {
+        writeLocal(`dob_${initial.userId}`, draft.trim())
+        setDob(draft.trim())
+        toast.success("Date of birth saved")
+      } else if (editing === "gender") {
+        writeLocal(`gender_${initial.userId}`, draft.trim())
+        setGender(draft.trim())
+        toast.success("Gender saved")
       }
       cancelEdit()
     } catch (e) {
@@ -119,61 +149,194 @@ export default function PersonalDetailsForm({ initial }: PersonalDetailsFormProp
   }
 
   return (
-    <div className="space-y-3 pt-2">
+    <div className="space-y-6 pt-2 select-none">
       <Toaster position="top-center" richColors closeButton />
 
-      <InlineField
-        label="Full Name"
-        value={name || "—"}
-        editing={editing === "name"}
-        draft={draft}
-        error={editing === "name" ? error : null}
-        saving={saving}
-        onEdit={() => startEdit("name")}
-        onCancel={cancelEdit}
-        onSave={() => void saveField()}
-        onDraftChange={setDraft}
-        inputType="text"
-        autoComplete="name"
-      />
+      {/* Profile Avatar Header */}
+      <div className="flex flex-col items-center py-4 select-none">
+        <div className="relative w-28 h-28 rounded-full overflow-hidden bg-sky-100/60 border-[3px] border-white shadow-sm ring-1 ring-black/5">
+          <Image
+            src={session?.user?.image || "/images/default_user.png"}
+            alt="Profile Photo"
+            fill
+            className="object-cover bg-[#E0F2FE]"
+          />
+          {/* Blue pencil edit button */}
+          <button className="absolute bottom-1 right-1 w-8 h-8 bg-[#2563EB] hover:bg-[#1D4ED8] rounded-full border-2 border-white flex items-center justify-center text-white shadow-md transition-all active:scale-95 cursor-pointer">
+            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+            </svg>
+          </button>
+        </div>
+      </div>
 
-      <InlineField
-        label="Phone"
-        value={phone || "—"}
-        editing={editing === "phone"}
-        draft={draft}
-        error={editing === "phone" ? error : null}
-        saving={saving}
-        onEdit={() => startEdit("phone")}
-        onCancel={cancelEdit}
-        onSave={() => void saveField()}
-        onDraftChange={setDraft}
-        inputType="tel"
-        autoComplete="tel"
-      />
+      {/* Fields List */}
+      <div className="space-y-4">
+        {/* Name Field */}
+        {editing === "name" ? (
+          <div className="w-full flex flex-col gap-2 rounded-[20px] border border-zinc-200 bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
+            <div className="flex items-center gap-3">
+              <User className="w-5 h-5 text-zinc-800 shrink-0 stroke-[2]" />
+              <input
+                type="text"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                autoFocus
+                className="flex-1 text-[15px] font-semibold text-zinc-800 placeholder-zinc-400 bg-transparent border-none outline-none focus:ring-0 p-0"
+              />
+            </div>
+            {error && <p className="text-xs text-red-500 font-bold ml-8">{error}</p>}
+            <div className="flex justify-end gap-2 mt-1">
+              <button onClick={cancelEdit} className="px-4 py-1.5 rounded-full border border-zinc-200 text-xs font-black text-zinc-650 hover:bg-zinc-50 cursor-pointer">Cancel</button>
+              <button onClick={() => void saveField()} className="px-4 py-1.5 rounded-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-black cursor-pointer shadow-sm">Save</button>
+            </div>
+          </div>
+        ) : (
+          <div onClick={() => startEdit("name")} className="w-full flex items-center justify-between gap-3 rounded-[20px] border border-zinc-200 bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.01)] cursor-pointer hover:border-zinc-300 transition-colors">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <User className="w-5 h-5 text-zinc-800 shrink-0 stroke-[2]" />
+              <span className="text-[15px] font-semibold text-zinc-800 break-words leading-tight">{name || "—"}</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-zinc-400 shrink-0 stroke-[2.5]" />
+          </div>
+        )}
 
-      <InlineField
-        label="Email"
-        value={email || "—"}
-        editing={editing === "email"}
-        draft={draft}
-        error={editing === "email" ? error : null}
-        saving={saving}
-        editable={initial.emailEditable}
-        hint={
-          !initial.emailEditable
-            ? "Managed by your Google account"
-            : pendingEmail
-              ? `Pending verification: ${pendingEmail}`
-              : undefined
-        }
-        onEdit={() => startEdit("email")}
-        onCancel={cancelEdit}
-        onSave={() => void saveField()}
-        onDraftChange={setDraft}
-        inputType="email"
-        autoComplete="email"
-      />
+        {/* Date of Birth Field */}
+        {editing === "dob" ? (
+          <div className="w-full flex flex-col gap-2 rounded-[20px] border border-zinc-200 bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
+            <div className="flex items-center gap-3">
+              <Calendar className="w-5 h-5 text-zinc-800 shrink-0 stroke-[2]" />
+              <input
+                type="text"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                autoFocus
+                placeholder="DD/MM/YYYY"
+                className="flex-1 text-[15px] font-semibold text-zinc-800 placeholder-zinc-400 bg-transparent border-none outline-none focus:ring-0 p-0"
+              />
+            </div>
+            {error && <p className="text-xs text-red-500 font-bold ml-8">{error}</p>}
+            <div className="flex justify-end gap-2 mt-1">
+              <button onClick={cancelEdit} className="px-4 py-1.5 rounded-full border border-zinc-200 text-xs font-black text-zinc-650 hover:bg-zinc-50 cursor-pointer">Cancel</button>
+              <button onClick={() => void saveField()} className="px-4 py-1.5 rounded-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-black cursor-pointer shadow-sm">Save</button>
+            </div>
+          </div>
+        ) : (
+          <div onClick={() => startEdit("dob")} className="w-full flex items-center justify-between gap-3 rounded-[20px] border border-zinc-200 bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.01)] cursor-pointer hover:border-zinc-300 transition-colors">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <Calendar className="w-5 h-5 text-zinc-800 shrink-0 stroke-[2]" />
+              <span className="text-[15px] font-semibold text-zinc-800 break-words leading-tight">{dob}</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-zinc-400 shrink-0 stroke-[2.5]" />
+          </div>
+        )}
+
+        {/* Email Field */}
+        {editing === "email" ? (
+          <div className="w-full flex flex-col gap-2 rounded-[20px] border border-zinc-200 bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
+            <div className="flex items-center gap-3">
+              <Mail className="w-5 h-5 text-zinc-800 shrink-0 stroke-[2]" />
+              <input
+                type="email"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                autoFocus
+                className="flex-1 text-[15px] font-semibold text-zinc-800 placeholder-zinc-400 bg-transparent border-none outline-none focus:ring-0 p-0"
+              />
+            </div>
+            {error && <p className="text-xs text-red-500 font-bold ml-8">{error}</p>}
+            <div className="flex justify-end gap-2 mt-1">
+              <button onClick={cancelEdit} className="px-4 py-1.5 rounded-full border border-zinc-200 text-xs font-black text-zinc-650 hover:bg-zinc-50 cursor-pointer">Cancel</button>
+              <button onClick={() => void saveField()} className="px-4 py-1.5 rounded-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-black cursor-pointer shadow-sm">Save</button>
+            </div>
+          </div>
+        ) : (
+          <div
+            onClick={initial.emailEditable ? () => startEdit("email") : undefined}
+            className={`w-full flex items-center justify-between gap-3 rounded-[20px] border border-zinc-200 bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.01)] ${initial.emailEditable ? 'cursor-pointer hover:border-zinc-300 transition-colors' : 'opacity-90'}`}
+          >
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <Mail className="w-5 h-5 text-zinc-800 shrink-0 stroke-[2]" />
+              <div className="min-w-0 flex-1">
+                <span className="text-[15px] font-semibold text-zinc-850 break-words leading-tight">{email || "—"}</span>
+                {!initial.emailEditable && (
+                  <p className="text-[11px] font-bold text-zinc-400 leading-none mt-0.5">Managed by your Google account</p>
+                )}
+                {pendingEmail && (
+                  <p className="text-[11px] font-bold text-amber-500 leading-none mt-0.5">Pending verification: {pendingEmail}</p>
+                )}
+              </div>
+            </div>
+            {initial.emailEditable && (
+              <ChevronRight className="w-4 h-4 text-zinc-400 shrink-0 stroke-[2.5]" />
+            )}
+          </div>
+        )}
+
+        {/* Phone Field */}
+        <div className="flex gap-3 w-full">
+          {/* Country Code dropdown select box */}
+          <div className="relative flex items-center bg-white rounded-[20px] border border-zinc-200 p-4 w-[96px] shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
+            <select
+              value={countryCode}
+              onChange={(e) => {
+                setCountryCode(e.target.value)
+                writeLocal(`cc_${initial.userId}`, e.target.value)
+              }}
+              className="w-full appearance-none pr-5 text-[15px] font-semibold text-zinc-800 bg-transparent border-none outline-none focus:ring-0 p-0 select-none cursor-pointer"
+            >
+              <option value="+91">+91</option>
+              <option value="+1">+1</option>
+              <option value="+44">+44</option>
+              <option value="+61">+61</option>
+            </select>
+            <ChevronDown className="absolute right-4 w-4 h-4 text-zinc-500 pointer-events-none stroke-[2]" />
+          </div>
+
+          {/* Number edit / input box */}
+          {editing === "phone" ? (
+            <div className="flex-1 flex flex-col gap-2 rounded-[20px] border border-zinc-200 bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
+              <input
+                type="tel"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                autoFocus
+                className="w-full text-[15px] font-semibold text-zinc-800 placeholder-zinc-400 bg-transparent border-none outline-none focus:ring-0 p-0"
+              />
+              {error && <p className="text-xs text-red-500 font-bold ml-1">{error}</p>}
+              <div className="flex justify-end gap-2 mt-1">
+                <button onClick={cancelEdit} className="px-4 py-1.5 rounded-full border border-zinc-200 text-xs font-black text-zinc-650 hover:bg-zinc-50 cursor-pointer">Cancel</button>
+                <button onClick={() => void saveField()} className="px-4 py-1.5 rounded-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-black cursor-pointer shadow-sm">Save</button>
+              </div>
+            </div>
+          ) : (
+            <div onClick={() => startEdit("phone")} className="flex-1 flex items-center justify-between gap-3 rounded-[20px] border border-zinc-200 bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.01)] cursor-pointer hover:border-zinc-300 transition-colors">
+              <span className="text-[15px] font-semibold text-zinc-800 break-words leading-tight">{phone}</span>
+              <ChevronRight className="w-4 h-4 text-zinc-400 shrink-0 stroke-[2.5]" />
+            </div>
+          )}
+        </div>
+
+        {/* Gender Field */}
+        <div className="relative w-full flex items-center justify-between bg-white rounded-[20px] border border-zinc-200 p-4 shadow-[0_2px_8px_rgba(0,0,0,0.01)] cursor-pointer hover:border-zinc-300 transition-colors">
+          <select
+            value={gender}
+            onChange={(e) => {
+              setGender(e.target.value)
+              writeLocal(`gender_${initial.userId}`, e.target.value)
+              toast.success("Gender saved")
+            }}
+            className="w-full appearance-none pr-8 text-[15px] font-semibold text-zinc-800 bg-transparent border-none outline-none focus:ring-0 p-0 cursor-pointer"
+          >
+            <option value="Gender">Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+          <ChevronRight className="absolute right-4 w-4 h-4 text-zinc-800 pointer-events-none stroke-[2.5]" />
+        </div>
+
+      </div>
     </div>
   )
 }

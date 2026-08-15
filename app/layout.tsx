@@ -40,6 +40,7 @@ export const metadata: Metadata = {
 };
 
 import SessionProvider from "@/components/providers/SessionProvider";
+import { AppearanceProvider } from "@/components/providers/AppearanceProvider";
 import { auth } from "@/auth.config";
 
 export default async function RootLayout({
@@ -55,7 +56,9 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${quicksand.variable} ${nunito.variable} antialiased`}
         suppressHydrationWarning
       >
-        <SessionProvider session={session}>{children}</SessionProvider>
+        <SessionProvider session={session}>
+          <AppearanceProvider>{children}</AppearanceProvider>
+        </SessionProvider>
       </body>
     </html>
   );
