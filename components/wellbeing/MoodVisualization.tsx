@@ -154,7 +154,7 @@ export default function MoodVisualization({ moods, averageMood }: MoodVisualizat
         }}
       >
         <Image
-          src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786722289/Good-emotion_wrweoi.png"
+          src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Good-emotion_jimbfs.png"
           alt="Good emotion face"
           width={32}
           height={32}
@@ -173,7 +173,7 @@ export default function MoodVisualization({ moods, averageMood }: MoodVisualizat
         }}
       >
         <Image
-          src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786722289/Meh-emotion_zdlpsd.png"
+          src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Meh-emotion_nozhzi.png"
           alt="Meh emotion face"
           width={32}
           height={32}
@@ -192,7 +192,7 @@ export default function MoodVisualization({ moods, averageMood }: MoodVisualizat
         }}
       >
         <Image
-          src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786722289/Low-emotion_pm77jm.png"
+          src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786730629/Low-emotion_vbpanv.png"
           alt="Low emotion face"
           width={32}
           height={32}
@@ -211,7 +211,7 @@ export default function MoodVisualization({ moods, averageMood }: MoodVisualizat
         }}
       >
         <Image
-          src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786722289/Okay-emotion_xb5iql.png"
+          src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Okay-emotion_sscj34.png"
           alt="Okay emotion face"
           width={32}
           height={32}
@@ -230,7 +230,7 @@ export default function MoodVisualization({ moods, averageMood }: MoodVisualizat
         }}
       >
         <Image
-          src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786722289/Great-emotion_q3ouyr.png"
+          src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Great-emotion_rbwtzb.png"
           alt="Great emotion face"
           width={32}
           height={32}

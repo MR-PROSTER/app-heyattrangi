@@ -47,7 +47,7 @@ function renderEmojiFace(name: string, isSelected: boolean, isDimmed: boolean = 
       case "Good":
         return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730507/Good_qtm32o.png"
       case "Great":
-        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Great_qh8yts.png"
+        return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Great_hbqsmr.png"
       default:
         return "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Okay_ikdsom.png"
     }
@@ -462,7 +462,7 @@ export default function CenterColumn({
         )}
         {item.type === "emoji" && (
           <Image 
-            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Okay_xxmvbz.png" 
+            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Okay_ikdsom.png" 
             alt="Okay" 
             width={28} 
             height={28} 
@@ -471,7 +471,7 @@ export default function CenterColumn({
         )}
         {item.type === "wave" && (
           <Image 
-            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Good_cujvhx.png" 
+            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786730507/Good_qtm32o.png" 
             alt="Good" 
             width={28} 
             height={28} 
@@ -480,7 +480,7 @@ export default function CenterColumn({
         )}
         {item.type === "exercise" && (
           <Image 
-            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Great_qh8yts.png" 
+            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Great_hbqsmr.png" 
             alt="Great" 
             width={28} 
             height={28} 
@@ -489,7 +489,7 @@ export default function CenterColumn({
         )}
         {item.type === "close" && (
           <Image 
-            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786696047/Low_ntkoac.png" 
+            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786799140/Low_sujxbx.png" 
             alt="Low" 
             width={28} 
             height={28} 
