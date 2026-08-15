@@ -22,6 +22,12 @@ export default function SubscriptionSettings({ user, isTestMode = false }: Subsc
   const [currentPlan, setCurrentPlan] = useState<string>(user.plan || "FREE")
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
   const [isMonthly, setIsMonthly] = useState(true)
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "semester" | "annual">("monthly")
+
+  const changeBillingPeriod = (period: "monthly" | "semester" | "annual") => {
+    setBillingPeriod(period)
+    setIsMonthly(period === "monthly")
+  }
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -215,7 +221,13 @@ export default function SubscriptionSettings({ user, isTestMode = false }: Subsc
       if (plan === "ESSENTIAL") {
         handleSubscribe("ESSENTIAL", isMonthly ? 49 : 299)
       } else if (plan === "PREMIUM") {
-        handleSubscribe("PREMIUM", isMonthly ? 149 : 699)
+        if (billingPeriod === "monthly") {
+          handleSubscribe("PREMIUM", 149)
+        } else if (billingPeriod === "semester") {
+          handleSubscribe("PREMIUM", 805)
+        } else {
+          handleSubscribe("PREMIUM", 1430)
+        }
       } else if (plan === "ORGANIZATION") {
         window.location.href = "mailto:sales@heyattrangi.com?subject=Organization Plan Inquiry"
       } else if (plan === "FREE") {
@@ -225,264 +237,233 @@ export default function SubscriptionSettings({ user, isTestMode = false }: Subsc
   }
 
   return (
-    <div className="w-full pt-0 pb-8 lg:pt-0 lg:pb-16 select-none animate-in fade-in duration-300">
-      {/* Parent Card Container */}
-      <div className="bg-white rounded-[24px] shadow-[0_2px_20px_-5px_rgba(0,0,0,0.05)] border border-gray-100 overflow-visible w-full mt-0">
-        {/* Header & Toggle Switch inside the card */}
-        <div className="p-[clamp(18px,5vw,32px)] border-b border-gray-50 flex flex-col items-center text-center">
-          <h2 className="text-[clamp(26px,7.5vw,30px)] font-black text-gray-900 mb-2 leading-tight tracking-tight whitespace-nowrap">Compare plans</h2>
-          <p className="text-[clamp(13px,3.5vw,14px)] text-gray-500 mb-[clamp(16px,4.8vw,24px)] font-medium leading-normal">
-            Need more details before choosing?{" "}
-            <a href="/pricing" className="font-extrabold text-gray-900 hover:underline">
-              See feature breakdown &darr;
-            </a>
-          </p>
- 
-          {/* Toggle Switch */}
-          <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-full border border-zinc-200 w-full max-w-[340px]">
-            <button
-              onClick={() => setIsMonthly(true)}
-              className={`flex-1 px-[clamp(12px,3.2vw,24px)] py-2.5 rounded-full font-bold text-[clamp(10px,2.8vw,12px)] transition-all duration-300 whitespace-nowrap cursor-pointer ${
-                isMonthly ? "bg-white text-[#0c1421] shadow-sm" : "text-gray-500 hover:text-[#0c1421]"
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setIsMonthly(false)}
-              className={`flex-1 px-[clamp(12px,3.2vw,24px)] py-2.5 rounded-full font-bold text-[clamp(10px,2.8vw,12px)] transition-all duration-300 whitespace-nowrap cursor-pointer ${
-                !isMonthly ? "bg-white text-[#0c1421] shadow-sm" : "text-gray-500 hover:text-[#0c1421]"
-              }`}
-            >
-              6 Months (Save 20%)
-            </button>
-          </div>
-        </div>
- 
-        {/* Plan Columns Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-gray-100 w-full items-stretch">
+    <div className="w-full select-none animate-in fade-in duration-300 pb-1">
+      <div className="w-full max-w-5xl mx-auto flex flex-col items-center justify-center py-0 sm:py-1 px-1 sm:px-3">
+        {/* Two cards container */}
+        <div className="w-full flex flex-col md:flex-row items-stretch justify-center gap-4 sm:gap-6 mt-1">
           
-          {/* Listener Column */}
-          <div className="p-[clamp(18px,5vw,24px)] xl:p-8 flex flex-col hover:bg-gray-50/20 transition-colors">
-            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <span className="text-xl">🎧</span> Listener
-            </h3>
-            
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-xs line-through text-gray-405 font-bold">
-                {isMonthly ? "₹149" : "₹899"}
-              </span>
-              <span className="bg-emerald-50 text-emerald-600 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                SAVE 67%
-              </span>
-            </div>
- 
-            <div className="flex items-baseline mb-1.5">
-              <span className="text-[clamp(40px,11vw,48px)] font-black tracking-tight text-gray-900">
-                {isMonthly ? "₹49" : "₹299"}
-              </span>
-              <span className="text-[clamp(12px,3.2vw,14px)] text-gray-500 font-bold ml-1">
-                {isMonthly ? "/mo" : "/6mo"}
-              </span>
-            </div>
- 
-            <p className="text-xs font-black text-orange-500 mb-6">
-              {isMonthly ? "or ₹299/6 months" : "or ₹49/month"}
-            </p>
- 
-            <p className="text-xs text-gray-600 mb-8 min-h-[48px] leading-relaxed">
-              Daily check-ins, basic mood tracking, and limited voice conversations.
-            </p>
- 
-            <div className="border-t border-gray-100 my-6"></div>
- 
-            {/* Features */}
-            <div className="space-y-4 mb-8 text-xs">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Chats</span>
-                <span className="font-extrabold text-gray-900">25 / day</span>
+          {/* Card 1: FREE */}
+          <div className="hidden md:flex bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-zinc-100/60 p-4 sm:p-5 flex-col gap-4 w-full max-w-[420px] mx-auto md:mx-0">
+            {/* Nested Rounded Box */}
+            <div className="bg-[#F4F4F5] rounded-[24px] p-4 sm:p-5 flex flex-col justify-between min-h-[295px] sm:min-h-[305px] md:min-h-[310px]">
+              <div className="flex flex-col gap-2.5">
+                <h3 className="text-xs font-extrabold uppercase tracking-widest text-zinc-500 font-sans">
+                  FREE
+                </h3>
+                 {/* Spacer to align price vertically with the Premium card's price on desktop */}
+                <div className="hidden md:block h-[30px]" />
+                <div className="flex flex-col">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-[36px] sm:text-[40px] font-black tracking-tight text-zinc-950 leading-none font-sans">
+                      ₹0
+                    </span>
+                    <span className="text-xs text-zinc-500 font-bold font-sans">
+                      forever
+                    </span>
+                  </div>
+                  {/* Invisible spacer matching the height of Premium price's subtext */}
+                  <span className="text-[9px] text-transparent select-none font-bold font-sans">
+                    Billed monthly
+                  </span>
+                </div>
+                <p className="text-xs sm:text-[13px] text-zinc-600 font-medium leading-relaxed font-sans min-h-[36px] md:min-h-[48px]">
+                  A simple way to check in, reflect and take care of yourself.
+                </p>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Voice</span>
-                <span className="font-extrabold text-gray-900">30 min / day</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Memory</span>
-                <span className="font-extrabold text-gray-900">7-Day</span>
-              </div>
-            </div>
- 
-            {/* Action button */}
-            <div className="mt-auto">
-              {(() => {
-                const btn = getButtonState("ESSENTIAL")
-                return (
-                  <button
-                    onClick={() => handleButtonClick("ESSENTIAL")}
-                    disabled={btn.disabled || isUpdating !== null}
-                    className={`w-full py-3.5 px-4 text-xs font-black rounded-full transition-all border flex items-center justify-center gap-2 select-none ${btn.className}`}
-                  >
-                    {isUpdating === "ESSENTIAL" ? (
-                      <div className="w-3.5 h-3.5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      btn.text
-                    )}
-                  </button>
-                )
-              })()}
               
-              <div className="text-center mt-3">
-                <span className="text-[10px] font-black text-orange-500 tracking-wide uppercase">
-                  Exclusive Offers Inside
+              {/* Action Button */}
+              <button
+                onClick={() => handleButtonClick("FREE")}
+                disabled={currentPlan === "FREE" || isUpdating !== null}
+                className={`w-full py-2.5 px-4 text-xs sm:text-[13px] font-extrabold rounded-full transition-all border flex items-center justify-center gap-2 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20 ${
+                  currentPlan === "FREE"
+                    ? "border-zinc-200 bg-zinc-50 text-zinc-400 cursor-default"
+                    : "border-zinc-950 bg-white hover:bg-zinc-50 text-zinc-950 cursor-pointer"
+                }`}
+              >
+                {isUpdating === "FREE" ? (
+                  <div className="w-4 h-4 border-2 border-zinc-450 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  currentPlan === "FREE" ? "Current Plan" : "Continue with Free"
+                )}
+              </button>
+            </div>
+
+            {/* Features section */}
+            <div className="flex-1 flex flex-col gap-2.5 px-1">
+              <h4 className="text-xs sm:text-sm font-extrabold text-zinc-900 font-sans">
+                Includes
+              </h4>
+              <ul className="space-y-2 text-xs sm:text-[13px] font-bold text-zinc-700">
+                <li className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-zinc-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>30 Ai Messages / Day</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-zinc-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>10 voice messages/day</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-zinc-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>All wellness activities</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-zinc-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>7 days of history</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-zinc-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Unlimited mood tracking</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Card 2: PREMIUM */}
+          <div className="bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-zinc-100/60 p-4 sm:p-5 flex flex-col gap-4 w-full max-w-[420px] mx-auto md:mx-0">
+            {/* Nested Rounded Gradient Box */}
+            <div 
+              className="rounded-[24px] p-4 sm:p-5 flex flex-col justify-between min-h-[295px] sm:min-h-[305px] md:min-h-[310px] relative overflow-hidden bg-cover bg-center"
+              style={{
+                backgroundImage: "url('https://res.cloudinary.com/dxoiluua8/image/upload/v1786789037/Banner_bg_rrixld.png')",
+              }}
+            >
+              <div className="flex flex-col gap-2.5">
+                <h3 className="text-xs font-extrabold uppercase tracking-widest text-zinc-800 flex items-center gap-1 font-sans">
+                  ✦ PREMIUM
+                </h3>
+                
+                {/* Segmented control billing toggle */}
+                <div className="flex items-center bg-zinc-950/5 p-1 rounded-full w-full max-w-[340px] select-none">
+                  <button
+                    type="button"
+                    onClick={() => changeBillingPeriod("monthly")}
+                    className={`flex-1 py-1 rounded-full font-extrabold text-[10px] sm:text-[11px] transition-all duration-300 cursor-pointer ${
+                      billingPeriod === "monthly" ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-600 hover:text-zinc-950"
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => changeBillingPeriod("semester")}
+                    className={`flex-1 py-1 rounded-full font-extrabold text-[10px] sm:text-[11px] transition-all duration-300 cursor-pointer flex items-center justify-center ${
+                      billingPeriod === "semester" ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-600 hover:text-zinc-950"
+                    }`}
+                  >
+                    Semester
+                    <span className="bg-emerald-100 text-emerald-700 text-[8px] px-1 py-0.5 rounded-full font-black ml-1 scale-90 sm:scale-100">
+                      10%
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => changeBillingPeriod("annual")}
+                    className={`flex-1 py-1 rounded-full font-extrabold text-[10px] sm:text-[11px] transition-all duration-300 cursor-pointer flex items-center justify-center ${
+                      billingPeriod === "annual" ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-600 hover:text-zinc-950"
+                    }`}
+                  >
+                    Annual
+                    <span className="bg-emerald-100 text-emerald-700 text-[8px] px-1 py-0.5 rounded-full font-black ml-1 scale-90 sm:scale-100">
+                      20%
+                    </span>
+                  </button>
+                </div>
+
+                {/* Price displays */}
+                <div className="flex flex-col">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-[36px] sm:text-[40px] font-black tracking-tight text-zinc-950 leading-none font-sans">
+                      {billingPeriod === "monthly" ? "₹149" : billingPeriod === "semester" ? "₹134" : "₹119"}
+                    </span>
+                    <span className="text-xs text-zinc-500 font-bold font-sans">
+                      / month
+                    </span>
+                  </div>
+                  <span className="text-[9px] text-zinc-500 font-bold font-sans">
+                    {billingPeriod === "semester" ? "Billed ₹805 every 6 months" : billingPeriod === "annual" ? "Billed ₹1430 every year" : "Billed monthly"}
+                  </span>
+                </div>
+
+                <p className="text-xs sm:text-[12px] text-zinc-700 font-medium leading-relaxed font-sans min-h-[36px] md:min-h-[48px]">
+                  More space to understand yourself - with longer continuity and personalized support.
+                </p>
+              </div>
+
+              {/* Action Button */}
+              <button
+                onClick={() => handleButtonClick("PREMIUM")}
+                disabled={currentPlan === "PREMIUM" || isUpdating !== null}
+                className={`w-full py-2.5 px-4 text-xs sm:text-[13px] font-extrabold rounded-full transition-all flex items-center justify-center gap-2 select-none shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20 ${
+                  currentPlan === "PREMIUM"
+                    ? "bg-zinc-100 text-zinc-400 border border-zinc-250 cursor-default"
+                    : "bg-zinc-950 hover:bg-zinc-900 text-white cursor-pointer"
+                }`}
+              >
+                {isUpdating === "PREMIUM" ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  currentPlan === "PREMIUM" ? "Current Plan" : "Get Premium"
+                )}
+              </button>
+            </div>
+
+            {/* Features section */}
+            <div className="flex-1 flex flex-col gap-2.5 px-1">
+              <h4 className="text-xs sm:text-sm font-extrabold text-zinc-900 font-sans">
+                Includes
+              </h4>
+              <ul className="space-y-2 text-xs sm:text-[13px] font-bold text-zinc-700">
+                <li className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-blue-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>150 AI messages/day</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-blue-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Full listening library</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-blue-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Unlimited assessments</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-blue-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>1 year of history</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-blue-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Personalized reminders</span>
+                </li>
+              </ul>
+
+              <div className="text-center mt-2.5">
+                <span className="text-[11px] font-bold text-zinc-400 font-sans">
+                  Cancel anytime.
                 </span>
               </div>
             </div>
           </div>
- 
-          {/* Companion Column (Recommended) */}
-          <div className="p-[clamp(18px,5vw,24px)] xl:p-8 flex flex-col hover:bg-gray-50/20 transition-colors relative border-2 border-orange-500 rounded-[24px] shadow-sm bg-white mt-4 min-[360px]:mt-6 lg:mt-0 lg:-mt-[6px] lg:-mb-[6px] lg:-my-8 lg:py-10 z-10">
-            <div className="absolute top-[-14px] left-1/2 -translate-x-1/2 bg-orange-50 border border-orange-200 text-orange-600 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm z-20 whitespace-nowrap flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
-              RECOMMENDED
-            </div>
- 
-            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <span className="text-xl">🤝</span> Companion
-            </h3>
- 
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-xs line-through text-gray-400 font-bold">
-                {isMonthly ? "₹599" : "₹2799"}
-              </span>
-              <span className="bg-emerald-50 text-emerald-600 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                SAVE 75%
-              </span>
-            </div>
- 
-            <div className="flex items-baseline mb-1.5">
-              <span className="text-[clamp(40px,11vw,48px)] font-black tracking-tight text-gray-900">
-                {isMonthly ? "₹149" : "₹699"}
-              </span>
-              <span className="text-[clamp(12px,3.2vw,14px)] text-gray-500 font-bold ml-1">
-                {isMonthly ? "/mo" : "/6mo"}
-              </span>
-            </div>
- 
-            <p className="text-xs text-gray-500 font-medium mb-6">
-              {isMonthly ? "or ₹699/6 months" : "or ₹149/month"}
-            </p>
- 
-            <p className="text-xs text-gray-600 mb-8 min-h-[48px] leading-relaxed">
-              Unlimited AI support, real-time insights, and long-term memory.
-            </p>
- 
-            <div className="border-t border-gray-100 my-6"></div>
- 
-            {/* Features */}
-            <div className="space-y-4 mb-8 text-xs">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Chats</span>
-                <span className="font-extrabold text-gray-900">Unlimited</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Voice</span>
-                <span className="font-extrabold text-gray-900">Unlimited</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Memory</span>
-                <span className="font-extrabold text-gray-900">Long-Term</span>
-              </div>
-            </div>
- 
-            {/* Action button */}
-            <div className="mt-auto">
-              {(() => {
-                const btn = getButtonState("PREMIUM")
-                return (
-                  <button
-                    onClick={() => handleButtonClick("PREMIUM")}
-                    disabled={btn.disabled || isUpdating !== null}
-                    className={`w-full py-3.5 px-4 text-xs font-black rounded-full transition-all border flex items-center justify-center gap-2 select-none ${btn.className}`}
-                  >
-                    {isUpdating === "PREMIUM" ? (
-                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      btn.text
-                    )}
-                  </button>
-                )
-              })()}
- 
-              <div className="text-center mt-3">
-                <a href="/pricing" className="text-[10px] font-black text-gray-400 hover:text-gray-600">
-                  View Premium pricing &rsaquo;
-                </a>
-              </div>
-            </div>
-          </div>
- 
-          {/* Organization Column */}
-          <div className="p-[clamp(18px,5vw,24px)] xl:p-8 flex flex-col hover:bg-gray-50/20 transition-colors mt-4 min-[360px]:mt-6 lg:mt-0">
-            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <span className="text-xl">🏢</span> Organization
-            </h3>
- 
-            <div className="flex items-baseline mb-1.5 mt-4">
-              <span className="text-[clamp(40px,11vw,48px)] font-black tracking-tight text-gray-900 leading-none">Custom</span>
-            </div>
- 
-            <p className="text-xs text-gray-500 font-bold mb-6 mt-2">
-              Billed by institution
-            </p>
- 
-            <p className="text-xs text-gray-600 mb-8 min-h-[48px] leading-relaxed">
-              College or corporate plan with organization-managed billing.
-            </p>
- 
-            <div className="border-t border-gray-100 my-6"></div>
- 
-            {/* Features */}
-            <div className="space-y-4 mb-8 text-xs">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Users</span>
-                <span className="font-extrabold text-gray-900">Managed</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Admin</span>
-                <span className="font-extrabold text-gray-900">Portal</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Billing</span>
-                <span className="font-extrabold text-gray-900">Centralized</span>
-              </div>
-            </div>
- 
-            {/* Action button */}
-            <div className="mt-auto">
-              {(() => {
-                const btn = getButtonState("ORGANIZATION")
-                return (
-                  <button
-                    onClick={() => handleButtonClick("ORGANIZATION")}
-                    disabled={btn.disabled || isUpdating !== null}
-                    className={`w-full py-3.5 px-4 text-xs font-black rounded-full transition-all border flex items-center justify-center gap-2 select-none ${btn.className}`}
-                  >
-                    {isUpdating === "ORGANIZATION" ? (
-                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      btn.text
-                    )}
-                  </button>
-                )
-              })()}
- 
-              <div className="text-center mt-3">
-                <a href="/pricing" className="text-[10px] font-black text-gray-450 hover:text-gray-650">
-                  View Org pricing &rsaquo;
-                </a>
-              </div>
-            </div>
-          </div>
+
         </div>
       </div>
     </div>

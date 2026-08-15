@@ -25,7 +25,13 @@ async function Content() {
   let nextPaymentDate: string | undefined
   if (latestTxn) {
     const date = new Date(latestTxn.createdAt)
-    date.setMonth(date.getMonth() + 1)
+    if (latestTxn.amount === 805) {
+      date.setMonth(date.getMonth() + 6)
+    } else if (latestTxn.amount === 1430) {
+      date.setMonth(date.getMonth() + 12)
+    } else {
+      date.setMonth(date.getMonth() + 1)
+    }
     nextPaymentDate = date.toLocaleDateString("en-GB", {
       day: "numeric",
       month: "long",
@@ -33,7 +39,7 @@ async function Content() {
     })
   }
 
-  return <SubscriptionBillingDetails user={user} nextPaymentDate={nextPaymentDate} />
+  return <SubscriptionBillingDetails user={user} nextPaymentDate={nextPaymentDate} latestTxn={latestTxn} />
 }
 
 export default function SubscriptionSettingsPage() {
