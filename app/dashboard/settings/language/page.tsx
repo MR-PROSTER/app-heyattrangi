@@ -19,7 +19,7 @@ async function Content() {
 
 export default function LanguageSettingsPage() {
   return (
-    <div className="min-h-screen w-full bg-[#FAF5F0] flex flex-col pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] select-none animate-in fade-in duration-300">
+    <div className="language-page min-h-screen w-full bg-[#FAF5F0] flex flex-col pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] select-none animate-in fade-in duration-300">
       <LanguageHeader />
       <main className="flex-1 w-full max-w-[430px] mx-auto px-6 py-2">
         <Suspense fallback={<LoadingSkeleton rows={5} />}>

@@ -2,6 +2,42 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth.config"
 import { prisma } from "@/lib/prisma"
 
+export async function GET(req: NextRequest) {
+  try {
+    const session = await auth()
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        name: true,
+        email: true,
+        patient: {
+          select: {
+            rollNumber: true,
+          },
+        },
+      },
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    }
+
+    return NextResponse.json({
+      name: user.name || "",
+      email: user.email || "",
+      rollNumber: user.patient?.rollNumber || "",
+    })
+  } catch (error: unknown) {
+    console.error("GET patient profile error:", error)
+    return NextResponse.json({ error: "Failed to retrieve profile" }, { status: 500 })
+  }
+}
+
 export async function PATCH(req: NextRequest) {
   try {
     const session = await auth()

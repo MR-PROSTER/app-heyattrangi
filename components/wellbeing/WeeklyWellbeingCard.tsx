@@ -47,9 +47,44 @@ export default function WeeklyWellbeingCard({
           <Link href="/patient/journal?tab=history">
             <button
               aria-label="View wellbeing history"
-              className="w-9 h-9 rounded-full bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#4B5563] flex items-center justify-center transition-all duration-200 active:scale-95 cursor-pointer"
+              className="relative w-9 h-9 bg-transparent border border-black rounded-full text-slate-800 hover:text-black hover:bg-slate-50/50 transition-all duration-200 cursor-pointer active:scale-95 flex items-center justify-center"
             >
-              <FileText className="w-4 h-4" />
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{
+                  position: "absolute",
+                  width: "22px",
+                  height: "22px",
+                  left: "calc(50% - 22px / 2)",
+                  top: "calc(50% - 22px / 2)"
+                }}
+              >
+                <path
+                  d="M9 11v6m0 0l-2-2m2 2l2-2"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M22 10v5c0 5-2 7-7 7H9c-5 0-7-2-7-7V9c0-5 2-7 7-7h5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M22 10h-4c-3 0-4-1-4-4V2l8 8z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
           </Link>
         </div>

@@ -32,6 +32,26 @@ export default async function PatientLayout({
       }
     }
 
+    // Bypass PatientShell menu drawer & footer badge for standalone refer-and-earn screens
+    const bypassShell = 
+      pathname === "/patient/refer-and-earn/reward" ||
+      pathname === "/patient/refer-and-earn/claim" ||
+      pathname === "/patient/refer-and-earn/claim/success"
+
+    if (bypassShell) {
+      if (!session?.user || session.user.role !== "PATIENT") {
+        redirect("/auth/unauthorized")
+      }
+      return (
+        <div className="flex h-screen w-full bg-[#FAF8F5] overflow-y-auto relative">
+          <LoadingBar />
+          <div className="flex-1 min-w-0 min-h-screen flex flex-col relative">
+            {children}
+          </div>
+        </div>
+      )
+    }
+
     // All other patient routes require an authenticated patient.
     if (!session?.user || session.user.role !== "PATIENT") {
       redirect("/auth/unauthorized")

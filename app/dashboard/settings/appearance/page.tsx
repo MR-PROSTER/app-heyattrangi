@@ -13,10 +13,12 @@ async function Content() {
 
 export default function AppearancePage() {
   return (
-    <SettingsLayout title="Appearance" backHref="/dashboard/settings" maxWidthClass="max-w-[430px]">
-      <Suspense fallback={<LoadingSkeleton rows={2} />}>
-        <Content />
-      </Suspense>
-    </SettingsLayout>
+    <div className="appearance-page">
+      <SettingsLayout title="Appearance" backHref="/dashboard/settings" maxWidthClass="max-w-[430px]">
+        <Suspense fallback={<LoadingSkeleton rows={2} />}>
+          <Content />
+        </Suspense>
+      </SettingsLayout>
+    </div>
   )
 }

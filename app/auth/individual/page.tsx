@@ -20,13 +20,24 @@ function AttrangiLogo() {
   )
 }
 
-export default function AuthWelcomePage() {
+export default function RedesignedIndividualAuthPage() {
   return (
     <div className="min-h-screen w-full bg-white flex flex-col justify-between font-sans select-none relative overflow-x-hidden">
       
       {/* Centered responsive viewport container */}
       <div className="w-full max-w-[450px] mx-auto flex-grow flex flex-col justify-between min-h-screen bg-white relative">
         
+        {/* Floating Back Navigation Button */}
+        <Link
+          href="/auth"
+          aria-label="Back"
+          className="absolute left-5 top-5 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-slate-200/80 flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm text-slate-700 cursor-pointer z-20"
+        >
+          <svg className="w-5 h-5 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </Link>
+
         {/* Top Hero Image Section - touches the top and sides of the screen with rounded top corners */}
         <div className="relative w-full h-[360px] sm:h-[395px] shrink-0 overflow-hidden rounded-t-[32px]">
           <Image

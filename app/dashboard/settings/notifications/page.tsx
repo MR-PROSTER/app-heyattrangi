@@ -14,10 +14,12 @@ async function Content() {
 export default function NotificationsSettingsPage() {
   // Force rebuild trigger to ensure Edit Profile title compilation
   return (
-    <SettingsLayout title="Notifications" backHref="/dashboard/settings">
-      <Suspense fallback={<LoadingSkeleton rows={3} />}>
-        <Content />
-      </Suspense>
-    </SettingsLayout>
+    <div className="notifications-page">
+      <SettingsLayout title="Notifications" backHref="/dashboard/settings">
+        <Suspense fallback={<LoadingSkeleton rows={3} />}>
+          <Content />
+        </Suspense>
+      </SettingsLayout>
+    </div>
   )
 }

@@ -6,7 +6,7 @@ import Image from "next/image"
 
 export default function MoodPatternsCard() {
   return (
-    <div className="w-full max-w-2xl mx-auto bg-white rounded-[32px] sm:rounded-[36px] p-5 sm:p-9 border border-slate-200/50 shadow-[0_10px_30px_rgba(0,0,0,0.02)] flex flex-row justify-between items-center gap-4 sm:gap-8 relative select-none overflow-hidden h-[180px] sm:h-[250px]">
+    <div className="w-full max-w-2xl mx-auto bg-white rounded-[32px] sm:rounded-[36px] p-5 sm:p-9 border-2 border-black flex flex-row justify-between items-center gap-4 sm:gap-8 relative select-none overflow-hidden h-[180px] sm:h-[250px]">
       
       {/* Left Content Area (55-60% width) */}
       <div className="flex flex-col gap-3 sm:gap-5 items-start flex-1 min-w-0 z-10 py-1 sm:py-2">

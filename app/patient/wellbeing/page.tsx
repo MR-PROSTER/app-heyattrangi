@@ -6,6 +6,7 @@ import WeeklyWellbeingCard from "@/components/wellbeing/WeeklyWellbeingCard"
 import MonthlyWellbeing from "@/components/wellbeing/MonthlyWellbeing"
 import SeniorSupportCard from "@/components/wellbeing/SeniorSupportCard"
 import MoodPatternsCard from "@/components/wellbeing/MoodPatternsCard"
+import RecentActivity from "@/components/patient/dashboard/RecentActivity"
 
 const MOCK_WEEKS_DATA: Record<
   number,
@@ -210,6 +211,9 @@ export default function WellbeingPage() {
 
           {/* Patterns Section */}
           <MoodPatternsCard />
+
+          {/* Recent Activity Section */}
+          <RecentActivity />
         </main>
         
       </div>

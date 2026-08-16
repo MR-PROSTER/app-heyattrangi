@@ -44,10 +44,12 @@ async function Content() {
 
 export default function SubscriptionSettingsPage() {
   return (
-    <SettingsLayout title="Subscription & billing" backHref="/dashboard/settings" maxWidthClass="max-w-[430px]">
-      <Suspense fallback={<LoadingSkeleton rows={5} />}>
-        <Content />
-      </Suspense>
-    </SettingsLayout>
+    <div className="subscription-billing-page">
+      <SettingsLayout title="Subscription & billing" backHref="/dashboard/settings" maxWidthClass="max-w-[430px]">
+        <Suspense fallback={<LoadingSkeleton rows={5} />}>
+          <Content />
+        </Suspense>
+      </SettingsLayout>
+    </div>
   )
 }

@@ -16,6 +16,7 @@ interface CalendarDay {
 export default function MoodTrendsPage() {
   const [selectedMonth, setSelectedMonth] = useState("December 2025")
   const [activeMood, setActiveMood] = useState<string>("Good")
+  const [selectedDay, setSelectedDay] = useState<number>(3) // Default to Dec 3rd
 
   const MOOD_SUMMARY_CONFIGS: Record<string, {
     title: string
@@ -61,14 +62,68 @@ export default function MoodTrendsPage() {
     },
   }
 
+  const JOURNAL_ENTRIES_BY_DAY: Record<number, { text: string; mood: string; bg: string; border: string }[]> = {
+    2: [
+      { text: "Took a slow stroll around the park. The crisp winter breeze felt incredibly refreshing and cleared my mind for the day.", mood: "Okay", bg: "bg-[#FFD5B7]/25", border: "border-[#FFD5B7]/40" }
+    ],
+    3: [
+      { text: "Took a slow stroll around the park. The crisp winter breeze felt incredibly refreshing and cleared my mind for the day.", mood: "Okay", bg: "bg-[#FFD5B7]/25", border: "border-[#FFD5B7]/40" },
+      { text: "Brewed a warm cup of jasmine green tea. Practiced breathing deeply and just enjoyed the steam rising in silence.", mood: "Meh", bg: "bg-[#C2DDF8]/25", border: "border-[#C2DDF8]/40" },
+      { text: "Made progress on my current chapter. Reflection on today's thoughts brought a sense of calm and clarity.", mood: "Low", bg: "bg-[#E9C9FF]/25", border: "border-[#E9C9FF]/40" }
+    ],
+    6: [
+      { text: "Brewed a warm cup of jasmine green tea. Practiced breathing deeply and just enjoyed the steam rising in silence.", mood: "Meh", bg: "bg-[#C2DDF8]/25", border: "border-[#C2DDF8]/40" }
+    ],
+    7: [
+      { text: "Woke up early and watched the sunrise. Felt an immense sense of gratitude and peace starting the week.", mood: "Great", bg: "bg-[#FCE5AF]/25", border: "border-[#FCE5AF]/40" }
+    ],
+    8: [
+      { text: "Feeling slightly overwhelmed by work today. Tried writing down my thoughts to ease the anxiety.", mood: "Low", bg: "bg-[#E9C9FF]/25", border: "border-[#E9C9FF]/40" }
+    ],
+    10: [
+      { text: "Had an amazing conversation with a close friend. Connected deeply and shared some good laughs.", mood: "Great", bg: "bg-[#FCE5AF]/25", border: "border-[#FCE5AF]/40" }
+    ],
+    12: [
+      { text: "Completed all my tasks for the week ahead. Looking forward to a restful weekend.", mood: "Great", bg: "bg-[#FCE5AF]/25", border: "border-[#FCE5AF]/40" }
+    ],
+    13: [
+      { text: "Spent the afternoon reading by the window. A quiet, peaceful day of self-reflection.", mood: "Great", bg: "bg-[#FCE5AF]/25", border: "border-[#FCE5AF]/40" }
+    ],
+    14: [
+      { text: "Attended a light yoga session. Stretched out the physical tension from the past week.", mood: "Okay", bg: "bg-[#FFD5B7]/25", border: "border-[#FFD5B7]/40" }
+    ],
+    15: [
+      { text: "Struggling to stay focused today. Decided to step away and take a warm bath to reset.", mood: "Low", bg: "bg-[#E9C9FF]/25", border: "border-[#E9C9FF]/40" }
+    ],
+    17: [
+      { text: "Went for a run in the evening. Hard to get started but felt much better afterwards.", mood: "Okay", bg: "bg-[#FFD5B7]/25", border: "border-[#FFD5B7]/40" }
+    ],
+    19: [
+      { text: "Felt a wave of loneliness tonight. Listening to soothing music and journaling it out.", mood: "Low", bg: "bg-[#E9C9FF]/25", border: "border-[#E9C9FF]/40" }
+    ],
+    20: [
+      { text: "Tired and low energy. Resting in bed and keeping my environment calm.", mood: "Low", bg: "bg-[#E9C9FF]/25", border: "border-[#E9C9FF]/40" }
+    ],
+    21: [
+      { text: "Sunny day! Walked to a new cafe and enjoyed a delicious slice of lemon cake.", mood: "Great", bg: "bg-[#FCE5AF]/25", border: "border-[#FCE5AF]/40" }
+    ],
+    22: [
+      { text: "Started learning a new skill. Excitement and focus are high today.", mood: "Great", bg: "bg-[#FCE5AF]/25", border: "border-[#FCE5AF]/40" }
+    ],
+    24: [
+      { text: "Exchanged festive cards with neighbors. Enjoying the warm community feeling.", mood: "Great", bg: "bg-[#FCE5AF]/25", border: "border-[#FCE5AF]/40" }
+    ],
+    26: [
+      { text: "Felt very relaxed all day. Slept in, cooked a comforting meal, and had no stress.", mood: "Great", bg: "bg-[#FCE5AF]/25", border: "border-[#FCE5AF]/40" }
+    ],
+    30: [
+      { text: "Reflecting on the year. Happy with the progress I have made on my personal journey.", mood: "Great", bg: "bg-[#FCE5AF]/25", border: "border-[#FCE5AF]/40" }
+    ]
+  }
+
   const currentSummary = MOOD_SUMMARY_CONFIGS[activeMood] || MOOD_SUMMARY_CONFIGS["Good"]
 
   // Grid for December 2025 matching Image 2 exactly:
-  // Week 1: 30(prev), 1, 2(Okay), 3(Good), 4, 5, 6(Meh)
-  // Week 2: 7(Great), 8(Low), 9, 10(Great), 11, 12(Great), 13(Great)
-  // Week 3: 14(Okay), 15(Low), 16, 17(Okay), 18, 19(Low), 20(Low)
-  // Week 4: 21(Great), 22(Great), 23, 24(Great), 25, 26(Great), 27
-  // Week 5: 28, 29, 30(Great), 31, 1(next), 2(next), 3(next)
   const calendarDays: CalendarDay[] = [
     // Week 1
     { date: 30, isCurrentMonth: false },
@@ -115,6 +170,13 @@ export default function MoodTrendsPage() {
     { date: 2, isCurrentMonth: false },
     { date: 3, isCurrentMonth: false },
   ]
+
+  const handleDayClick = (day: CalendarDay) => {
+    if (!day.isCurrentMonth) return
+    setSelectedDay(day.date)
+  }
+
+  const currentJournals = JOURNAL_ENTRIES_BY_DAY[selectedDay] || []
 
   return (
     <div className="flex-1 w-full h-full overflow-y-auto bg-[#F9F5F0] flex flex-col font-sans select-none pb-20">
@@ -174,35 +236,46 @@ export default function MoodTrendsPage() {
               
               {/* Date Cells */}
               <div className="grid grid-cols-7 gap-y-3 gap-x-2 text-center items-center">
-                {calendarDays.map((day, idx) => (
-                  <div
-                    key={idx}
-                    className="aspect-square flex items-center justify-center relative w-full h-10 sm:h-12"
-                  >
-                    {day.moodImage ? (
-                      <div
-                        onClick={() => day.moodLabel && setActiveMood(day.moodLabel)}
-                        className="w-8 h-8 sm:w-10 sm:h-10 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer drop-shadow-sm"
-                      >
-                        <Image
-                          src={day.moodImage}
-                          alt={day.moodLabel || "mood"}
-                          width={40}
-                          height={40}
-                          className="object-contain w-full h-full"
-                        />
-                      </div>
-                    ) : (
-                      <span
-                        className={`text-sm sm:text-base font-semibold font-sans
-                          ${day.isCurrentMonth ? "text-slate-700" : "text-slate-300"}
-                        `}
-                      >
-                        {day.date}
-                      </span>
-                    )}
-                  </div>
-                ))}
+                {calendarDays.map((day, idx) => {
+                  const isSelected = selectedDay === day.date && day.isCurrentMonth
+                  return (
+                    <div
+                      key={idx}
+                      className="aspect-square flex items-center justify-center relative w-full h-10 sm:h-12"
+                    >
+                      {day.moodImage ? (
+                        <div
+                          onClick={() => handleDayClick(day)}
+                          className={`w-8 h-8 sm:w-10 sm:h-10 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer drop-shadow-sm rounded-full flex items-center justify-center ${
+                            isSelected ? "ring-2 ring-indigo-500 ring-offset-2" : ""
+                          }`}
+                        >
+                          <Image
+                            src={day.moodImage}
+                            alt={day.moodLabel || "mood"}
+                            width={40}
+                            height={40}
+                            className="object-contain w-full h-full"
+                          />
+                        </div>
+                      ) : (
+                        <button
+                          disabled={!day.isCurrentMonth}
+                          onClick={() => handleDayClick(day)}
+                          className={`text-sm sm:text-base font-semibold font-sans w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full transition-all active:scale-90 ${
+                            !day.isCurrentMonth
+                              ? "text-slate-300 cursor-default"
+                              : isSelected
+                              ? "bg-slate-800 text-white font-extrabold shadow-sm"
+                              : "text-slate-700 hover:bg-slate-50 cursor-pointer"
+                          }`}
+                        >
+                          {day.date}
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
 
@@ -250,24 +323,24 @@ export default function MoodTrendsPage() {
         {/* Journal Section */}
         <div className="w-full max-w-2xl mx-auto flex flex-col items-start gap-4">
           <h3 className="text-lg font-bold text-slate-800 px-1 font-sans">
-            Journal, 03 Dec
+            Journal, {String(selectedDay).padStart(2, "0")} Dec
           </h3>
           
           <div className="flex flex-col gap-3.5 w-full">
-            {/* Okay entry */}
-            <div className="bg-[#FFD5B7]/25 border border-[#FFD5B7]/40 rounded-[24px] p-5 font-semibold text-slate-700 text-sm sm:text-base leading-relaxed text-left shadow-[0_2px_10px_rgba(0,0,0,0.01)]">
-              Took a slow stroll around the park. The crisp winter breeze felt incredibly refreshing and cleared my mind for the day.
-            </div>
-            
-            {/* Meh entry */}
-            <div className="bg-[#C2DDF8]/25 border border-[#C2DDF8]/40 rounded-[24px] p-5 font-semibold text-slate-700 text-sm sm:text-base leading-relaxed text-left shadow-[0_2px_10px_rgba(0,0,0,0.01)]">
-              Brewed a warm cup of jasmine green tea. Practiced breathing deeply and just enjoyed the steam rising in silence.
-            </div>
-
-            {/* Low entry */}
-            <div className="bg-[#E9C9FF]/25 border border-[#E9C9FF]/40 rounded-[24px] p-5 font-semibold text-slate-700 text-sm sm:text-base leading-relaxed text-left shadow-[0_2px_10px_rgba(0,0,0,0.01)]">
-              Made progress on my current chapter. Reflection on today's thoughts brought a sense of calm and clarity.
-            </div>
+            {currentJournals.length === 0 ? (
+              <div className="bg-white border border-slate-100 rounded-[24px] p-8 text-center text-slate-400 font-semibold text-sm sm:text-base shadow-[0_2px_10px_rgba(0,0,0,0.005)] w-full">
+                No journal entry recorded for this day.
+              </div>
+            ) : (
+              currentJournals.map((item, idx) => (
+                <div
+                  key={idx}
+                  className={`${item.bg} border ${item.border} rounded-[24px] p-5 font-semibold text-slate-700 text-sm sm:text-base leading-relaxed text-left shadow-[0_2px_10px_rgba(0,0,0,0.01)]`}
+                >
+                  {item.text}
+                </div>
+              ))
+            )}
           </div>
         </div>
 

@@ -22,6 +22,7 @@ type OnboardingData = {
     name?: string
     preferredLanguage?: string
     heardAboutUs?: string
+    ageRange?: "16-17" | "18-20" | "21-24" | "25+"
 }
 
 export default function PatientOnboarding() {
@@ -210,7 +211,7 @@ export default function PatientOnboarding() {
     const userName = data.name?.split(" ")[0] || session?.user?.name?.split(" ")[0] || "Sam"
 
     const isContinueDisabled =
-        (step === 0 && (!data.name?.trim() || !data.dob)) ||
+        (step === 0 && (!data.name?.trim() || !data.ageRange)) ||
         (step === 1 && (!data.emergencyContact || !data.emergencyPhone || data.emergencyPhone.length !== 10 || !data.consentAgreed))
 
     return (
@@ -337,7 +338,7 @@ export default function PatientOnboarding() {
                                     disabled={isContinueDisabled}
                                     className={`${step > 0 && step !== 2 ? "flex-1" : "w-full"} flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-full py-3.5 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-[16px] lg:font-bold lg:text-sm lg:uppercase lg:tracking-wider cursor-pointer`}
                                 >
-                                    {step === 2 ? "Subscribe & Pay" : "Continue"}
+                                    {step === 2 ? "Subscribe & Pay" : (step === 0 || step === 1) ? "Continue →" : "Continue"}
                                 </button>
                             ) : (
                                 <button
@@ -949,37 +950,40 @@ function ConsentScreen({
 }) {
     return (
         <div className="w-full max-w-xl text-left space-y-6">
-            <h2 className="text-[32px] font-bold text-gray-900 tracking-tight leading-[1.2] mb-2 text-left">
-                Consent &amp; Emergency Contact
+            <h2 className="text-[32px] font-bold text-gray-900 tracking-tight leading-[1.2] mb-2 text-left font-sans">
+                A little safety setup
             </h2>
-            <p className="text-gray-500 text-sm font-normal leading-relaxed text-left mb-6">
-                Your safety is our top priority. Please provide your emergency contact details and review our documents.
+            <p className="text-gray-500 text-sm font-normal leading-relaxed text-left mb-6 font-sans">
+                Your wellbeing matters to us. Here's where you can choose how we'd reach someone you trust if needed.
             </p>
 
             {/* Emergency Contact Fields */}
             <div className="bg-gray-50/50 p-5 rounded-[16px] border border-gray-100 space-y-4">
-                <h3 className="font-bold text-gray-800 text-[15px] uppercase tracking-wider">
-                    Emergency Contact Details
+                <h3 className="font-bold text-gray-800 text-[15px] uppercase tracking-wider font-sans">
+                    Emergency contact
                 </h3>
+                <p className="text-gray-500 text-[13px] font-semibold -mt-2 mb-2 font-sans">
+                    Someone we can reach if there's an emergency
+                </p>
                 <div className="grid grid-cols-1 gap-4">
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                            Contact Name &amp; Relationship
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 font-sans">
+                            Name &amp; relationship
                         </label>
                         <input
                             type="text"
                             value={data.emergencyContact}
                             onChange={(e) => onChange({ emergencyContact: e.target.value })}
-                            className="w-full px-4 py-3.5 rounded-[8px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-gray-800 placeholder-gray-400"
-                            placeholder="e.g. Name (Guardian)"
+                            className="w-full px-4 py-3.5 rounded-[8px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-gray-800 placeholder-gray-400 font-sans"
+                            placeholder="e.g. Mom, Brother, Friend"
                             required
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                            Phone Number
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 font-sans">
+                            Phone number
                         </label>
-                        <div className="flex rounded-[8px] border border-gray-300 focus-within:ring-1 focus-within:ring-[#e26843] focus-within:border-[#e26843] overflow-hidden transition-all bg-white">
+                        <div className="flex rounded-[8px] border border-gray-300 focus-within:ring-1 focus-within:ring-[#e26843] focus-within:border-[#e26843] overflow-hidden transition-all bg-white font-sans">
                             <span className="flex items-center justify-center bg-gray-50 px-4 text-gray-500 text-[15px] font-semibold border-r border-gray-200 select-none">
                                 +91
                             </span>
@@ -989,7 +993,7 @@ function ConsentScreen({
                                 value={data.emergencyPhone}
                                 onChange={(e) => onChange({ emergencyPhone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
                                 className="flex-1 px-4 py-3.5 outline-none text-[15px] text-gray-800 placeholder-gray-400 bg-transparent"
-                                placeholder="e.g. XXXXXXXXXX"
+                                placeholder="XXXXX XXXXX"
                                 required
                             />
                         </div>
@@ -999,11 +1003,14 @@ function ConsentScreen({
 
             {/* Consent Checkbox */}
             <div className="bg-gray-50/50 p-5 rounded-[16px] border border-gray-100 space-y-4">
-                <h3 className="font-bold text-gray-800 text-[15px] uppercase tracking-wider">
-                    Consent &amp; Agreements
+                <h3 className="font-bold text-gray-800 text-[15px] uppercase tracking-wider font-sans">
+                    Consent
                 </h3>
-                <div className="text-sm text-gray-600 space-y-2">
-                    <p className="font-semibold text-[13px] text-gray-800">Documents Included:</p>
+                <p className="text-gray-500 text-[13px] font-semibold -mt-2 mb-2 font-sans">
+                    Before you continue
+                </p>
+                <div className="text-sm text-gray-600 space-y-2 font-sans">
+                    <p className="font-semibold text-[13px] text-gray-800">Please review:</p>
                     <ul className="grid grid-cols-2 gap-x-4 gap-y-1 list-disc pl-5 text-[12px] text-gray-500 font-semibold">
                         <li>
                             <button
@@ -1053,7 +1060,7 @@ function ConsentScreen({
                     </ul>
                 </div>
 
-                <label className="flex items-start gap-3 mt-4 cursor-pointer select-none">
+                <label className="flex items-start gap-3 mt-4 cursor-pointer select-none font-sans">
                     <input
                         type="checkbox"
                         checked={data.consentAgreed}
@@ -1061,10 +1068,79 @@ function ConsentScreen({
                         className="w-5 h-5 mt-0.5 rounded text-[#e26843] focus:ring-[#e26843] border-gray-300 cursor-pointer"
                     />
                     <span className="text-[13px] text-gray-600 font-semibold leading-relaxed">
-                        I have read and agree to all the documents mentioned above.
+                        I agree to the documents above.
                     </span>
                 </label>
             </div>
+        </div>
+    )
+}
+
+function CustomDropdown({
+    value,
+    options,
+    placeholder,
+    onChange,
+}: {
+    value: string
+    options: { code: string; name: string }[]
+    placeholder?: string
+    onChange: (val: string) => void
+}) {
+    const [isOpen, setIsOpen] = useState(false)
+
+    return (
+        <div className="relative w-full">
+            <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full px-4 py-3.5 rounded-[10px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-left text-gray-900 bg-white flex items-center justify-between cursor-pointer select-none"
+            >
+                <span className={!value && placeholder ? "text-gray-400 font-normal" : "text-gray-900 font-semibold"}>
+                    {value ? options.find((o) => o.code === value)?.name || value : placeholder || "Select..."}
+                </span>
+                <svg
+                    className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.2}
+                >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+
+            {isOpen && (
+                <>
+                    {/* Backdrop to close on click outside */}
+                    <div
+                        className="fixed inset-0 z-20 cursor-default bg-transparent"
+                        onClick={() => setIsOpen(false)}
+                    />
+                    
+                    {/* Strictly downward opening overlay */}
+                    <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-[10px] shadow-lg z-30 mt-1.5 max-h-[220px] overflow-y-auto py-1">
+                        {options.map((option) => {
+                            const isSelected = value === option.code
+                            return (
+                                <button
+                                    key={option.code}
+                                    type="button"
+                                    onClick={() => {
+                                        onChange(option.code)
+                                        setIsOpen(false)
+                                    }}
+                                    className={`w-full text-left px-4 py-3 text-[14px] hover:bg-slate-50 transition-colors cursor-pointer select-none font-semibold ${
+                                        isSelected ? "bg-slate-50/80 text-[#e26843] font-bold" : "text-gray-700"
+                                    }`}
+                                >
+                                    {option.name}
+                                </button>
+                            )
+                        })}
+                    </div>
+                </>
+            )}
         </div>
     )
 }
@@ -1078,22 +1154,23 @@ function PersonalizationScreen({
     onChange: (fields: Partial<OnboardingData>) => void
     onBack?: () => void
 }) {
-    const handleDobChange = (dobValue: string) => {
-        if (dobValue) {
-            const birthDate = new Date(dobValue)
-            const today = new Date()
-            let calculatedAge = today.getFullYear() - birthDate.getFullYear()
-            const m = today.getMonth() - birthDate.getMonth()
-            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                calculatedAge--
-            }
-            onChange({
-                dob: dobValue,
-                age: calculatedAge.toString()
-            })
-        } else {
-            onChange({ dob: "", age: "" })
+    const handleAgeRangeSelect = (range: "16-17" | "18-20" | "21-24" | "25+") => {
+        let nominalAge = "19"
+        let nominalDob = "2007-01-01"
+        if (range === "16-17") {
+            nominalAge = "17"
+            nominalDob = "2009-01-01"
+        } else if (range === "18-20") {
+            nominalAge = "19"
+            nominalDob = "2007-01-01"
+        } else if (range === "21-24") {
+            nominalAge = "22"
+            nominalDob = "2004-01-01"
+        } else if (range === "25+") {
+            nominalAge = "26"
+            nominalDob = "2000-01-01"
         }
+        onChange({ ageRange: range, age: nominalAge, dob: nominalDob })
     }
 
     const languages = [
@@ -1137,103 +1214,78 @@ function PersonalizationScreen({
             )}
 
             <h2 className="text-[32px] font-bold text-gray-900 tracking-tight leading-[1.2] text-left mb-2">
-                Help us personalize your experience
+                Let's make Attrangi yours 💛
             </h2>
             <p className="text-gray-500 text-[15px] font-normal leading-relaxed text-left mb-8">
-                Please provide a few details to help us customize the platform for you.
+                Just a few things to help us get to know you.
             </p>
 
             <div className="space-y-6">
                 {/* 1. Name */}
                 <div>
                     <label className="block text-[15px] font-bold text-gray-900 mb-2">
-                        What&apos;s your name?
+                        What should we call you?
                     </label>
                     <input
                         type="text"
                         value={data.name || ""}
                         onChange={(e) => onChange({ name: e.target.value })}
                         className={fieldClass}
-                        placeholder="Enter your name"
+                        placeholder="Your name"
                         required
                     />
                 </div>
 
-                {/* 2. Birthday */}
+                {/* 2. Age Range Select (replaces DOB date input) */}
                 <div>
                     <label className="block text-[15px] font-bold text-gray-900 mb-2">
-                        Birthday
+                        How old are you?
                     </label>
-                    <input
-                        type="date"
-                        value={data.dob || ""}
-                        onChange={(e) => handleDobChange(e.target.value)}
-                        max={new Date().toISOString().split("T")[0]}
-                        className={`${fieldClass} cursor-pointer`}
-                        required
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {(["16-17", "18-20", "21-24", "25+"] as const).map((range) => {
+                            const isSelected = data.ageRange === range
+                            const displayLabel = range === "25+" ? "25+" : range.replace("-", "–")
+                            return (
+                                <button
+                                    key={range}
+                                    type="button"
+                                    onClick={() => handleAgeRangeSelect(range)}
+                                    className={`py-3.5 px-4 rounded-[10px] border text-center font-semibold text-[15px] transition-all duration-200 select-none cursor-pointer active:scale-98 ${
+                                        isSelected
+                                            ? "bg-[#e26843] text-white border-[#e26843] shadow-sm font-bold"
+                                            : "bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-slate-50"
+                                    }`}
+                                >
+                                    {displayLabel}
+                                </button>
+                            )
+                        })}
+                    </div>
+                </div>
+
+                {/* 3. Language Custom Dropdown */}
+                <div>
+                    <label className="block text-[15px] font-bold text-gray-900 mb-2">
+                        Which language feels most comfortable?
+                    </label>
+                    <CustomDropdown
+                        value={data.preferredLanguage || "English"}
+                        options={languages}
+                        onChange={(val) => onChange({ preferredLanguage: val })}
                     />
                 </div>
 
-                {/* 3. Language */}
+                {/* 4. Heard About Us Custom Dropdown */}
                 <div>
                     <label className="block text-[15px] font-bold text-gray-900 mb-2">
-                        What&apos;s your preferred language?
+                        How did you find Attrangi? <span className="text-gray-400 font-normal">(optional)</span>
                     </label>
-                    <div className="relative">
-                        <select
-                            value={data.preferredLanguage || "English"}
-                            onChange={(e) => onChange({ preferredLanguage: e.target.value })}
-                            className={`${fieldClass} cursor-pointer pr-10`}
-                        >
-                            {languages.map((lang) => (
-                                <option key={lang.code} value={lang.code}>
-                                    {lang.name}
-                                </option>
-                            ))}
-                        </select>
-                        <svg
-                            className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2.2}
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </div>
-                </div>
-
-                {/* 4. Heard About Us */}
-                <div>
-                    <label className="block text-[15px] font-bold text-gray-900 mb-2">
-                        How did you hear about us?{" "}
-                        <span className="text-gray-400 font-normal">(optional)</span>
-                    </label>
-                    <div className="relative">
-                        <select
-                            value={data.heardAboutUs || ""}
-                            onChange={(e) => onChange({ heardAboutUs: e.target.value })}
-                            className={`${fieldClass} cursor-pointer pr-10`}
-                        >
-                            <option value="" disabled>
-                                Select an option
-                            </option>
-                            {heardAboutOptions.map((option) => (
-                                <option key={option} value={option}>
-                                    {option}
-                                </option>
-                            ))}
-                        </select>
-                        <svg
-                            className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2.2}
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </div>
+                    <CustomDropdown
+                        value={data.heardAboutUs || ""}
+                        options={heardAboutOptions.map((o) => ({ code: o, name: o }))}
+                        placeholder="A friend, college, Instagram..."
+                        onChange={(val) => onChange({ heardAboutUs: val })}
+                    />
                 </div>
             </div>
         </div>

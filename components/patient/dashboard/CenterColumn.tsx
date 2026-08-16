@@ -7,6 +7,8 @@ import { format, formatDistanceToNow } from "date-fns"
 import { useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion"
 import UpgradeOffersBanner from "./UpgradeOffersBanner"
+import RecentActivity from "./RecentActivity"
+import ReferAndEarn from "./ReferAndEarn"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import TryPragyaChat from "@/components/ai-bot/TryPragyaChat"
@@ -170,6 +172,7 @@ export default function CenterColumn({
   const [selectedCategory, setSelectedCategory] = useState<"activity" | "read" | "listen" | "assessment" | null>(null)
   const [isChatExpanded, setIsChatExpanded] = useState(false)
   const [latestBotMessage, setLatestBotMessage] = useState("Wanna talk about the conversation that we left ??")
+  const showNoticed = false as boolean;
 
   useEffect(() => {
     if (isChatExpanded) return
@@ -521,12 +524,12 @@ export default function CenterColumn({
             {/* Background & Robot Wrapper (Clipped by rounded bottom) */}
             <div className="absolute inset-0 bg-gradient-to-b from-[#8BDDEE] via-[#A6E8F6] to-[#D7F5FC] rounded-b-[32px] min-[360px]:rounded-b-[38px] min-[390px]:rounded-b-[42px] overflow-hidden pointer-events-none shadow-[0_8px_30px_rgba(139,221,238,0.12)]">
               {/* Peeking Robot Image */}
-              <div className="absolute left-0 bottom-[32px] min-[360px]:bottom-8 min-[390px]:bottom-10 w-[55px] min-[360px]:w-[80px] min-[390px]:w-[95px] h-[78px] min-[360px]:h-[113px] min-[390px]:h-[135px] pointer-events-none">
+              <div className="absolute right-0 bottom-[56px] min-[360px]:bottom-[60px] min-[390px]:bottom-[68px] w-[55px] min-[360px]:w-[80px] min-[390px]:w-[95px] h-[78px] min-[360px]:h-[113px] min-[390px]:h-[135px] pointer-events-none scale-x-[-1]">
                 <Image
                   src="/images/robot_peeking.png"
                   alt="Peeking Robot"
                   fill
-                  className="object-contain object-left-bottom"
+                  className="object-contain object-right-bottom"
                 />
               </div>
             </div>
@@ -639,42 +642,50 @@ export default function CenterColumn({
               </div>
             </div>
 
-            {/* Card 3: Something I Noticed */}
-            <div className="bg-[#FEF6F0] rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 border border-[#FBE6D8] shadow-[0_4px_24px_rgba(15,23,42,0.01)] flex flex-col gap-1.5 min-[360px]:gap-2">
-              <span className="text-[10px] min-[360px]:text-[11px] min-[390px]:text-[11.5px] font-black uppercase tracking-[-0.5px] text-[#E8722A] font-sans">
-                Something I Noticed
-              </span>
-              <p className="text-[13.5px] min-[360px]:text-[14.5px] min-[390px]:text-[15px] font-medium text-slate-700 leading-relaxed font-sans tracking-[-0.5px]">
-                You&apos;ve mentioned exam stress a few times lately. If it helps, we can unpack what&apos;s weighing heaviest before it builds up.
-              </p>
-              <div className="flex items-center gap-4 mt-1">
-                <Link 
-                  href="/patient/ai-bot"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsChatExpanded(true);
-                  }}
-                  className="bg-[#F99254] hover:bg-[#E87E3E] text-white px-5 py-2 rounded-full font-bold text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] shadow-sm transition-all active:scale-95"
-                >
-                  Let&apos;s talk
-                </Link>
-                <Link 
-                  href="#"
-                  onClick={(e) => e.preventDefault()}
-                  className="text-[#F99254] hover:underline font-bold text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] flex items-center gap-1"
-                >
-                  Know more &rarr;
-                </Link>
-              </div>
-            </div>
+            {/* Refer & Earn Section */}
+            <ReferAndEarn />
 
-            {/* What you can do now Section */}
-            <div className="flex flex-col gap-3 min-[360px]:gap-3.5 min-[390px]:gap-4 mt-1 min-[360px]:mt-1.5 min-[390px]:mt-2">
-              <h3 className="text-[16px] min-[360px]:text-[18px] min-[390px]:text-[19px] font-black text-slate-800 tracking-[-0.5px] leading-none mb-0.5 min-[360px]:mb-1 font-sans">
-               What you can do now
-              </h3>
-              
-              {suggestions && selectedCategory && (
+            {/* Recent Activity Section */}
+            <RecentActivity />
+
+            {showNoticed && (
+              /* Card 3: Something I Noticed */
+              <div className="bg-[#FEF6F0] rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 border border-[#FBE6D8] shadow-[0_4px_24px_rgba(15,23,42,0.01)] flex flex-col gap-1.5 min-[360px]:gap-2">
+                <span className="text-[10px] min-[360px]:text-[11px] min-[390px]:text-[11.5px] font-black uppercase tracking-[-0.5px] text-[#E8722A] font-sans">
+                  Something I Noticed
+                </span>
+                <p className="text-[13.5px] min-[360px]:text-[14.5px] min-[390px]:text-[15px] font-medium text-slate-700 leading-relaxed font-sans tracking-[-0.5px]">
+                  You&apos;ve mentioned exam stress a few times lately. If it helps, we can unpack what&apos;s weighing heaviest before it builds up.
+                </p>
+                <div className="flex items-center gap-4 mt-1">
+                  <Link 
+                    href="/patient/ai-bot"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsChatExpanded(true);
+                    }}
+                    className="bg-[#F99254] hover:bg-[#E87E3E] text-white px-5 py-2 rounded-full font-bold text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] shadow-sm transition-all active:scale-95"
+                  >
+                    Let&apos;s talk
+                  </Link>
+                  <Link 
+                    href="#"
+                    onClick={(e) => e.preventDefault()}
+                    className="text-[#F99254] hover:underline font-bold text-[12px] min-[360px]:text-[13px] min-[390px]:text-[14px] flex items-center gap-1"
+                  >
+                    Know more &rarr;
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {showNoticed && suggestions && selectedCategory && (
+              /* What you can do now Section */
+              <div className="flex flex-col gap-3 min-[360px]:gap-3.5 min-[390px]:gap-4 mt-1 min-[360px]:mt-1.5 min-[390px]:mt-2">
+                <h3 className="text-[16px] min-[360px]:text-[18px] min-[390px]:text-[19px] font-black text-slate-800 tracking-[-0.5px] leading-none mb-0.5 min-[360px]:mb-1 font-sans">
+                 What you can do now
+                </h3>
+                
                 <div className="flex flex-col gap-3 min-[360px]:gap-3.5 min-[390px]:gap-4">
                   {/* Card 1: Activity */}
                   {selectedCategory === "activity" && (
@@ -699,7 +710,7 @@ export default function CenterColumn({
                       </div>
                       <div className="flex items-center gap-1 text-[#6B4FBB] text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] font-bold shrink-0 pr-1">
                         <span>Try</span>
-                        <svg className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -729,7 +740,7 @@ export default function CenterColumn({
                       </div>
                       <div className="flex items-center gap-1 text-[#00829B] text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] font-bold shrink-0 pr-1">
                         <span>Read</span>
-                        <svg className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -759,7 +770,7 @@ export default function CenterColumn({
                       </div>
                       <div className="flex items-center gap-1 text-[#1E8A37] text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] font-bold shrink-0 pr-1">
                         <span>Listen</span>
-                        <svg className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -789,15 +800,15 @@ export default function CenterColumn({
                       </div>
                       <div className="flex items-center gap-1 text-[#D97736] text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] font-bold shrink-0 pr-1">
                         <span>Check</span>
-                        <svg className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
                     </Link>
                   )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
           </div>
         </div>
@@ -917,42 +928,50 @@ export default function CenterColumn({
             </div>
           </div>
 
-          {/* Card 3: Something I Noticed (Desktop) */}
-          <div className="bg-[#FEF6F0] rounded-[32px] p-8 border border-[#FBE6D8] shadow-[0_4px_24px_rgba(15,23,42,0.01)] flex flex-col gap-4">
-            <span className="text-[12px] font-black uppercase tracking-[-0.5px] text-[#E8722A] font-sans">
-              Something I Noticed
-            </span>
-            <p className="text-[16px] font-medium text-slate-700 leading-relaxed font-sans tracking-[-0.5px]">
-              You&apos;ve mentioned exam stress a few times lately. If it helps, we can unpack what&apos;s weighing heaviest before it builds up.
-            </p>
-            <div className="flex items-center gap-4 mt-2">
-              <Link 
-                href="/patient/ai-bot"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setIsChatExpanded(true);
-                }}
-                className="bg-[#F99254] hover:bg-[#E87E3E] text-white px-6 py-2.5 rounded-full font-bold text-[14px] shadow-sm transition-all active:scale-95"
-              >
-                Let&apos;s talk
-              </Link>
-              <Link 
-                href="#"
-                onClick={(e) => e.preventDefault()}
-                className="text-[#F99254] hover:underline font-bold text-[14px] flex items-center gap-1"
-              >
-                Know more &rarr;
-              </Link>
-            </div>
-          </div>
+          {/* Refer & Earn Section */}
+          <ReferAndEarn />
 
-          {/* What you can do now Section (Desktop) */}
-          <div className="flex flex-col gap-4">
-            <h3 className="text-[20px] font-black text-slate-800 tracking-[-0.5px] leading-none mb-1 font-sans">
-              What you can do now
-            </h3>
-            
-            {suggestions && selectedCategory && (
+          {/* Recent Activity Section */}
+          <RecentActivity />
+
+          {showNoticed && (
+            /* Card 3: Something I Noticed (Desktop) */
+            <div className="bg-[#FEF6F0] rounded-[32px] p-8 border border-[#FBE6D8] shadow-[0_4px_24px_rgba(15,23,42,0.01)] flex flex-col gap-4">
+              <span className="text-[12px] font-black uppercase tracking-[-0.5px] text-[#E8722A] font-sans">
+                Something I Noticed
+              </span>
+              <p className="text-[16px] font-medium text-slate-700 leading-relaxed font-sans tracking-[-0.5px]">
+                You&apos;ve mentioned exam stress a few times lately. If it helps, we can unpack what&apos;s weighing heaviest before it builds up.
+              </p>
+              <div className="flex items-center gap-4 mt-2">
+                <Link 
+                  href="/patient/ai-bot"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsChatExpanded(true);
+                  }}
+                  className="bg-[#F99254] hover:bg-[#E87E3E] text-white px-6 py-2.5 rounded-full font-bold text-[14px] shadow-sm transition-all active:scale-95"
+                >
+                  Let&apos;s talk
+                </Link>
+                <Link 
+                  href="#"
+                  onClick={(e) => e.preventDefault()}
+                  className="text-[#F99254] hover:underline font-bold text-[14px] flex items-center gap-1"
+                >
+                  Know more &rarr;
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {showNoticed && suggestions && selectedCategory && (
+            /* What you can do now Section (Desktop) */
+            <div className="flex flex-col gap-4">
+              <h3 className="text-[20px] font-black text-slate-800 tracking-[-0.5px] leading-none mb-1 font-sans">
+                What you can do now
+              </h3>
+              
               <div className="flex flex-col gap-4">
                 {/* Card 1: Activity */}
                 {selectedCategory === "activity" && (
@@ -1074,8 +1093,8 @@ export default function CenterColumn({
                   </Link>
                 )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
