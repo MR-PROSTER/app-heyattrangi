@@ -41,6 +41,7 @@ model User {
   activityLogs UserActivityLog[]
   moodEntries MoodEntry[]
   supportMessages SupportMessage[]
+  referralCode ReferralCode?
  
   @@map("users")
 }
@@ -732,4 +733,36 @@ model SupportMessage {
   @@index([isRead])
   @@index([createdAt(sort: Desc)])
   @@map("support_messages")
+}
+
+// Referral System
+model ReferralCode {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String    @unique @db.ObjectId
+  code          String    @unique
+  rewardClaimed Boolean   @default(false)
+  claimAddress  String?
+  claimPhone    String?
+  claimSize     String?
+  claimedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referrals Referral[]
+
+  @@map("referral_codes")
+}
+
+model Referral {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  referralCodeId String   @db.ObjectId
+  inviteeName    String
+  status         String   @default("PENDING") // PENDING | JOINED
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  referralCode ReferralCode @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+
+  @@map("referrals")
 }
