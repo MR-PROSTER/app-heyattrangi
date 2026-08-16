@@ -1,6 +1,14 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
-export function useSpeechToText(onTranscript: (text: string) => void) {
+export interface SttLimitInfo {
+    message: string
+    resetInSeconds?: number
+}
+
+export function useSpeechToText(
+    onTranscript: (text: string) => void,
+    onLimitExceeded?: (info: SttLimitInfo) => void,
+) {
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<BlobPart[]>([]);
     const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -60,6 +68,14 @@ export function useSpeechToText(onTranscript: (text: string) => void) {
 
                     if (!response.ok) {
                         const data = await response.json();
+                        if (response.status === 429 || data.error === "LIMIT_EXCEEDED") {
+                            if (onLimitExceeded) {
+                                onLimitExceeded({ message: data.message || "Daily voice limit reached.", resetInSeconds: data.resetInSeconds })
+                            } else {
+                                alert(data.message || "Daily voice limit reached. Please try again later.")
+                            }
+                            return
+                        }
                         throw new Error(data.error || "Failed to transcribe audio");
                     }
 

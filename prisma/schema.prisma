@@ -42,6 +42,7 @@ model User {
   moodEntries MoodEntry[]
   supportMessages SupportMessage[]
   referralCode ReferralCode?
+  reminders Reminder[]
  
   @@map("users")
 }
@@ -188,6 +189,8 @@ model Patient {
   currentStreak Int       @default(0)
   lastLoginDate DateTime?
   totalCredits  Int       @default(0)
+
+  emergencyContacts EmergencyContact[]
 
   @@map("patients")
 }
@@ -766,3 +769,51 @@ model Referral {
 
   @@map("referrals")
 }
+
+// Emergency Contacts (2 to 5 per Patient)
+model EmergencyContact {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  patientId    String   @db.ObjectId
+  name         String
+  phone        String
+  relationship String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@map("emergency_contacts")
+}
+
+// Reminders
+model Reminder {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @db.ObjectId
+  title        String
+  time         String   // e.g. "09:00"
+  weekdays     String[] // e.g. ["mon", "tue"]
+  enabled      Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("reminders")
+}
+
+// Technical Limits Logs
+model TechnicalLimitLog {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String?  @db.ObjectId
+  ip        String?
+  phone     String?
+  action    String   // e.g. "AI_CHAT", "VOICE_STT", "TRACK_START", "OTP_REQUEST", "SETTING_CHANGE", "PROFILE_UPDATE"
+  timestamp DateTime @default(now())
+  meta      Json?    // Stores duration, char length, etc.
+
+  @@index([userId, action, timestamp])
+  @@index([ip, action, timestamp])
+  @@index([phone, action, timestamp])
+  @@map("technical_limit_logs")
+}
+

@@ -43,6 +43,14 @@ export const getCurrentUser = cache(async () => {
               emergencyContactName: true,
               emergencyContactPhone: true,
               emergencyRelationship: true,
+              emergencyContacts: {
+                select: {
+                  id: true,
+                  name: true,
+                  phone: true,
+                  relationship: true,
+                },
+              },
               preferredLanguage: true,
               batchId: true,
               departmentId: true,
