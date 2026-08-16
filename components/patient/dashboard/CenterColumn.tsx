@@ -3,7 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import dynamic from "next/dynamic"
-import { format, formatDistanceToNow } from "date-fns"
+import { format, formatDistanceToNow, startOfWeek, subDays, addDays, isSameDay } from "date-fns"
 import { useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion"
 import UpgradeOffersBanner from "./UpgradeOffersBanner"
@@ -270,6 +270,7 @@ export default function CenterColumn({
   const [isMoodModalOpen, setIsMoodModalOpen] = useState(false)
   const [modalInitialScore, setModalInitialScore] = useState<number>(2)
   const [modalInitialNote, setModalInitialNote] = useState<string>("")
+  const [moodEntries, setMoodEntries] = useState<any[]>([])
 
   useEffect(() => {
     try {
@@ -281,6 +282,24 @@ export default function CenterColumn({
     } catch (e) {
       console.error(e)
     }
+  }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch("/api/patient/mood", { signal: controller.signal })
+      .then((res) => res.json())
+      .then((data) => {
+        if (controller.signal.aborted) return
+        if (data && Array.isArray(data.entries)) {
+          setMoodEntries(data.entries)
+        }
+      })
+      .catch((err) => {
+        if (err?.name !== "AbortError") {
+          console.error("Failed to fetch mood entries for dashboard:", err)
+        }
+      })
+    return () => controller.abort()
   }, [])
 
   const handleOpenMoodModal = (initialScore: number) => {
@@ -308,7 +327,7 @@ export default function CenterColumn({
     const moodName = moodMap[score] || "Neutral"
 
     try {
-      await fetch("/api/patient/mood", {
+      const res = await fetch("/api/patient/mood", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -317,6 +336,19 @@ export default function CenterColumn({
           note,
         }),
       })
+      
+      if (res.ok) {
+        const data = await res.json()
+        if (data && data.entry) {
+          setMoodEntries((prev) => {
+            const filtered = prev.filter(e => {
+              const eDateStr = new Date(e.timestamp).toISOString().split("T")[0]
+              return eDateStr !== todayStr
+            })
+            return [data.entry, ...filtered]
+          })
+        }
+      }
     } catch (err) {
       console.error("Failed to log mood check-in:", err)
     }
@@ -410,39 +442,85 @@ export default function CenterColumn({
     },
   ]
 
-  const desktopCalendarDays = [
-    { type: "text", value: "1", bg: "#EBF0F2", color: "#64748B" },
-    { type: "text", value: "2", bg: "#EBF0F2", color: "#64748B" },
-    { type: "emoji", bg: "#FFE5C4", color: "#D97706" },
-    { type: "text", value: "4", bg: "#EBF0F2", color: "#64748B" },
-    { type: "wave", bg: "#C6F2D5", color: "#16A34A" },
-    { type: "text", value: "6", bg: "#EBF0F2", color: "#64748B" },
-    { type: "exercise", bg: "#FDD3D3", color: "#DC2626" },
+  const desktopCalendarDays = useMemo(() => {
+    const today = new Date()
+    const currentWeekMonday = startOfWeek(today, { weekStartsOn: 1 })
+    const startDate = subDays(currentWeekMonday, 21) // 3 weeks ago's Monday
+    
+    return Array.from({ length: 28 }).map((_, i) => {
+      const date = addDays(startDate, i)
+      const dateStr = format(date, "d")
+      
+      const dayEntries = moodEntries.filter((e) => isSameDay(new Date(e.timestamp), date))
+      
+      if (dayEntries.length > 0) {
+        const latestEntry = dayEntries[0]
+        const moodName = String(latestEntry.mood).toUpperCase()
+        
+        let normalizedMood: "Low" | "Meh" | "Okay" | "Good" | "Great" = "Okay"
+        if (moodName === "GREAT") normalizedMood = "Great"
+        else if (moodName === "GOOD") normalizedMood = "Good"
+        else if (moodName === "OKAY" || moodName === "NEUTRAL") normalizedMood = "Okay"
+        else if (moodName === "MEH" || moodName === "BAD") normalizedMood = "Meh"
+        else if (moodName === "LOW" || moodName === "VERY_BAD") normalizedMood = "Low"
+        
+        return {
+          type: "mood",
+          moodName: normalizedMood,
+          value: dateStr,
+          date,
+        }
+      } else {
+        return {
+          type: "text",
+          value: dateStr,
+          bg: "#EBF0F2",
+          color: "#64748B",
+          date,
+        }
+      }
+    })
+  }, [moodEntries])
 
-    { type: "text", value: "8", bg: "#EBF0F2", color: "#64748B" },
-    { type: "text", value: "9", bg: "#EBF0F2", color: "#64748B" },
-    { type: "close", bg: "#D5CEEB", color: "#6B4FBB" },
-    { type: "text", value: "11", bg: "#EBF0F2", color: "#64748B" },
-    { type: "text", value: "12", bg: "#EBF0F2", color: "#64748B" },
-    { type: "emoji", bg: "#FFE5C4", color: "#D97706" },
-    { type: "text", value: "14", bg: "#EBF0F2", color: "#64748B" },
-
-    { type: "text", value: "15", bg: "#EBF0F2", color: "#64748B" },
-    { type: "wave", bg: "#C6F2D5", color: "#16A34A" },
-    { type: "text", value: "17", bg: "#EBF0F2", color: "#64748B" },
-    { type: "text", value: "18", bg: "#EBF0F2", color: "#64748B" },
-    { type: "exercise", bg: "#FDD3D3", color: "#DC2626" },
-    { type: "text", value: "20", bg: "#EBF0F2", color: "#64748B" },
-    { type: "text", value: "21", bg: "#EBF0F2", color: "#64748B" },
-
-    { type: "emoji", bg: "#FFE5C4", color: "#D97706" },
-    { type: "text", value: "23", bg: "#EBF0F2", color: "#64748B" },
-    { type: "text", value: "24", bg: "#EBF0F2", color: "#64748B" },
-    { type: "close", bg: "#D5CEEB", color: "#6B4FBB" },
-    { type: "text", value: "26", bg: "#EBF0F2", color: "#64748B" },
-    { type: "wave", bg: "#C6F2D5", color: "#16A34A" },
-    { type: "text", value: "28", bg: "#EBF0F2", color: "#64748B" },
-  ]
+  const mobileCalendarDays = useMemo(() => {
+    const today = new Date()
+    const currentWeekMonday = startOfWeek(today, { weekStartsOn: 1 })
+    const daysArr = ["M", "T", "W", "T", "F", "S", "S"]
+    
+    return Array.from({ length: 7 }).map((_, i) => {
+      const date = addDays(currentWeekMonday, i)
+      const dateStr = format(date, "d")
+      
+      const dayEntries = moodEntries.filter((e) => isSameDay(new Date(e.timestamp), date))
+      
+      if (dayEntries.length > 0) {
+        const latestEntry = dayEntries[0]
+        const moodName = String(latestEntry.mood).toUpperCase()
+        
+        let normalizedMood: "Low" | "Meh" | "Okay" | "Good" | "Great" = "Okay"
+        if (moodName === "GREAT") normalizedMood = "Great"
+        else if (moodName === "GOOD") normalizedMood = "Good"
+        else if (moodName === "OKAY" || moodName === "NEUTRAL") normalizedMood = "Okay"
+        else if (moodName === "MEH" || moodName === "BAD") normalizedMood = "Meh"
+        else if (moodName === "LOW" || moodName === "VERY_BAD") normalizedMood = "Low"
+        
+        return {
+          day: daysArr[i],
+          type: "mood",
+          moodName: normalizedMood,
+          value: dateStr,
+          date,
+        }
+      } else {
+        return {
+          day: daysArr[i],
+          type: "text",
+          value: dateStr,
+          date,
+        }
+      }
+    })
+  }, [moodEntries])
 
   const renderCalendarCircle = (item: any, isMobile: boolean = false) => {
     const isText = item.type === "text"
@@ -465,37 +543,20 @@ export default function CenterColumn({
             {item.value}
           </span>
         )}
-        {item.type === "emoji" && (
+        {item.type === "mood" && item.moodName && (
           <Image 
-            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Okay_ikdsom.png" 
-            alt="Okay" 
-            width={28} 
-            height={28} 
-            className="w-full h-full object-contain rounded-full"
-          />
-        )}
-        {item.type === "wave" && (
-          <Image 
-            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786730507/Good_qtm32o.png" 
-            alt="Good" 
-            width={28} 
-            height={28} 
-            className="w-full h-full object-contain rounded-full"
-          />
-        )}
-        {item.type === "exercise" && (
-          <Image 
-            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Great_hbqsmr.png" 
-            alt="Great" 
-            width={28} 
-            height={28} 
-            className="w-full h-full object-contain rounded-full"
-          />
-        )}
-        {item.type === "close" && (
-          <Image 
-            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786799140/Low_sujxbx.png" 
-            alt="Low" 
+            src={
+              item.moodName === "Low"
+                ? "https://res.cloudinary.com/dxoiluua8/image/upload/v1786799140/Low_sujxbx.png"
+                : item.moodName === "Meh"
+                ? "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Meh_fh0ndp.png"
+                : item.moodName === "Okay"
+                ? "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Okay_ikdsom.png"
+                : item.moodName === "Good"
+                ? "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730507/Good_qtm32o.png"
+                : "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Great_hbqsmr.png"
+            } 
+            alt={item.moodName} 
             width={28} 
             height={28} 
             className="w-full h-full object-contain rounded-full"
@@ -630,15 +691,7 @@ export default function CenterColumn({
             {/* Card 2: Your rhythm this week */}
             <div className="bg-white rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-4 min-[360px]:p-5 min-[390px]:p-6 border border-slate-100/90 shadow-[0_4px_24px_rgba(15,23,42,0.015)]">
               <div className="grid grid-cols-7 justify-items-center w-full gap-1.5 px-0.5">
-                {[
-                  { day: "M", type: "text", value: "13", bg: "#EBF0F2", color: "#64748B" },
-                  { day: "T", type: "text", value: "14", bg: "#EBF0F2", color: "#64748B" },
-                  { day: "W", type: "emoji", bg: "#FFE5C4", color: "#D97706" },
-                  { day: "T", type: "wave", bg: "#C6F2D5", color: "#16A34A" },
-                  { day: "F", type: "text", value: "17", bg: "#EBF0F2", color: "#64748B" },
-                  { day: "S", type: "exercise", bg: "#FDD3D3", color: "#DC2626" },
-                  { day: "S", type: "close", bg: "#D5CEEB", color: "#6B4FBB" },
-                ].map((item, index) => (
+                {mobileCalendarDays.map((item, index) => (
                   <div key={index} className="flex flex-col items-center gap-1.5 min-[360px]:gap-2">
                     {renderCalendarCircle(item, true)}
                     <span className="text-[9.5px] min-[360px]:text-[10px] min-[390px]:text-[11px] font-bold text-slate-400 uppercase">{item.day}</span>
