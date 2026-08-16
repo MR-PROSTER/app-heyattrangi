@@ -60,7 +60,7 @@ function renderEmojiFace(name: string, isSelected: boolean, isDimmed: boolean = 
   return (
     <div 
       className={`w-10 h-10 min-[360px]:w-11 min-[360px]:h-11 min-[390px]:w-12 min-[390px]:h-12 md:w-16 md:h-16 flex items-center justify-center transition-all duration-200 ${
-        isSelected ? "scale-110 rounded-xl min-[390px]:rounded-2xl" : ""
+        isSelected ? "scale-110" : ""
       }`}
       style={{ opacity: isDimmed ? 0.35 : 1 }}
     >
@@ -69,7 +69,7 @@ function renderEmojiFace(name: string, isSelected: boolean, isDimmed: boolean = 
         alt={name} 
         width={64} 
         height={64} 
-        className="w-full h-full object-contain rounded-xl min-[390px]:rounded-2xl"
+        className="w-full h-full object-contain"
       />
     </div>
   )
@@ -171,6 +171,7 @@ export default function CenterColumn({
   } | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<"activity" | "read" | "listen" | "assessment" | null>(null)
   const [isChatExpanded, setIsChatExpanded] = useState(false)
+  const [initialEntryMode, setInitialEntryMode] = useState<"text" | "voice">("text")
   const [latestBotMessage, setLatestBotMessage] = useState("Wanna talk about the conversation that we left ??")
   const showNoticed = false as boolean;
 
@@ -249,6 +250,7 @@ export default function CenterColumn({
 
   const handleMindSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setInitialEntryMode("voice")
     setIsChatExpanded(true)
   }
 
@@ -562,7 +564,10 @@ export default function CenterColumn({
                 type="text"
                 value={mindText}
                 onChange={(e) => setMindText(e.target.value)}
-                onFocus={() => setIsChatExpanded(true)}
+                onFocus={() => {
+                  setInitialEntryMode("text")
+                  setIsChatExpanded(true)
+                }}
                 placeholder="Tell me what's on your mind..."
                 className="flex-1 bg-transparent border-none text-[11.5px] min-[360px]:text-[13px] min-[390px]:text-[14px] font-medium placeholder-slate-400 text-slate-700 focus:outline-none min-w-0"
               />
@@ -852,7 +857,10 @@ export default function CenterColumn({
                 type="text"
                 value={mindText}
                 onChange={(e) => setMindText(e.target.value)}
-                onFocus={() => setIsChatExpanded(true)}
+                onFocus={() => {
+                  setInitialEntryMode("text")
+                  setIsChatExpanded(true)
+                }}
                 placeholder="Tell me what's on your mind..."
                 className="flex-1 bg-transparent border-none text-[15px] font-medium placeholder-slate-400 text-slate-700 focus:outline-none"
               />
@@ -1132,6 +1140,7 @@ export default function CenterColumn({
                 initialChatCount={0}
                 userName={displayName}
                 onBack={() => setIsChatExpanded(false)}
+                initialEntryMode={initialEntryMode}
               />
             </motion.div>
           )}

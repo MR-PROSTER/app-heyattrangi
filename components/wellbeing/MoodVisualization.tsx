@@ -127,7 +127,7 @@ export default function MoodVisualization({ moods, averageMood }: MoodVisualizat
       >
         <defs>
           <filter id="soft-shadow" filterUnits="userSpaceOnUse" x="0" y="0" width="240" height="240">
-            <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.08" flood-color="#000000" />
+            <feDropShadow dx="0" dy="4" stdDeviation="4" floodOpacity="0.08" floodColor="#000000" />
           </filter>
         </defs>
         {segmentsData.map((seg, idx) => (

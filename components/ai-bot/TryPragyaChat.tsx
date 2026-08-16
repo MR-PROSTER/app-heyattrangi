@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo, type FormEvent } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback, type FormEvent } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getBotAvatar } from "@/lib/avatar";
+import { useSpeechToText } from "../../hooks/useSpeechToText";
 
 interface ChatMessage {
     role: "user" | "assistant";
@@ -263,12 +264,14 @@ export default function TryPragyaChat({
     initialChatCount = 0,
     userName = "",
     onBack,
+    initialEntryMode = "text",
 }: {
     sessionId: string;
     initialPlan?: string;
     initialChatCount?: number;
     userName?: string;
     onBack?: () => void;
+    initialEntryMode?: "text" | "voice";
 }) {
     const { status } = useSession();
     const router = useRouter();
@@ -363,12 +366,7 @@ export default function TryPragyaChat({
     const [chatCount, setChatCount] = useState(initialChatCount);
     const [showMemoryPolicy, setShowMemoryPolicy] = useState(false);
 
-    const [isRecording, setIsRecording] = useState(false);
-    const [isTranscribing, setIsTranscribing] = useState(false);
-    const [recordingTime, setRecordingTime] = useState(0);
-    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-    const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const audioChunksRef = useRef<Blob[]>([]);
+    // Inline media recording state extracted to useSpeechToText hooks
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isSendingRef = useRef(false);
@@ -472,9 +470,27 @@ export default function TryPragyaChat({
             isLoading ||
             isSendingRef.current ||
             !guestTrialHydrated ||
-            limitData.isLimitReached
+            (!isGuestSession && limitData.isLimitReached)
         )
             return;
+
+        if (isGuestSession && limitData.isLimitReached) {
+            const userMsg = retryMsg || inputMessage;
+            if (!retryMsg) {
+                setLastUserMessage(userMsg);
+                setInputMessage("");
+                if (inputRef.current) {
+                    inputRef.current.style.height = "auto";
+                }
+                setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
+            }
+
+            setMessages((prev) => [...prev, { 
+                role: "assistant", 
+                content: "You've reached today's free chat limit. Please log in to continue chatting, or come back tomorrow for your free chats." 
+            }]);
+            return;
+        }
 
         isSendingRef.current = true;
 
@@ -689,109 +705,50 @@ export default function TryPragyaChat({
         resetChat();
     };
 
+    const handleTranscript = useCallback((text: string) => {
+        setInputMessage((prev) => {
+            const newText = prev.trim() ? `${prev} ${text}` : text;
+            setTimeout(() => {
+                if (inputRef.current) {
+                    inputRef.current.focus();
+                }
+            }, 50);
+            return newText;
+        });
+    }, []);
+
+    const {
+        isRecording,
+        isTranscribing,
+        recordingTime,
+        startRecording,
+        stopRecording,
+        toggleRecording,
+        formatTime,
+    } = useSpeechToText(handleTranscript);
+
+    const initialEntryModeAttemptedRef = useRef(false);
+
     useEffect(() => {
-        if (isRecording) {
-            recordingTimerRef.current = setInterval(() => {
-                setRecordingTime((prev) => prev + 1);
-            }, 1000);
-        } else {
-            if (recordingTimerRef.current) {
-                clearInterval(recordingTimerRef.current);
+        if (!initialEntryModeAttemptedRef.current) {
+            initialEntryModeAttemptedRef.current = true;
+            if (initialEntryMode === "voice") {
+                // Safely wait for full component readiness before engaging the browser media capture
+                setTimeout(() => {
+                    startRecording();
+                }, 200);
+            } else if (initialEntryMode === "text") {
+                // Text mode, autofocus the chat box so typing can begin immediately
+                setTimeout(() => {
+                    if (inputRef.current) {
+                        inputRef.current.focus();
+                    }
+                }, 100);
             }
-            setRecordingTime(0);
         }
-        return () => {
-            if (recordingTimerRef.current) {
-                clearInterval(recordingTimerRef.current);
-            }
-        };
-    }, [isRecording]);
+    }, [initialEntryMode]);
 
-    const startRecording = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mediaRecorder = new MediaRecorder(stream);
-            mediaRecorderRef.current = mediaRecorder;
-            audioChunksRef.current = [];
-
-            mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) {
-                    audioChunksRef.current.push(e.data);
-                }
-            };
-
-            mediaRecorder.onstop = async () => {
-                try {
-                    const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-                    stream.getTracks().forEach((track) => track.stop());
-
-                    if (audioBlob.size === 0) {
-                        setIsTranscribing(false);
-                        return;
-                    }
-
-                    setIsTranscribing(true);
-                    const formData = new FormData();
-                    formData.append("audio", audioBlob);
-
-                    const response = await fetch("/api/speech/transcribe", {
-                        method: "POST",
-                        body: formData,
-                    });
-
-                    if (!response.ok) {
-                        const data = await response.json();
-                        throw new Error(data.error || "Failed to transcribe audio");
-                    }
-
-                    const data = await response.json();
-                    if (data.transcript) {
-                        setInputMessage((prev) => {
-                            const newText = prev.trim() ? `${prev} ${data.transcript}` : data.transcript;
-                                setTimeout(() => {
-                                    if (inputRef.current) {
-                                        inputRef.current.focus();
-                                    }
-                                }, 50);
-                            return newText;
-                        });
-                    }
-                } catch (error) {
-                    console.error("Transcription error:", error);
-                    alert("Transcription failed. Please try again or type your message.");
-                } finally {
-                    setIsTranscribing(false);
-                }
-            };
-
-            mediaRecorder.start();
-            setIsRecording(true);
-        } catch (error) {
-            console.error("Microphone access denied or error:", error);
-            alert("Microphone access was denied. Please allow microphone access to use Speech-to-Text.");
-        }
-    };
-
-    const stopRecording = () => {
-        if (mediaRecorderRef.current && isRecording) {
-            mediaRecorderRef.current.stop();
-            setIsRecording(false);
-        }
-    };
-
-    const toggleRecording = () => {
-        if (isRecording) {
-            stopRecording();
-        } else {
-            startRecording();
-        }
-    };
-
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs.toString().padStart(2, "0")}`;
-    };
+    // Removed redundant toggle/stop/format functions
 
     return (
         <>
@@ -877,7 +834,7 @@ export default function TryPragyaChat({
                     </motion.div>
 
                     {/* LIMIT REACHED MODAL OVERLAY */}
-                    {limitData.isLimitReached && (
+                    {(!isGuestSession && limitData.isLimitReached) && (
                         <div className="absolute inset-0 z-50 backdrop-blur-md bg-white/30 flex items-center justify-center p-6 animate-in fade-in duration-500">
                             <div className="bg-white/90 backdrop-blur-xl p-10 rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.1)] border border-white/50 text-center max-w-md w-full scale-in-center">
                                 <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">

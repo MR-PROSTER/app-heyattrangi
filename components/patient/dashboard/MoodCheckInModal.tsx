@@ -1,8 +1,9 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
+import { useSpeechToText } from "../../../hooks/useSpeechToText"
 
 interface MoodCheckInModalProps {
   isOpen: boolean
@@ -77,6 +78,16 @@ export default function MoodCheckInModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [isFocused, setIsFocused] = useState(false)
+
+  const handleTranscript = useCallback((text: string) => {
+    setNote((prev) => (prev.trim() ? `${prev} ${text}` : text))
+  }, [])
+
+  const {
+      isRecording,
+      isTranscribing,
+      toggleRecording,
+  } = useSpeechToText(handleTranscript)
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const modalRef = useRef<HTMLDivElement>(null)
@@ -506,8 +517,34 @@ export default function MoodCheckInModal({
                 }}
               />
               
-              {/* Submit button section - aligns inline when collapsed, bottom right when expanded */}
-              <div className="flex justify-end shrink-0" style={{ marginTop: isExpanded ? "8px" : "0px" }}>
+              {/* Action buttons section - aligns inline when collapsed, opposite sides when expanded */}
+              <div 
+                className={`flex items-center shrink-0 ${isExpanded ? "w-full justify-between" : "justify-end gap-2"}`} 
+                style={{ marginTop: isExpanded ? "8px" : "0px" }}
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    toggleRecording()
+                    if (!isExpanded) setIsFocused(true) // Ensure it expands to show transcription space
+                  }}
+                  className={`inline-flex items-center justify-center p-2.5 rounded-full transition-all ${
+                      isRecording || isTranscribing ? "bg-red-50 text-red-500 animate-pulse outline outline-1 outline-red-200" : "hover:bg-black/5"
+                  }`}
+                  style={{ color: isRecording || isTranscribing ? undefined : activeMood.primary }}
+                  title="Speak to type"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  </svg>
+                  {isExpanded && (isTranscribing || isRecording) && (
+                    <span className="ml-2 text-[12px] font-bold">
+                      {isTranscribing ? "Transcribing..." : "Listening..."}
+                    </span>
+                  )}
+                </button>
+
                 <button
                   type="submit"
                   disabled={isSubmitting}
