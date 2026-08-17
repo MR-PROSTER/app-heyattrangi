@@ -251,7 +251,6 @@ const HOME_GREETINGS = [
     "Greetings of the Day 👋",
     "Good to See You! 👋",
     "How Can I Help You Today? 😊",
-    "Hi There! 👋",
     "Welcome Back! 👋",
     "What's on Your Mind Today? 💬",
     "Let's Talk! 👋",
@@ -487,7 +486,7 @@ export default function TryPragyaChat({
 
             setMessages((prev) => [...prev, { 
                 role: "assistant", 
-                content: "You've reached today's free chat limit. Please log in to continue chatting, or come back tomorrow for your free chats." 
+                content: "You've reached the free chat limit. Please join to continue chatting." 
             }]);
             return;
         }

@@ -665,7 +665,6 @@ function LibraryPageContent() {
                                 <div className="space-y-4">
                                     {[
                                         { name: "Tele MANAS Helpline", number: "14416", desc: "Available 24/7. National crisis response support.", label: "Phone" },
-                                        { name: "KIRAN Support", number: "1800-599-0019", desc: "Government mental health service.", label: "SOS" },
                                         { name: "Vandrevala Foundation", number: "9999 666 555", desc: "Crisis and trauma counseling helpline.", label: "Support" }
                                     ].map((line, idx) => (
                                         <div key={idx} className="p-5 rounded-2xl bg-gradient-to-r from-orange-50 to-red-50/50 border border-orange-200/50 flex items-center justify-between gap-4 group hover:shadow-md hover:border-orange-300 transition-all">
