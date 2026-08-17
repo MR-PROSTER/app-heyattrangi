@@ -6,12 +6,10 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
 import { ArrowLeft } from "lucide-react"
 import type { ExploreActivity } from "@/data/exploreActivities"
-import { getRelatedExploreActivities } from "@/data/exploreActivities"
 import ActivityHero from "@/components/patient/library/explore/detail/ActivityHero"
 import ActivityDescription from "@/components/patient/library/explore/detail/ActivityDescription"
 import ActivityInfoCard from "@/components/patient/library/explore/detail/ActivityInfoCard"
 import BeginButton from "@/components/patient/library/explore/detail/BeginButton"
-import RelatedActivities from "@/components/patient/library/explore/detail/RelatedActivities"
 import ExploreErrorBoundary from "@/components/patient/library/explore/ExploreErrorBoundary"
 import { ActivityDetailSkeleton } from "@/components/patient/library/explore/ExploreSkeletons"
 import type { SessionState } from "@/components/patient/library/explore/session/SessionState"
@@ -43,7 +41,6 @@ export default function ActivityDetailPage({
   activity,
 }: ActivityDetailPageProps) {
   const router = useRouter()
-  const related = getRelatedExploreActivities(activity, 3)
   const [view, setView] = useState<DetailView>("detail")
   const [completedSession, setCompletedSession] = useState<SessionState | null>(
     null
@@ -174,10 +171,6 @@ export default function ActivityDetailPage({
                     onBegin={beginSession}
                   />
 
-                  <RelatedActivities
-                    activities={related}
-                    onSelectActivity={openActivity}
-                  />
                 </div>
               </div>
             </div>

@@ -24,8 +24,7 @@ export default function HelpSupportPage() {
       icon: ChevronRight, // In target Image 2, the contact icon is a greater-than symbol
       iconColor: "text-[#FF6B4A]",
       bgColor: "bg-[#FFF5F2] border-[#FF6B4A]/10",
-      href: "mailto:support@heyattrangi.com?subject=Hey Attrangi Support Inquiry",
-      isMail: true,
+      href: "/dashboard/settings/contact-support/contact",
     },
   ]
 
@@ -93,15 +92,9 @@ export default function HelpSupportPage() {
 
               return (
                 <div key={item.label}>
-                  {item.isMail ? (
-                    <a href={item.href} className="block w-full">
-                      {rowContent}
-                    </a>
-                  ) : (
-                    <Link href={item.href} className="block w-full">
-                      {rowContent}
-                    </Link>
-                  )}
+                  <Link href={item.href} className="block w-full">
+                    {rowContent}
+                  </Link>
                   {idx < getHelpItems.length - 1 && (
                     <div className="border-t border-zinc-50 ml-18" />
                   )}

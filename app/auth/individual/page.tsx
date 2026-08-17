@@ -42,7 +42,7 @@ export default function RedesignedIndividualAuthPage() {
         <div className="px-3 pt-3 shrink-0 w-full">
           <div className="relative w-full h-[280px] sm:h-[320px] overflow-hidden rounded-t-[32px]">
             <Image
-              src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786829868/welcome_ndizse.png"
+              src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786967400/welcome_ndizse.png"
               alt="Hey Attrangi student wellbeing welcome illustration"
               fill
               priority

@@ -814,18 +814,12 @@ export default function TryPragyaChat({
                         {/* Right side: History */}
                         <div className="flex items-center gap-4">
                             {isGuestSession && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center">
                                     <Link
-                                        href="/auth/signin"
-                                        className="px-4 py-1.5 text-[13px] sm:text-[14px] font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors rounded-full shadow-sm whitespace-nowrap"
+                                        href="/auth"
+                                        className="px-5 py-1.5 text-[13px] sm:text-[14px] font-extrabold text-white bg-[#f4a261] hover:bg-[#e39454] transition-colors rounded-full shadow-sm whitespace-nowrap"
                                     >
-                                        Login
-                                    </Link>
-                                    <Link
-                                        href="/auth/signup"
-                                        className="px-4 py-1.5 text-[13px] sm:text-[14px] font-bold text-white bg-[#f4a261] hover:bg-[#e39454] transition-colors rounded-full shadow-sm whitespace-nowrap"
-                                    >
-                                        Sign Up
+                                        Join
                                     </Link>
                                 </div>
                             )}

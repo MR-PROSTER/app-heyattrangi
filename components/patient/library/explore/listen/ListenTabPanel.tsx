@@ -648,10 +648,10 @@ function ListenTabPanel({ customCdnBase, initialTracks = [], onCategorySelect }:
                     {category.name}
                   </span>
                   <span 
-                    style={{ backgroundColor: theme.badgeBg, color: theme.badgeText }}
-                    className="px-2.5 py-1 min-[360px]:px-4 min-[360px]:py-1.5 rounded-full text-[10px] min-[360px]:text-[11px] min-[390px]:text-xs font-bold whitespace-nowrap shrink-0 ml-2"
+                    style={{ color: theme.text }}
+                    className="text-[11px] min-[360px]:text-xs min-[390px]:text-sm font-bold opacity-80 shrink-0 ml-2 whitespace-nowrap mt-0.5 uppercase"
                   >
-                    {category.trackCount} tracks
+                    {category.trackCount} TRACKS
                   </span>
                 </div>
                 
@@ -699,11 +699,8 @@ function ListenTabPanel({ customCdnBase, initialTracks = [], onCategorySelect }:
                   <span className="font-extrabold text-[20px] tracking-tight leading-tight">
                     {category.name}
                   </span>
-                  <span 
-                    style={{ backgroundColor: theme.badgeBg, color: theme.badgeText }}
-                    className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider"
-                  >
-                    {category.trackCount} tracks
+                  <span className="text-[14px] font-bold opacity-80 shrink-0 uppercase">
+                    {category.trackCount} TRACKS
                   </span>
                 </div>
                 

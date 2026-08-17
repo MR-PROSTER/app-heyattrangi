@@ -1,14 +1,67 @@
 import { cache } from "react"
 import { auth } from "@/auth.config"
 import { prisma } from "@/lib/prisma"
-import { UserRole } from "@prisma/client"
+import { UserRole, Prisma } from "@prisma/client"
 import { withPerf } from "@/lib/perf"
+
+export type CurrentUser = Prisma.UserGetPayload<{
+  select: {
+    id: true
+    clerkId: true
+    name: true
+    email: true
+    password: true
+    emailVerified: true
+    image: true
+    role: true
+    plan: true
+    orgId: true
+    createdAt: true
+    updatedAt: true
+    patient: {
+      select: {
+        id: true
+        userId: true
+        age: true
+        dob: true
+        gender: true
+        healthConcerns: true
+        emergencyContactName: true
+        emergencyContactPhone: true
+        emergencyRelationship: true
+        emergencyContacts: {
+          select: {
+            id: true
+            name: true
+            phone: true
+            relationship: true
+          }
+        }
+        preferredLanguage: true
+        batchId: true
+        departmentId: true
+        rollNumber: true
+        studentStatus: true
+        aiNickname: true
+        heardAboutUs: true
+        currentStreak: true
+        lastLoginDate: true
+        totalCredits: true
+        createdAt: true
+        updatedAt: true
+      }
+    }
+    doctor: { select: { id: true; status: true } }
+    admin: { select: { id: true } }
+    accounts: { select: { provider: true } }
+  }
+}>
 
 /**
  * Request-deduped current user. Uses select (not include) so patient pages
  * do not pull the full Doctor document graph on every load.
  */
-export const getCurrentUser = cache(async () => {
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   return withPerf("getCurrentUser", async () => {
     try {
       const session = await auth()

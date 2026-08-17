@@ -1,8 +1,8 @@
 "use client"
 
-import { signIn, useSession } from "next-auth/react"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { signIn, signOut, useSession } from "next-auth/react"
+import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import AuthBrandingPanel from "@/components/auth/AuthBrandingPanel"
 
@@ -45,7 +45,7 @@ function AttrangiLogo({ className = "" }: { className?: string }) {
   )
 }
 
-export default function SignInPage() {
+function SignInContent() {
   const [step, setStep] = useState<Step>("EMAIL")
   const [email, setEmail] = useState("")
   const [error, setError] = useState("")
@@ -62,12 +62,24 @@ export default function SignInPage() {
   
   const { data: session, status } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user) {
+    const errorParam = searchParams.get("error")
+    if (errorParam === "existing_user") {
+      setError("You are an existing user. Please log in.")
+      if (status === "authenticated") {
+        signOut({ redirect: false })
+      }
+    }
+  }, [searchParams, status])
+
+  useEffect(() => {
+    const errorParam = searchParams.get("error")
+    if (status === "authenticated" && session?.user && errorParam !== "existing_user") {
       checkAndRedirect()
     }
-  }, [session, status])
+  }, [session, status, searchParams])
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -508,5 +520,17 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen w-full flex items-center justify-center bg-white">
+        <div className="w-8 h-8 border-4 border-gray-100 border-t-[#e26843] rounded-full animate-spin"></div>
+      </div>
+    }>
+      <SignInContent />
+    </Suspense>
   )
 }
