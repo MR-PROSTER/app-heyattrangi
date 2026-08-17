@@ -8,6 +8,7 @@ import Image from "next/image"
 import TermsAndConditionsContent from "@/components/legal/TermsAndConditionsContent"
 import AiTransparencyStatementContent from "@/components/legal/AiTransparencyStatementContent"
 import DataProcessingConsentContent from "@/components/legal/DataProcessingConsentContent"
+import PrivacyPolicyContent from "@/components/legal/PrivacyPolicyContent"
 
 type OnboardingData = {
     dob: string
@@ -22,6 +23,7 @@ type OnboardingData = {
     name?: string
     preferredLanguage?: string
     heardAboutUs?: string
+    ageRange?: "16-17" | "18-20" | "21-24" | "25+"
 }
 
 export default function PatientOnboarding() {
@@ -58,6 +60,7 @@ export default function PatientOnboarding() {
     const [showAiModal, setShowAiModal] = useState(false)
     const [showDataConsentModal, setShowDataConsentModal] = useState(false)
     const [showTrustSafetyModal, setShowTrustSafetyModal] = useState(false)
+    const [showAllPolicies, setShowAllPolicies] = useState(false)
 
     // Pricing & Payment State
     const [selectedPlan, setSelectedPlan] = useState<"ESSENTIAL" | "PREMIUM">("PREMIUM")
@@ -73,9 +76,8 @@ export default function PatientOnboarding() {
         })
     }
 
-    const handlePayment = async () => {
+    const handlePayment = async (amount: number) => {
         setIsProcessingPayment(true)
-        const amount = selectedPlan === "ESSENTIAL" ? 49 : 149
         try {
             const isLoaded = await loadRazorpayScript()
             if (!isLoaded) {
@@ -87,7 +89,7 @@ export default function PatientOnboarding() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    plan: selectedPlan,
+                    plan: "PREMIUM",
                     amount,
                 }),
             })
@@ -100,7 +102,7 @@ export default function PatientOnboarding() {
                 amount: orderData.amount,
                 currency: orderData.currency,
                 name: "Hey Attrangi",
-                description: `${selectedPlan === "PREMIUM" ? "Companion" : "Listener"} Plan Subscription`,
+                description: `PREMIUM Plan Subscription`,
                 order_id: orderData.orderId,
                 handler: async function (response: any) {
                     try {
@@ -111,14 +113,14 @@ export default function PatientOnboarding() {
                                 razorpay_order_id: response.razorpay_order_id,
                                 razorpay_payment_id: response.razorpay_payment_id,
                                 razorpay_signature: response.razorpay_signature,
-                                plan: selectedPlan,
+                                plan: "PREMIUM",
                                 amount,
                             }),
                         })
 
                         const verifyData = await verifyRes.json()
                         if (verifyData.success) {
-                            alert(`Successfully subscribed to ${selectedPlan === "PREMIUM" ? "Companion" : "Listener"} plan!`)
+                            alert(`Successfully subscribed to PREMIUM plan!`)
                             setStep(4)
                         } else {
                             alert(verifyData.error || "Payment verification failed.")
@@ -146,7 +148,7 @@ export default function PatientOnboarding() {
                     body: JSON.stringify({
                         status: "FAILED",
                         amount,
-                        description: `${selectedPlan === "PREMIUM" ? "Companion" : "Listener"} plan subscription`,
+                        description: `PREMIUM plan subscription`,
                         paymentId: response?.error?.metadata?.payment_id || null,
                         orderId: orderData.orderId,
                         reason,
@@ -164,11 +166,7 @@ export default function PatientOnboarding() {
     }
 
     const handleNext = () => {
-        if (step === 2) {
-            handlePayment()
-        } else {
-            setStep((s) => s + 1)
-        }
+        setStep((s) => s + 1)
     }
 
     const handleBack = () => {
@@ -210,8 +208,18 @@ export default function PatientOnboarding() {
     const userName = data.name?.split(" ")[0] || session?.user?.name?.split(" ")[0] || "Sam"
 
     const isContinueDisabled =
-        (step === 0 && (!data.name?.trim() || !data.dob)) ||
+        (step === 0 && (!data.name?.trim() || !data.ageRange)) ||
         (step === 1 && (!data.emergencyContact || !data.emergencyPhone || data.emergencyPhone.length !== 10 || !data.consentAgreed))
+
+    if (step === 3) {
+        return (
+            <OnboardingCompanionScreen 
+                userName={userName}
+                isLoading={isLoading}
+                handleFinish={handleFinish}
+            />
+        )
+    }
 
     return (
         <div className="min-h-screen w-full flex bg-white font-sans relative overflow-hidden">
@@ -297,20 +305,14 @@ export default function PatientOnboarding() {
                                         <ConsentScreen
                                             data={data}
                                             onChange={(fields) => setData({ ...data, ...fields })}
-                                            onOpenTerms={() => setShowTermsModal(true)}
-                                            onOpenPrivacy={() => setShowPrivacyModal(true)}
-                                            onOpenAi={() => setShowAiModal(true)}
-                                            onOpenDataConsent={() => setShowDataConsentModal(true)}
-                                            onOpenTrustSafety={() => setShowTrustSafetyModal(true)}
                                         />
                                     )}
                                     {step === 2 && (
                                         <PricingScreen
-                                            selectedPlan={selectedPlan}
-                                            onSelectPlan={setSelectedPlan}
                                             onOpenTerms={() => setShowTermsModal(true)}
                                             onOpenPrivacy={() => setShowPrivacyModal(true)}
-                                            onSkip={() => setStep(3)}
+                                            handlePayment={handlePayment}
+                                            isProcessingPayment={isProcessingPayment}
                                         />
                                     )}
                                     {step === 3 && <FinalScreen userName={userName} />}
@@ -321,6 +323,116 @@ export default function PatientOnboarding() {
 
                     {/* Navigation Buttons and Dots Indicator */}
                     <div className={`z-10 w-full shrink-0 ${step === 2 ? "pt-2" : ""}`}>
+                        {step === 1 && (
+                            <div className="mb-5 flex flex-col gap-3 font-sans w-full text-left">
+                                <label className="flex items-start gap-3.5 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={data.consentAgreed}
+                                        onChange={(e) => setData({ ...data, consentAgreed: e.target.checked })}
+                                        className="w-[18px] h-[18px] mt-1 shrink-0 rounded text-[#e26843] focus:ring-[#e26843] border-gray-300 cursor-pointer"
+                                    />
+                                    <span className="text-[13px] text-gray-600 font-medium leading-relaxed">
+                                        I agree to the{" "}
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowTermsModal(true)}
+                                            className="inline font-bold text-gray-800 hover:text-[#e26843] cursor-pointer bg-transparent border-none p-0 outline-none"
+                                        >
+                                            Terms &amp; Conditions
+                                        </button>{" "}
+                                        and acknowledge Attrangi&apos;s{" "}
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPrivacyModal(true)}
+                                            className="inline font-bold text-gray-800 hover:text-[#e26843] cursor-pointer bg-transparent border-none p-0 outline-none"
+                                        >
+                                            Privacy
+                                        </button>
+                                        ,{" "}
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAiModal(true)}
+                                            className="inline font-bold text-gray-800 hover:text-[#e26843] cursor-pointer bg-transparent border-none p-0 outline-none"
+                                        >
+                                            AI Transparency
+                                        </button>{" "}
+                                        and{" "}
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowTrustSafetyModal(true)}
+                                            className="inline font-bold text-gray-800 hover:text-[#e26843] cursor-pointer bg-transparent border-none p-0 outline-none"
+                                        >
+                                            Safety policies
+                                        </button>
+                                        .
+                                    </span>
+                                </label>
+
+                                <div className="pl-[32px]">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAllPolicies(!showAllPolicies)}
+                                        className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer bg-transparent border-none p-0 outline-none"
+                                    >
+                                        {showAllPolicies ? "Hide all policies" : "Read all policies"}
+                                    </button>
+                                </div>
+
+                                {showAllPolicies && (
+                                    <div className="pl-[32px] mt-2 py-3 px-4 bg-white rounded-lg border border-gray-150 animate-fadeIn">
+                                        <h4 className="font-bold text-[12px] text-gray-700 mb-2">Available Documents:</h4>
+                                        <ul className="space-y-2 text-[12px] font-semibold text-gray-500">
+                                            <li>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowTermsModal(true)}
+                                                    className="text-[#e26843] hover:underline text-left cursor-pointer outline-none bg-transparent font-semibold"
+                                                >
+                                                    Terms &amp; Conditions
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPrivacyModal(true)}
+                                                    className="text-[#e26843] hover:underline text-left cursor-pointer outline-none bg-transparent font-semibold"
+                                                >
+                                                    Privacy Policy
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowAiModal(true)}
+                                                    className="text-[#e26843] hover:underline text-left cursor-pointer outline-none bg-transparent font-semibold"
+                                                >
+                                                    AI Transparency Statement
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowTrustSafetyModal(true)}
+                                                    className="text-[#e26843] hover:underline text-left cursor-pointer outline-none bg-transparent font-semibold"
+                                                >
+                                                    Trust, Safety &amp; Acceptable Use Policy
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowDataConsentModal(true)}
+                                                    className="text-[#e26843] hover:underline text-left cursor-pointer outline-none bg-transparent font-semibold"
+                                                >
+                                                    Data Processing Consent
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         <div className="flex w-full gap-3">
                             {step > 0 && step < 2 && (
                                 <button
@@ -332,13 +444,15 @@ export default function PatientOnboarding() {
                             )}
 
                             {step < 3 ? (
-                                <button
-                                    onClick={handleNext}
-                                    disabled={isContinueDisabled}
-                                    className={`${step > 0 && step !== 2 ? "flex-1" : "w-full"} flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-full py-3.5 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-[16px] lg:font-bold lg:text-sm lg:uppercase lg:tracking-wider cursor-pointer`}
-                                >
-                                    {step === 2 ? "Subscribe & Pay" : "Continue"}
-                                </button>
+                                step === 2 ? null : (
+                                    <button
+                                        onClick={handleNext}
+                                        disabled={isContinueDisabled}
+                                        className={`${step > 0 && step !== 2 ? "flex-1" : "w-full"} flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-full py-3.5 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-[16px] lg:font-bold lg:text-sm lg:uppercase lg:tracking-wider cursor-pointer`}
+                                    >
+                                        {(step === 0 || step === 1) ? "Continue →" : "Continue"}
+                                    </button>
+                                )
                             ) : (
                                 <button
                                     onClick={handleFinish}
@@ -447,210 +561,7 @@ export default function PatientOnboarding() {
 
                         {/* Modal Content */}
                         <div className="p-6 md:p-8 overflow-y-auto flex-1 bg-gray-50/20">
-                            <div className="font-poppins text-[12px] lg:text-[16px] text-justify bg-white p-8 rounded-xl shadow-lg border border-gray-200 space-y-6 text-gray-800 leading-relaxed">
-
-                                {/* Effective Dates */}
-                                <div className="text-center border-b border-gray-100 pb-4 mb-6">
-                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                                        Effective Date: 23 JUL 2026 | Last Updated: 23 JUL 2026
-                                    </p>
-                                </div>
-
-                                {/* SECTION I: INTRODUCTION & DEFINITIONS */}
-                                <div className="space-y-6">
-                                    <h3 className="text-center font-bold text-[#243460] border-y border-gray-200 py-2 text-[14px] lg:text-[16px] uppercase tracking-widest bg-gray-50/50 rounded-lg">
-                                        Section I - Introduction &amp; Definitions
-                                    </h3>
-
-                                    {/* 1. Introduction */}
-                                    <div>
-                                        <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">1. Introduction</h4>
-                                        <div className="pl-6 border-l-4 border-[#3d838c]/40 text-gray-700 space-y-2">
-                                            <p>
-                                                Aatrangi Private Limited (the &quot;Company&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) operates the Hey Attrangi platform (the &quot;Platform&quot;), an AI-assisted mental wellness platform providing emotional wellbeing support, therapist consultations, and related services.
-                                            </p>
-                                            <p>
-                                                This Privacy Policy (this &quot;Policy&quot;) describes how we collect, use, process, store, share, and protect the personal information of individuals who visit our website, use our web application, mobile applications (Android and iOS), or otherwise interact with our Platform and Services.
-                                            </p>
-                                            <p>
-                                                We process personal data only for lawful, specific, and necessary purposes, and implement appropriate safeguards to protect your information under the Digital Personal Data Protection Act, 2023 (the &quot;DPDP Act&quot;), the Mental Healthcare Act, 2017, and other applicable laws of the Republic of India.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* 2. Scope */}
-                                    <div>
-                                        <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">2. Scope</h4>
-                                        <div className="pl-6 border-l-4 border-[#3d838c]/40 text-gray-700 space-y-2">
-                                            <p>This Policy applies to all individuals who interact with the Platform, including:</p>
-                                            <ul className="list-disc pl-6 space-y-1">
-                                                <li><strong>Users:</strong> Individuals who register on, access, or use the Platform.</li>
-                                                <li><strong>Patients:</strong> Users who receive therapist-led clinical or therapeutic services.</li>
-                                                <li><strong>Caregivers:</strong> Parents/guardians who manage accounts for Minor Users.</li>
-                                                <li><strong>Therapists:</strong> Licensed mental health professionals providing services.</li>
-                                                <li><strong>Institutional Administrators:</strong> Representatives of partner organizations/schools.</li>
-                                            </ul>
-                                            <p>It covers all current and future offerings operated under the Hey Attrangi brand (websites, Android/iOS apps, portals, dashboards, and APIs).</p>
-                                        </div>
-                                    </div>
-
-                                    {/* 3. Definitions */}
-                                    <div>
-                                        <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">3. Definitions</h4>
-                                        <div className="pl-6 border-l-4 border-[#3d838c]/40 text-gray-700 space-y-2">
-                                            <ul className="space-y-2 text-sm">
-                                                <li><strong>&quot;Personal Data&quot;:</strong> Any data about an individual who is identifiable by or in relation to such data, as defined under the DPDP Act.</li>
-                                                <li><strong>&quot;Sensitive Personal Data&quot;:</strong> Data that may pose a higher risk of harm if compromised (e.g. mental health history, health records).</li>
-                                                <li><strong>&quot;Data Principal&quot;:</strong> The individual to whom the personal data relates.</li>
-                                                <li><strong>&quot;Data Fiduciary&quot;:</strong> The Company, which determines the purpose and means of processing personal data.</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* SECTION II: INFORMATION WE COLLECT */}
-                                <div className="space-y-6 pt-6">
-                                    <h3 className="text-center font-bold text-[#243460] border-y border-gray-200 py-2 text-[14px] lg:text-[16px] uppercase tracking-widest bg-gray-50/50 rounded-lg">
-                                        Section II - Information We Collect &amp; How We Use It
-                                    </h3>
-
-                                    {/* 4. Information We Collect */}
-                                    <div>
-                                        <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">4. Information We Collect</h4>
-                                        <div className="pl-6 border-l-4 border-[#3d838c]/40 text-gray-700 space-y-3">
-                                            <p>We collect information provided directly by you, automatically through use, or from third-parties:</p>
-                                            <ul className="list-disc pl-6 space-y-2">
-                                                <li><strong>Account Details:</strong> Name, phone, email, date of birth, preferences. Google Sign-In, phone OTP, or institutional SSO.</li>
-                                                <li><strong>Caregiver Information:</strong> Consents, government IDs (where required), and relationship info for Minors.</li>
-                                                <li><strong>Health Information:</strong> Mood logs, journal entries, psychological assessments, medication schedules, audio recordings/transcripts of therapy, and AI conversation histories.</li>
-                                                <li><strong>Clinical Info:</strong> Documentation created by Licensed Therapists (treatment plans, diagnostic impressions, progress notes).</li>
-                                                <li><strong>Automatic Analytics:</strong> Click/tap/scroll behaviors, system error logs, device identifiers, IP addresses, and geolocation data.</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-
-                                    {/* 5. How We Use Information */}
-                                    <div>
-                                        <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">5. How We Use Information</h4>
-                                        <div className="pl-6 border-l-4 border-[#3d838c]/40 text-gray-700 space-y-2">
-                                            <p>We process your personal data under the consent obtained or legitimate uses (Section 7 of the DPDP Act) for:</p>
-                                            <ul className="list-disc pl-6 space-y-1">
-                                                <li>Delivering services, video consultations, and maintaining conversation context.</li>
-                                                <li>Powering conversational AI wellness features and crisis detection triggers.</li>
-                                                <li>Fulfilling legal compliance, research benchmarking, and product optimization.</li>
-                                                <li>Preventing fraud, safeguarding user safety, and maintaining system logs.</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-
-                                    {/* 6. AI Processing */}
-                                    <div>
-                                        <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">6. AI Processing &amp; Limitations</h4>
-                                        <div className="pl-6 border-l-4 border-[#3d838c]/40 text-gray-700 space-y-2">
-                                            <p>The Platform uses artificial intelligence technologies (proprietary and third-party) to assist with wellness suggestions. <strong>The AI System is not a doctor, psychologist, or psychiatrist and does not diagnose, prescribe, or make clinical decisions.</strong> It is a supportive tool designed to complement human-led care.</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* SECTION III: DISCLOSURE & SHARING OF DATA */}
-                                <div className="space-y-6 pt-6">
-                                    <h3 className="text-center font-bold text-[#243460] border-y border-gray-200 py-2 text-[14px] lg:text-[16px] uppercase tracking-widest bg-gray-50/50 rounded-lg">
-                                        Section III - Information Sharing &amp; Privacy Protections
-                                    </h3>
-
-                                    {/* 7. Information Sharing */}
-                                    <div>
-                                        <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">7. Data Disclosures</h4>
-                                        <div className="pl-6 border-l-4 border-[#3d838c]/40 text-gray-700 space-y-2">
-                                            <p>We do not sell individual data. We share details only under strict guidelines:</p>
-                                            <ul className="list-disc pl-6 space-y-1">
-                                                <li><strong>Therapists:</strong> Shared with your assigned therapist to support clinical care.</li>
-                                                <li><strong>Caregivers:</strong> Clinical progress updates and notifications shared for Minor Users.</li>
-                                                <li><strong>Emergency:</strong> Contact details, location, and nature of threat shared with emergency services or designated contacts.</li>
-                                                <li><strong>Service Providers:</strong> Cloud hosting, secure video streams, SMS platforms, and payment processors bound by strong confidentiality contracts.</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-
-                                    {/* 8. Institutional Privacy */}
-                                    <div>
-                                        <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">8. Institutional Privacy Guarantee</h4>
-                                        <div className="pl-6 border-l-4 border-[#3d838c]/40 text-gray-700 space-y-2 bg-teal-50/20 p-4 rounded-xl">
-                                            <p><strong>Partner institutions (schools, universities, employers) DO NOT receive:</strong></p>
-                                            <ul className="list-disc pl-6 space-y-1 text-sm text-gray-600">
-                                                <li>Your individual chat conversations with the AI or human therapists.</li>
-                                                <li>Your personal mood tracker logs, journal entries, or assessment scores.</li>
-                                                <li>Any information that can identify you individually in relation to your mental health.</li>
-                                            </ul>
-                                            <p className="mt-2 text-xs font-semibold">Institutions only receive de-identified, aggregated statistical summaries regarding overall population engagement.</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* SECTION IV: USER RIGHTS, RETENTION & SECURITY */}
-                                <div className="space-y-6 pt-6">
-                                    <h3 className="text-center font-bold text-[#243460] border-y border-gray-200 py-2 text-[14px] lg:text-[16px] uppercase tracking-widest bg-gray-50/50 rounded-lg">
-                                        Section IV - Rights, Security &amp; Data Deletion
-                                    </h3>
-
-                                    {/* 9. Cookies */}
-                                    <div>
-                                        <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">9. Cookies &amp; Tracking</h4>
-                                        <div className="pl-6 border-l-4 border-[#3d838c]/40 text-gray-700 space-y-1">
-                                            <p>We use essential cookies for platform security, functional cookies to remember settings, and analytics cookies to optimize performance. You can manage your preferences through browser configurations.</p>
-                                        </div>
-                                    </div>
-
-                                    {/* 10. User Rights */}
-                                    <div>
-                                        <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">10. Your Rights as a Data Principal</h4>
-                                        <div className="pl-6 border-l-4 border-[#3d838c]/40 text-gray-700 space-y-2">
-                                            <p>Under the DPDP Act, you possess the rights to access, correct, update, and request erasure of your data, withdraw consent easily, nominate a representative, and seek redressal for grievances.</p>
-                                            <p>To exercise these rights, email: <span className="font-bold text-[#3d838c]">support@heyattrangi.com</span>.</p>
-                                        </div>
-                                    </div>
-
-                                    {/* 11 & 12. Account Deletion & AI Memory */}
-                                    <div>
-                                        <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">11. Account Deletion &amp; AI Memory Clear</h4>
-                                        <div className="pl-6 border-l-4 border-[#3d838c]/40 text-gray-700 space-y-2">
-                                            <p>Upon requesting deletion, we deactivate your account. AI conversational memory and chat history are wiped. However, clinical record notes must be legally retained in accordance with Section 25 of the Mental Healthcare Act, 2017.</p>
-                                        </div>
-                                    </div>
-
-                                    {/* 13 & 14. Security & Breaches */}
-                                    <div>
-                                        <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">12. Security Controls &amp; Incident Actions</h4>
-                                        <div className="pl-6 border-l-4 border-[#3d838c]/40 text-gray-700 space-y-2">
-                                            <p>Data is secured using transit and rest encryption, role-based controls, audits, and multi-factor logins. In the event of a breach, we act immediately to contain, mitigate, notify affected users, and alert the Data Protection Board of India where required by law.</p>
-                                        </div>
-                                    </div>
-
-                                    {/* 15 to 17. International, Retention & Minor consent */}
-                                    <div>
-                                        <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">13. Data Governance</h4>
-                                        <div className="pl-6 border-l-4 border-[#3d838c]/40 text-gray-700 space-y-2">
-                                            <p>• <strong>Data Localization:</strong> Processing takes place within India. Cross-border transfers adhere to central notifications.</p>
-                                            <p>• <strong>Retention:</strong> Retained only as long as needed for operational purposes and legal storage rules.</p>
-                                            <p>• <strong>Minor Privacy:</strong> Verifiable caregiver consent is mandatory under the DPDP Act for users under 18 years.</p>
-                                        </div>
-                                    </div>
-
-                                    {/* 18 & 19. Changes & Contact */}
-                                    <div>
-                                        <h4 className="font-bold text-[#243460] mb-2 uppercase text-[13px] lg:text-[15px]">14. Grievances &amp; Contacts</h4>
-                                        <div className="pl-6 border-l-4 border-gray-300 space-y-2">
-                                            <p className="font-semibold text-gray-900">For issues, queries, or notices:</p>
-                                            <div className="pl-6 border-l-4 border-gray-200 text-gray-700">
-                                                Email: <span className="font-bold text-[#3d838c]">support@heyattrangi.com</span><br />
-                                                Website: <span className="font-bold text-[#3d838c]">www.heyattrangi.com</span><br />
-                                                Grievances: Right to approach the Data Protection Board of India if issues remain unresolved.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
+                            <PrivacyPolicyContent />
                         </div>
 
                         {/* Modal Footer */}
@@ -933,53 +844,46 @@ export default function PatientOnboarding() {
 function ConsentScreen({
     data,
     onChange,
-    onOpenTerms,
-    onOpenPrivacy,
-    onOpenAi,
-    onOpenDataConsent,
-    onOpenTrustSafety,
 }: {
     data: OnboardingData
     onChange: (fields: Partial<OnboardingData>) => void
-    onOpenTerms: () => void
-    onOpenPrivacy: () => void
-    onOpenAi: () => void
-    onOpenDataConsent: () => void
-    onOpenTrustSafety: () => void
 }) {
     return (
         <div className="w-full max-w-xl text-left space-y-6">
-            <h2 className="text-[32px] font-bold text-gray-900 tracking-tight leading-[1.2] mb-2 text-left">
-                Consent &amp; Emergency Contact
+            <h2 className="text-[32px] font-bold text-gray-900 tracking-tight leading-[1.2] mb-2 text-left font-sans">
+                A little safety setup
             </h2>
-            <p className="text-gray-500 text-sm font-normal leading-relaxed text-left mb-6">
-                Your safety is our top priority. Please provide your emergency contact details and review our documents.
+            <p className="text-gray-500 text-sm font-normal leading-relaxed text-left mb-6 font-sans">
+                Your wellbeing matters to us. Here's where you can choose how we'd reach someone you trust if needed.
             </p>
 
             {/* Emergency Contact Fields */}
             <div className="bg-gray-50/50 p-5 rounded-[16px] border border-gray-100 space-y-4">
-                <h3 className="font-bold text-gray-800 text-[15px] uppercase tracking-wider">
-                    Emergency Contact Details
+                <h3 className="font-bold text-gray-800 text-[15px] uppercase tracking-wider font-sans">
+                    Emergency contact
                 </h3>
+                <p className="text-gray-500 text-[13px] font-semibold -mt-2 mb-2 font-sans">
+                    Someone we can reach if there's an emergency
+                </p>
                 <div className="grid grid-cols-1 gap-4">
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                            Contact Name &amp; Relationship
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 font-sans">
+                            Name &amp; relationship
                         </label>
                         <input
                             type="text"
                             value={data.emergencyContact}
                             onChange={(e) => onChange({ emergencyContact: e.target.value })}
-                            className="w-full px-4 py-3.5 rounded-[8px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-gray-800 placeholder-gray-400"
-                            placeholder="e.g. Name (Guardian)"
+                            className="w-full px-4 py-3.5 rounded-[8px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-gray-800 placeholder-gray-400 font-sans"
+                            placeholder="e.g. Mom, Brother, Friend"
                             required
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                            Phone Number
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 font-sans">
+                            Phone number
                         </label>
-                        <div className="flex rounded-[8px] border border-gray-300 focus-within:ring-1 focus-within:ring-[#e26843] focus-within:border-[#e26843] overflow-hidden transition-all bg-white">
+                        <div className="flex rounded-[8px] border border-gray-300 focus-within:ring-1 focus-within:ring-[#e26843] focus-within:border-[#e26843] overflow-hidden transition-all bg-white font-sans">
                             <span className="flex items-center justify-center bg-gray-50 px-4 text-gray-500 text-[15px] font-semibold border-r border-gray-200 select-none">
                                 +91
                             </span>
@@ -989,82 +893,82 @@ function ConsentScreen({
                                 value={data.emergencyPhone}
                                 onChange={(e) => onChange({ emergencyPhone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
                                 className="flex-1 px-4 py-3.5 outline-none text-[15px] text-gray-800 placeholder-gray-400 bg-transparent"
-                                placeholder="e.g. XXXXXXXXXX"
+                                placeholder="XXXXX XXXXX"
                                 required
                             />
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+    )
+}
 
-            {/* Consent Checkbox */}
-            <div className="bg-gray-50/50 p-5 rounded-[16px] border border-gray-100 space-y-4">
-                <h3 className="font-bold text-gray-800 text-[15px] uppercase tracking-wider">
-                    Consent &amp; Agreements
-                </h3>
-                <div className="text-sm text-gray-600 space-y-2">
-                    <p className="font-semibold text-[13px] text-gray-800">Documents Included:</p>
-                    <ul className="grid grid-cols-2 gap-x-4 gap-y-1 list-disc pl-5 text-[12px] text-gray-500 font-semibold">
-                        <li>
-                            <button
-                                type="button"
-                                onClick={onOpenTerms}
-                                className="text-[#e26843] hover:underline font-semibold text-left cursor-pointer outline-none bg-transparent"
-                            >
-                                Terms &amp; Conditions
-                            </button>
-                        </li>
-                        <li>
-                            <button
-                                type="button"
-                                onClick={onOpenPrivacy}
-                                className="text-[#e26843] hover:underline font-semibold text-left cursor-pointer outline-none bg-transparent"
-                            >
-                                Privacy Policy
-                            </button>
-                        </li>
-                        <li>
-                            <button
-                                type="button"
-                                onClick={onOpenAi}
-                                className="text-[#e26843] hover:underline font-semibold text-left cursor-pointer outline-none bg-transparent"
-                            >
-                                AI Transparency Statement
-                            </button>
-                        </li>
-                        <li>
-                            <button
-                                type="button"
-                                onClick={onOpenTrustSafety}
-                                className="text-[#e26843] hover:underline font-semibold text-left cursor-pointer outline-none bg-transparent"
-                            >
-                                Trust, Safety &amp; Acceptable Use Policy
-                            </button>
-                        </li>
-                        <li>
-                            <button
-                                type="button"
-                                onClick={onOpenDataConsent}
-                                className="text-[#e26843] hover:underline font-semibold text-left cursor-pointer outline-none bg-transparent"
-                            >
-                                Data Processing Consent
-                            </button>
-                        </li>
-                    </ul>
-                </div>
+function CustomDropdown({
+    value,
+    options,
+    placeholder,
+    onChange,
+}: {
+    value: string
+    options: { code: string; name: string }[]
+    placeholder?: string
+    onChange: (val: string) => void
+}) {
+    const [isOpen, setIsOpen] = useState(false)
 
-                <label className="flex items-start gap-3 mt-4 cursor-pointer select-none">
-                    <input
-                        type="checkbox"
-                        checked={data.consentAgreed}
-                        onChange={(e) => onChange({ consentAgreed: e.target.checked })}
-                        className="w-5 h-5 mt-0.5 rounded text-[#e26843] focus:ring-[#e26843] border-gray-300 cursor-pointer"
+    return (
+        <div className="relative w-full">
+            <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full px-4 py-3.5 rounded-[10px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-left text-gray-900 bg-white flex items-center justify-between cursor-pointer select-none"
+            >
+                <span className={!value && placeholder ? "text-gray-400 font-normal" : "text-gray-900 font-semibold"}>
+                    {value ? options.find((o) => o.code === value)?.name || value : placeholder || "Select..."}
+                </span>
+                <svg
+                    className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.2}
+                >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+
+            {isOpen && (
+                <>
+                    {/* Backdrop to close on click outside */}
+                    <div
+                        className="fixed inset-0 z-20 cursor-default bg-transparent"
+                        onClick={() => setIsOpen(false)}
                     />
-                    <span className="text-[13px] text-gray-600 font-semibold leading-relaxed">
-                        I have read and agree to all the documents mentioned above.
-                    </span>
-                </label>
-            </div>
+                    
+                    {/* Strictly downward opening overlay */}
+                    <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-[10px] shadow-lg z-30 mt-1.5 max-h-[220px] overflow-y-auto py-1">
+                        {options.map((option) => {
+                            const isSelected = value === option.code
+                            return (
+                                <button
+                                    key={option.code}
+                                    type="button"
+                                    onClick={() => {
+                                        onChange(option.code)
+                                        setIsOpen(false)
+                                    }}
+                                    className={`w-full text-left px-4 py-3 text-[14px] hover:bg-slate-50 transition-colors cursor-pointer select-none font-semibold ${
+                                        isSelected ? "bg-slate-50/80 text-[#e26843] font-bold" : "text-gray-700"
+                                    }`}
+                                >
+                                    {option.name}
+                                </button>
+                            )
+                        })}
+                    </div>
+                </>
+            )}
         </div>
     )
 }
@@ -1078,22 +982,23 @@ function PersonalizationScreen({
     onChange: (fields: Partial<OnboardingData>) => void
     onBack?: () => void
 }) {
-    const handleDobChange = (dobValue: string) => {
-        if (dobValue) {
-            const birthDate = new Date(dobValue)
-            const today = new Date()
-            let calculatedAge = today.getFullYear() - birthDate.getFullYear()
-            const m = today.getMonth() - birthDate.getMonth()
-            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                calculatedAge--
-            }
-            onChange({
-                dob: dobValue,
-                age: calculatedAge.toString()
-            })
-        } else {
-            onChange({ dob: "", age: "" })
+    const handleAgeRangeSelect = (range: "16-17" | "18-20" | "21-24" | "25+") => {
+        let nominalAge = "19"
+        let nominalDob = "2007-01-01"
+        if (range === "16-17") {
+            nominalAge = "17"
+            nominalDob = "2009-01-01"
+        } else if (range === "18-20") {
+            nominalAge = "19"
+            nominalDob = "2007-01-01"
+        } else if (range === "21-24") {
+            nominalAge = "22"
+            nominalDob = "2004-01-01"
+        } else if (range === "25+") {
+            nominalAge = "26"
+            nominalDob = "2000-01-01"
         }
+        onChange({ ageRange: range, age: nominalAge, dob: nominalDob })
     }
 
     const languages = [
@@ -1137,103 +1042,78 @@ function PersonalizationScreen({
             )}
 
             <h2 className="text-[32px] font-bold text-gray-900 tracking-tight leading-[1.2] text-left mb-2">
-                Help us personalize your experience
+                Let's make Attrangi yours 💛
             </h2>
             <p className="text-gray-500 text-[15px] font-normal leading-relaxed text-left mb-8">
-                Please provide a few details to help us customize the platform for you.
+                Just a few things to help us get to know you.
             </p>
 
             <div className="space-y-6">
                 {/* 1. Name */}
                 <div>
                     <label className="block text-[15px] font-bold text-gray-900 mb-2">
-                        What&apos;s your name?
+                        What should we call you?
                     </label>
                     <input
                         type="text"
                         value={data.name || ""}
                         onChange={(e) => onChange({ name: e.target.value })}
                         className={fieldClass}
-                        placeholder="Enter your name"
+                        placeholder="Your name"
                         required
                     />
                 </div>
 
-                {/* 2. Birthday */}
+                {/* 2. Age Range Select (replaces DOB date input) */}
                 <div>
                     <label className="block text-[15px] font-bold text-gray-900 mb-2">
-                        Birthday
+                        How old are you?
                     </label>
-                    <input
-                        type="date"
-                        value={data.dob || ""}
-                        onChange={(e) => handleDobChange(e.target.value)}
-                        max={new Date().toISOString().split("T")[0]}
-                        className={`${fieldClass} cursor-pointer`}
-                        required
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {(["16-17", "18-20", "21-24", "25+"] as const).map((range) => {
+                            const isSelected = data.ageRange === range
+                            const displayLabel = range === "25+" ? "25+" : range.replace("-", "–")
+                            return (
+                                <button
+                                    key={range}
+                                    type="button"
+                                    onClick={() => handleAgeRangeSelect(range)}
+                                    className={`py-3.5 px-4 rounded-[10px] border text-center font-semibold text-[15px] transition-all duration-200 select-none cursor-pointer active:scale-98 ${
+                                        isSelected
+                                            ? "bg-[#e26843] text-white border-[#e26843] shadow-sm font-bold"
+                                            : "bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-slate-50"
+                                    }`}
+                                >
+                                    {displayLabel}
+                                </button>
+                            )
+                        })}
+                    </div>
+                </div>
+
+                {/* 3. Language Custom Dropdown */}
+                <div>
+                    <label className="block text-[15px] font-bold text-gray-900 mb-2">
+                        Which language feels most comfortable?
+                    </label>
+                    <CustomDropdown
+                        value={data.preferredLanguage || "English"}
+                        options={languages}
+                        onChange={(val) => onChange({ preferredLanguage: val })}
                     />
                 </div>
 
-                {/* 3. Language */}
+                {/* 4. Heard About Us Custom Dropdown */}
                 <div>
                     <label className="block text-[15px] font-bold text-gray-900 mb-2">
-                        What&apos;s your preferred language?
+                        How did you find Attrangi? <span className="text-gray-400 font-normal">(optional)</span>
                     </label>
-                    <div className="relative">
-                        <select
-                            value={data.preferredLanguage || "English"}
-                            onChange={(e) => onChange({ preferredLanguage: e.target.value })}
-                            className={`${fieldClass} cursor-pointer pr-10`}
-                        >
-                            {languages.map((lang) => (
-                                <option key={lang.code} value={lang.code}>
-                                    {lang.name}
-                                </option>
-                            ))}
-                        </select>
-                        <svg
-                            className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2.2}
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </div>
-                </div>
-
-                {/* 4. Heard About Us */}
-                <div>
-                    <label className="block text-[15px] font-bold text-gray-900 mb-2">
-                        How did you hear about us?{" "}
-                        <span className="text-gray-400 font-normal">(optional)</span>
-                    </label>
-                    <div className="relative">
-                        <select
-                            value={data.heardAboutUs || ""}
-                            onChange={(e) => onChange({ heardAboutUs: e.target.value })}
-                            className={`${fieldClass} cursor-pointer pr-10`}
-                        >
-                            <option value="" disabled>
-                                Select an option
-                            </option>
-                            {heardAboutOptions.map((option) => (
-                                <option key={option} value={option}>
-                                    {option}
-                                </option>
-                            ))}
-                        </select>
-                        <svg
-                            className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2.2}
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </div>
+                    <CustomDropdown
+                        value={data.heardAboutUs || ""}
+                        options={heardAboutOptions.map((o) => ({ code: o, name: o }))}
+                        placeholder="A friend, college, Instagram..."
+                        onChange={(val) => onChange({ heardAboutUs: val })}
+                    />
                 </div>
             </div>
         </div>
@@ -1346,199 +1226,171 @@ function ExperienceScreen({ selected, onSelect }: { selected: string; onSelect: 
 }
 
 function PricingScreen({
-    selectedPlan,
-    onSelectPlan,
     onOpenTerms,
     onOpenPrivacy,
-    onSkip,
+    handlePayment,
+    isProcessingPayment,
 }: {
-    selectedPlan: "ESSENTIAL" | "PREMIUM"
-    onSelectPlan: (plan: "ESSENTIAL" | "PREMIUM") => void
     onOpenTerms: () => void
     onOpenPrivacy: () => void
-    onSkip: () => void
+    handlePayment: (amount: number) => void
+    isProcessingPayment: boolean
 }) {
-    const unlockFeatures = [
-        {
-            title: "Personalised Wellbeing Plan",
-            subtitle: "5-min a day to rewire your mindset",
-            bg: "bg-[#f3a69a]",
-            icon: (
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2l1.4 4.3h4.5l-3.6 2.7 1.4 4.3L12 10.6 8.3 13.3l1.4-4.3-3.6-2.7h4.5L12 2zm7 12l.9 2.7h2.8l-2.3 1.7.9 2.7-2.3-1.7-2.3 1.7.9-2.7-2.3-1.7h2.8L19 14zm-14 0l.9 2.7h2.8l-2.3 1.7.9 2.7-2.3-1.7-2.3 1.7.9-2.7-2.3-1.7h2.8L5 14z" />
-                </svg>
-            ),
-        },
-        {
-            title: "AI Insights",
-            subtitle: "Uncover surprising patterns about you",
-            bg: "bg-[#c4b0d8]",
-            icon: (
-                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12h3l2-5 3 10 3-7 2 2h5" />
-                </svg>
-            ),
-        },
-        {
-            title: "Mood Dashboard",
-            subtitle: "Keep track of your progress",
-            bg: "bg-[#e8c96a]",
-            icon: (
-                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4-5 3 3 5-7 4 4" />
-                </svg>
-            ),
-        },
-        {
-            title: "Longer Conversations",
-            subtitle: "Record up to 20 minutes per entry",
-            bg: "bg-[#8eb8d8]",
-            icon: (
-                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3zm5-3a5 5 0 01-10 0M12 19v3m-4 0h8" />
-                </svg>
-            ),
-        },
-    ]
+    const [billingPeriod, setBillingPeriod] = useState<"monthly" | "semester" | "annual">("monthly")
+
+    const getPriceDetails = () => {
+        switch (billingPeriod) {
+            case "semester":
+                return { price: "₹134", label: "/ month", subtext: "Billed ₹805 every 6 months", amount: 805 }
+            case "annual":
+                return { price: "₹119", label: "/ month", subtext: "Billed ₹1430 every year", amount: 1430 }
+            case "monthly":
+            default:
+                return { price: "₹149", label: "/ month", subtext: "Billed monthly", amount: 149 }
+        }
+    }
+
+    const { price, label, subtext, amount } = getPriceDetails()
 
     return (
-        <div className="w-full max-w-xl text-left flex flex-col">
-            {/* Unlock more ways to feel better */}
-            <div className="mb-4">
-                <h2 className="text-[24px] lg:text-[26px] font-bold text-gray-900 tracking-tight leading-[1.2] text-left mb-3">
-                    Unlock more ways to feel better
-                </h2>
-                <div className="flex flex-col gap-3">
-                    {unlockFeatures.map((feature) => (
-                        <div key={feature.title} className="flex items-center gap-3 min-w-0">
-                            <div className={`w-9 h-9 rounded-[10px] ${feature.bg} flex items-center justify-center shrink-0`}>
-                                {feature.icon}
-                            </div>
-                            <div className="min-w-0">
-                                <h4 className="font-bold text-[14px] text-gray-900 leading-snug">{feature.title}</h4>
-                                <p className="text-[12px] text-gray-500 mt-0.5 leading-snug">{feature.subtitle}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Main Title */}
-            <h2 className="text-[24px] lg:text-[26px] font-bold text-gray-900 tracking-tight leading-[1.2] text-left mb-3">
-                Start your journey
-            </h2>
-
-            {/* Plans List */}
-            <div className="w-full space-y-2.5 text-left">
-                {/* Card 1: Companion (Premium) */}
-                <div
-                    onClick={() => onSelectPlan("PREMIUM")}
-                    className={`relative border-2 rounded-[16px] p-3.5 cursor-pointer flex items-center justify-between transition-all duration-300 select-none ${selectedPlan === "PREMIUM"
-                        ? "border-[#e26843] bg-[#fffbf7] shadow-lg shadow-orange-500/5"
-                        : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/30"
-                        }`}
+        <div className="w-full max-w-md mx-auto flex flex-col gap-4 text-left">
+            {/* Card 2: PREMIUM */}
+            <div className="bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-zinc-100/60 p-4 sm:p-5 flex flex-col gap-4 w-full">
+                {/* Nested Rounded Gradient Box */}
+                <div 
+                    className="rounded-[24px] p-4 sm:p-5 flex flex-col justify-between min-h-[295px] sm:min-h-[305px] relative overflow-hidden bg-cover bg-center"
+                    style={{
+                        backgroundImage: "url('https://res.cloudinary.com/dxoiluua8/image/upload/v1786789037/Banner_bg_rrixld.png')",
+                    }}
                 >
-                    <div className="flex flex-col gap-1.5 flex-1 pr-3">
-                        <span
-                            className={`inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full w-max ${selectedPlan === "PREMIUM"
-                                ? "bg-[#e26843] text-white"
-                                : "bg-gray-100 text-gray-500"
+                    <div className="flex flex-col gap-2.5">
+                        <h3 className="text-xs font-extrabold uppercase tracking-widest text-zinc-800 flex items-center gap-1 font-sans">
+                            ✦ PREMIUM
+                        </h3>
+                        
+                        {/* Segmented control billing toggle */}
+                        <div className="flex items-center bg-zinc-950/5 p-1 rounded-full w-full max-w-[340px] select-none">
+                            <button
+                                type="button"
+                                onClick={() => setBillingPeriod("monthly")}
+                                className={`flex-1 py-1.5 rounded-full font-extrabold text-[10px] sm:text-[11px] transition-all duration-300 cursor-pointer ${
+                                    billingPeriod === "monthly" ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-600 hover:text-zinc-950"
                                 }`}
-                        >
-                            Best Offer
-                        </span>
-                        <div>
-                            <h4 className="font-bold text-base text-gray-900 leading-tight">Companion</h4>
-                            <p className="text-[11px] font-medium text-gray-500 mt-0.5 leading-snug">
-                                Unlimited AI support &amp; long-term memory
-                            </p>
+                            >
+                                Monthly
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setBillingPeriod("semester")}
+                                className={`flex-1 py-1.5 rounded-full font-extrabold text-[10px] sm:text-[11px] transition-all duration-300 cursor-pointer flex items-center justify-center ${
+                                    billingPeriod === "semester" ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-600 hover:text-zinc-950"
+                                }`}
+                            >
+                                Semester
+                                <span className="bg-emerald-100 text-emerald-700 text-[8px] px-1 py-0.5 rounded-full font-black ml-1 scale-90 sm:scale-100">
+                                    10%
+                                </span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setBillingPeriod("annual")}
+                                className={`flex-1 py-1.5 rounded-full font-extrabold text-[10px] sm:text-[11px] transition-all duration-300 cursor-pointer flex items-center justify-center ${
+                                    billingPeriod === "annual" ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-600 hover:text-zinc-950"
+                                }`}
+                            >
+                                Annual
+                                <span className="bg-emerald-100 text-emerald-700 text-[8px] px-1 py-0.5 rounded-full font-black ml-1 scale-90 sm:scale-100">
+                                    20%
+                                </span>
+                            </button>
                         </div>
+
+                        {/* Price displays */}
+                        <div className="flex flex-col mt-2">
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-[36px] sm:text-[40px] font-black tracking-tight text-zinc-950 leading-none font-sans">
+                                    {price}
+                                </span>
+                                <span className="text-xs text-zinc-500 font-bold font-sans">
+                                    {label}
+                                </span>
+                            </div>
+                            <span className="text-[9px] text-zinc-500 font-bold font-sans mt-0.5">
+                                {subtext}
+                            </span>
+                        </div>
+
+                        <p className="text-xs sm:text-[12px] text-zinc-700 font-medium leading-relaxed font-sans mt-1">
+                            More space to understand yourself - with longer continuity and personalized support.
+                        </p>
                     </div>
 
-                    <div className="flex items-center gap-2.5 text-right">
-                        <div>
-                            <span className="block font-black text-lg text-gray-900">₹149.00</span>
-                            <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">per month</span>
-                        </div>
-
-                        <div
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedPlan === "PREMIUM"
-                                ? "bg-[#e26843] border-[#e26843]"
-                                : "border-gray-200"
-                                }`}
-                        >
-                            {selectedPlan === "PREMIUM" && (
-                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Card 2: Listener (Essential) */}
-                <div
-                    onClick={() => onSelectPlan("ESSENTIAL")}
-                    className={`relative border-2 rounded-[16px] p-3.5 cursor-pointer flex items-center justify-between transition-all duration-300 select-none ${selectedPlan === "ESSENTIAL"
-                        ? "border-[#e26843] bg-[#fffbf7] shadow-lg shadow-orange-500/5"
-                        : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/30"
-                        }`}
-                >
-                    <div className="flex flex-col gap-1.5 flex-1 pr-3">
-                        <span
-                            className={`inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full w-max ${selectedPlan === "ESSENTIAL"
-                                ? "bg-[#e26843] text-white"
-                                : "bg-gray-100 text-gray-500"
-                                }`}
-                        >
-                            Easy Start
-                        </span>
-                        <div>
-                            <h4 className="font-bold text-base text-gray-900 leading-tight">Listener</h4>
-                            <p className="text-[11px] font-medium text-gray-500 mt-0.5 leading-snug">
-                                Daily check-ins &amp; basic mood tracking
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-2.5 text-right">
-                        <div>
-                            <span className="block font-black text-lg text-gray-900">₹49.00</span>
-                            <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">per month</span>
-                        </div>
-
-                        <div
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedPlan === "ESSENTIAL"
-                                ? "bg-[#e26843] border-[#e26843]"
-                                : "border-gray-200"
-                                }`}
-                        >
-                            {selectedPlan === "ESSENTIAL" && (
-                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Footer cluster — tight under plans, no large empty gap */}
-            <div className="mt-4 flex flex-col items-center lg:items-start">
-                <div className="flex items-center gap-2 text-gray-500 text-xs font-semibold tracking-wide">
-                    <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    <span>Cancel anytime</span>
-                </div>
-
-                <div className="flex gap-5 mt-2 text-xs font-semibold text-gray-400">
-                    <button onClick={onOpenTerms} className="underline hover:text-gray-600 transition-colors bg-transparent border-none cursor-pointer">
-                        Terms
+                    {/* Action Button */}
+                    <button
+                        onClick={() => handlePayment(amount)}
+                        disabled={isProcessingPayment}
+                        className="w-full mt-4 py-3 px-4 bg-zinc-950 hover:bg-zinc-900 text-white text-xs sm:text-[13px] font-extrabold rounded-full transition-all flex items-center justify-center gap-2 select-none shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20 cursor-pointer"
+                    >
+                        {isProcessingPayment ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                            "Get Premium"
+                        )}
                     </button>
-                    <button onClick={onOpenPrivacy} className="underline hover:text-gray-600 transition-colors bg-transparent border-none cursor-pointer">
-                        Privacy Policy
-                    </button>
+                </div>
+
+                {/* Features section */}
+                <div className="flex flex-col gap-2.5 px-1 mt-2">
+                    <h4 className="text-xs sm:text-sm font-extrabold text-zinc-900 font-sans">
+                        Includes
+                    </h4>
+                    <ul className="space-y-2 text-xs sm:text-[13px] font-bold text-zinc-700">
+                        <li className="flex items-center gap-3">
+                            <svg className="w-5 h-5 text-blue-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            <span>150 AI messages/day</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <svg className="w-5 h-5 text-blue-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            <span>Full listening library</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <svg className="w-5 h-5 text-blue-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            <span>Unlimited assessments</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <svg className="w-5 h-5 text-blue-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            <span>1 year of history</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <svg className="w-5 h-5 text-blue-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            <span>Personalized reminders</span>
+                        </li>
+                    </ul>
+
+                    <div className="text-center mt-3">
+                        <span className="text-[11px] font-bold text-zinc-400 font-sans">
+                            Cancel anytime.
+                        </span>
+                    </div>
+
+                    <div className="flex gap-5 justify-center mt-2 text-[10px] font-semibold text-gray-400">
+                        <button onClick={onOpenTerms} className="underline hover:text-gray-600 transition-colors bg-transparent border-none cursor-pointer">
+                            Terms
+                        </button>
+                        <button onClick={onOpenPrivacy} className="underline hover:text-gray-600 transition-colors bg-transparent border-none cursor-pointer">
+                            Privacy Policy
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1552,5 +1404,125 @@ function FinalScreen({ userName }: { userName: string }) {
                 Thanks for sharing, {userName}.<br />We&apos;re here with you.
             </h2>
         </div>
+    )
+}
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.12,
+            delayChildren: 0.1,
+        }
+    }
+} as const
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+            type: "spring" as const,
+            stiffness: 110,
+            damping: 18,
+        }
+    }
+} as const
+
+function OnboardingCompanionScreen({
+    userName,
+    isLoading,
+    handleFinish
+}: {
+    userName: string
+    isLoading: boolean
+    handleFinish: () => void
+}) {
+    return (
+        <main className="min-h-screen w-full relative flex flex-col items-center justify-center overflow-x-hidden select-none bg-gradient-to-b from-[#FFA36C] via-[#FFF7F2] to-[#FFF9F6]">
+            {/* Desktop wrapper to restrict width and center content */}
+            <motion.div 
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="w-full max-w-[430px] min-h-screen px-6 py-6 flex flex-col justify-between relative z-10 font-sans"
+            >
+                {/* 1. Header Text section */}
+                <div className="text-left mt-6">
+                    <motion.p 
+                        variants={itemVariants} 
+                        className="text-white text-lg min-[360px]:text-xl font-bold tracking-tight opacity-90"
+                    >
+                        I'm Your Companion
+                    </motion.p>
+                    <motion.p 
+                        variants={itemVariants} 
+                        className="text-white text-2xl min-[360px]:text-3xl font-bold tracking-tight mt-1 opacity-95"
+                    >
+                        You Can Call Me
+                    </motion.p>
+                    <motion.h1 
+                        variants={itemVariants} 
+                        className="text-white text-[38px] min-[360px]:text-[46px] font-black leading-tight tracking-tight mt-1"
+                    >
+                        Hey Attrangi
+                    </motion.h1>
+                </div>
+
+                {/* 2. Main Visual Area (Bubble, Bot image, Chat preview) */}
+                <div className="relative w-full flex-1 flex flex-col items-center justify-center my-4 min-h-[340px]">
+                    <div className="relative w-full max-w-[340px] aspect-[1/1] flex flex-col items-center justify-end pb-2">
+                        {/* "Hello Buddy" speech bubble - placed relative to the visual container */}
+                        <motion.div 
+                            variants={itemVariants}
+                            className="absolute left-[5%] top-[5%] z-30"
+                        >
+                            <div className="relative bg-white text-slate-800 text-[12px] font-extrabold px-4 py-2 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.06)] border border-slate-100/50">
+                                Hello Buddy
+                                {/* Tail pointing down-right towards the bot */}
+                                <div className="absolute bottom-[-4px] right-[16px] w-2.5 h-2.5 bg-white rotate-45 border-r border-b border-slate-100/50"></div>
+                            </div>
+                        </motion.div>
+
+                        {/* Companion Image */}
+                        <motion.div 
+                            variants={itemVariants}
+                            className="w-[235px] h-[235px] min-[360px]:w-[265px] min-[360px]:h-[265px] min-[400px]:w-[290px] min-[400px]:h-[290px] z-20 relative -right-[20px]"
+                        >
+                            <img 
+                                src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786966299/bot_welcome_m2mnkm.png"
+                                alt="Hey Attrangi Companion"
+                                className="w-full h-full object-contain pointer-events-none"
+                            />
+                        </motion.div>
+
+                    </div>
+                </div>
+
+                {/* 3. Actions section */}
+                <div className="flex flex-col gap-4 w-full px-2 mb-4">
+                    {/* Primary Button */}
+                    <motion.button 
+                        variants={itemVariants}
+                        onClick={handleFinish}
+                        disabled={isLoading}
+                        className="w-full py-4 bg-white text-slate-900 font-extrabold text-[15px] min-[360px]:text-base rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.03)] hover:bg-slate-50 transition-colors border border-slate-900 active:scale-98 flex items-center justify-center cursor-pointer select-none disabled:opacity-50"
+                    >
+                        {isLoading ? "Starting..." : "Continue talking"}
+                    </motion.button>
+
+                    {/* Secondary Button */}
+                    <motion.button 
+                        variants={itemVariants}
+                        onClick={handleFinish}
+                        className="w-full text-center text-[13px] min-[360px]:text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors bg-transparent border-none cursor-pointer select-none"
+                    >
+                        Maybe later
+                    </motion.button>
+                </div>
+            </motion.div>
+        </main>
     )
 }

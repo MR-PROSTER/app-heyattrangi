@@ -215,8 +215,8 @@ function ActivityCard({
             {activity.title}
           </span>
           <span 
-            style={{ backgroundColor: style.labelBg, color: style.labelText }}
-            className="px-2.5 py-1 min-[360px]:px-4 min-[360px]:py-1.5 rounded-full text-[10px] min-[360px]:text-[11px] min-[390px]:text-xs font-bold whitespace-nowrap shrink-0 ml-2"
+            style={{ color: style.text }}
+            className="text-[11px] min-[360px]:text-xs min-[390px]:text-sm font-bold opacity-80 shrink-0 ml-2 whitespace-nowrap mt-0.5"
           >
             {activity.duration}
           </span>

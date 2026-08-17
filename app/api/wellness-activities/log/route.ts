@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth.config";
 import { prisma } from "@/lib/prisma";
+import { enforceLimit } from "@/lib/limits/checkLimits";
 
 export async function GET() {
     try {
@@ -42,6 +43,26 @@ export async function POST(req: Request) {
 
         const { wellnessActivityId, wellnessActivitySlug, durationMs } = body;
         console.log("[Wellness Log POST] Body received:", { wellnessActivityId, wellnessActivitySlug, durationMs });
+
+        // Fetch user plan and enforce daily limit
+        const dbUser = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { plan: true },
+        });
+        const plan = dbUser?.plan || "FREE";
+
+        const dailyCheck = await enforceLimit({
+            userId: session.user.id,
+            action: "WELLNESS_COMPLETION_DAILY",
+            plan,
+            limitFree: 20,
+            limitPremium: 30,
+            windowMs: 24 * 60 * 60 * 1000,
+            errorMessage: "Daily wellness activity limit reached",
+        });
+        if (!dailyCheck.allowed) {
+            return NextResponse.json({ error: "LIMIT_EXCEEDED", message: dailyCheck.message, resetInSeconds: dailyCheck.resetInSeconds }, { status: 429 });
+        }
 
         let normalizedSlug = wellnessActivitySlug;
         if (wellnessActivitySlug) {

@@ -1,99 +1,12 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import PeriodSelector from "@/components/wellbeing/PeriodSelector"
 import WeeklyWellbeingCard from "@/components/wellbeing/WeeklyWellbeingCard"
 import MonthlyWellbeing from "@/components/wellbeing/MonthlyWellbeing"
 import SeniorSupportCard from "@/components/wellbeing/SeniorSupportCard"
 import MoodPatternsCard from "@/components/wellbeing/MoodPatternsCard"
-
-const MOCK_WEEKS_DATA: Record<
-  number,
-  {
-    week: number
-    averageMood: number
-    moods: {
-      label: string
-      value: number
-      color: string
-      bgClass: string
-      image: string
-    }[]
-  }
-> = {
-  1: {
-    week: 1,
-    averageMood: 5.6,
-    moods: [
-      { label: "Okay", value: 4, color: "#FFD5B7", bgClass: "bg-[#FFD5B7]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Okay-emotion_sscj34.png" },
-      { label: "Good", value: 5, color: "#CEF8A4", bgClass: "bg-[#CEF8A4]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Good-emotion_jimbfs.png" },
-      { label: "Great", value: 3, color: "#FCE5AF", bgClass: "bg-[#FCE5AF]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Great-emotion_rbwtzb.png" },
-      { label: "Meh", value: 2, color: "#C2DDF8", bgClass: "bg-[#C2DDF8]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Meh-emotion_nozhzi.png" },
-      { label: "Low", value: 2, color: "#E9C9FF", bgClass: "bg-[#E9C9FF]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730629/Low-emotion_vbpanv.png" },
-    ],
-  },
-  2: {
-    week: 2,
-    averageMood: 6.3,
-    moods: [
-      { label: "Okay", value: 3, color: "#FFD5B7", bgClass: "bg-[#FFD5B7]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Okay-emotion_sscj34.png" },
-      { label: "Good", value: 6, color: "#CEF8A4", bgClass: "bg-[#CEF8A4]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Good-emotion_jimbfs.png" },
-      { label: "Great", value: 4, color: "#FCE5AF", bgClass: "bg-[#FCE5AF]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Great-emotion_rbwtzb.png" },
-      { label: "Meh", value: 2, color: "#C2DDF8", bgClass: "bg-[#C2DDF8]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Meh-emotion_nozhzi.png" },
-      { label: "Low", value: 1, color: "#E9C9FF", bgClass: "bg-[#E9C9FF]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730629/Low-emotion_vbpanv.png" },
-    ],
-  },
-  3: {
-    week: 3,
-    averageMood: 5.1,
-    moods: [
-      { label: "Okay", value: 5, color: "#FFD5B7", bgClass: "bg-[#FFD5B7]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Okay-emotion_sscj34.png" },
-      { label: "Good", value: 4, color: "#CEF8A4", bgClass: "bg-[#CEF8A4]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Good-emotion_jimbfs.png" },
-      { label: "Great", value: 2, color: "#FCE5AF", bgClass: "bg-[#FCE5AF]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Great-emotion_rbwtzb.png" },
-      { label: "Meh", value: 3, color: "#C2DDF8", bgClass: "bg-[#C2DDF8]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Meh-emotion_nozhzi.png" },
-      { label: "Low", value: 2, color: "#E9C9FF", bgClass: "bg-[#E9C9FF]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730629/Low-emotion_vbpanv.png" },
-    ],
-  },
-}
-
-// TODO: Replace with real monthly wellbeing data when monthly analytics are implemented.
-const MOCK_MONTHS_DATA: Record<
-  number,
-  {
-    month: number
-    averageMood: number
-    moods: {
-      label: string
-      value: number
-      color: string
-      bgClass: string
-      image: string
-    }[]
-  }
-> = {
-  0: {
-    month: 0,
-    averageMood: 5.6,
-    moods: [
-      { label: "Okay", value: 4, color: "#FFD5B7", bgClass: "bg-[#FFD5B7]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Okay-emotion_sscj34.png" },
-      { label: "Good", value: 5, color: "#CEF8A4", bgClass: "bg-[#CEF8A4]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Good-emotion_jimbfs.png" },
-      { label: "Great", value: 3, color: "#FCE5AF", bgClass: "bg-[#FCE5AF]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Great-emotion_rbwtzb.png" },
-      { label: "Meh", value: 2, color: "#C2DDF8", bgClass: "bg-[#C2DDF8]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Meh-emotion_nozhzi.png" },
-      { label: "Low", value: 2, color: "#E9C9FF", bgClass: "bg-[#E9C9FF]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730629/Low-emotion_vbpanv.png" },
-    ],
-  },
-  1: {
-    month: 1,
-    averageMood: 6.1,
-    moods: [
-      { label: "Okay", value: 3, color: "#FFD5B7", bgClass: "bg-[#FFD5B7]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Okay-emotion_sscj34.png" },
-      { label: "Good", value: 6, color: "#CEF8A4", bgClass: "bg-[#CEF8A4]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Good-emotion_jimbfs.png" },
-      { label: "Great", value: 4, color: "#FCE5AF", bgClass: "bg-[#FCE5AF]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Great-emotion_rbwtzb.png" },
-      { label: "Meh", value: 1, color: "#C2DDF8", bgClass: "bg-[#C2DDF8]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Meh-emotion_nozhzi.png" },
-      { label: "Low", value: 1, color: "#E9C9FF", bgClass: "bg-[#E9C9FF]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730629/Low-emotion_vbpanv.png" },
-    ],
-  },
-}
+import RecentActivity from "@/components/patient/dashboard/RecentActivity"
 
 const MONTH_NAMES = [
   "January",
@@ -110,16 +23,45 @@ const MONTH_NAMES = [
   "December",
 ]
 
+const DEFAULT_WEEK_MOODS = [
+  { label: "Okay", value: 0, color: "#FFD5B7", bgClass: "bg-[#FFD5B7]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Okay-emotion_sscj34.png" },
+  { label: "Good", value: 0, color: "#CEF8A4", bgClass: "bg-[#CEF8A4]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Good-emotion_jimbfs.png" },
+  { label: "Great", value: 0, color: "#FCE5AF", bgClass: "bg-[#FCE5AF]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Great-emotion_rbwtzb.png" },
+  { label: "Meh", value: 0, color: "#C2DDF8", bgClass: "bg-[#C2DDF8]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Meh-emotion_nozhzi.png" },
+  { label: "Low", value: 0, color: "#E9C9FF", bgClass: "bg-[#E9C9FF]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730629/Low-emotion_vbpanv.png" },
+]
+
 export default function WellbeingPage() {
   const [viewMode, setViewMode] = useState<"week" | "month">("week")
-  const [selectedWeek, setSelectedWeek] = useState<number>(1)
+  const [selectedWeek, setSelectedWeek] = useState<number>(3) // Default to current week (Week 3)
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth())
+  
+  const [weeklyData, setWeeklyData] = useState<any>(null)
+  const [monthlyData, setMonthlyData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/patient/wellbeing/stats")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch wellbeing stats")
+        return res.json()
+      })
+      .then((data) => {
+        setWeeklyData(data.weeklyData || {})
+        setMonthlyData(data.monthlyData || {})
+        setLoading(false)
+      })
+      .catch((err) => {
+        console.error("Error fetching stats:", err)
+        setLoading(false)
+      })
+  }, [])
 
   const weeks = [1, 2, 3]
   const months = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
-  const currentWeekData = MOCK_WEEKS_DATA[selectedWeek] || MOCK_WEEKS_DATA[1]
-  const currentMonthData = MOCK_MONTHS_DATA[selectedMonth]
+  const currentWeekData = weeklyData?.[selectedWeek] || { averageMood: 0, moods: DEFAULT_WEEK_MOODS }
+  const currentMonthData = monthlyData?.[selectedMonth]
   const hasMonthlyData = !!currentMonthData
 
   const handlePrevWeek = () => {
@@ -148,6 +90,16 @@ export default function WellbeingPage() {
 
   const handleToggleMode = () => {
     setViewMode((prev) => (prev === "week" ? "month" : "week"))
+  }
+
+  if (loading) {
+    return (
+      <div className="flex-1 w-full h-full overflow-y-auto bg-[#F9F5F0] flex flex-col items-center justify-center font-sans select-none pb-20">
+        <div className="text-[#1E1E2E] font-bold text-lg animate-pulse">
+          Loading stats...
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -210,6 +162,9 @@ export default function WellbeingPage() {
 
           {/* Patterns Section */}
           <MoodPatternsCard />
+
+          {/* Recent Activity Section */}
+          <RecentActivity />
         </main>
         
       </div>

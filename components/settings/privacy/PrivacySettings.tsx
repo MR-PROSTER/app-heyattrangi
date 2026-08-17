@@ -60,7 +60,7 @@ export default function PrivacySettings({
           className="flex min-h-11 items-center px-4 py-3.5 text-[var(--text-base)] font-medium text-[var(--color-text-primary)]
             hover:bg-[var(--color-bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-brand)]"
         >
-          Terms
+          Terms &amp; Conditions
         </Link>
       </div>
     </div>

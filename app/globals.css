@@ -297,4 +297,32 @@ html.pref-high-contrast body {
   }
 }
 
+/* Scope font family to Subscription & Billing page */
+.subscription-billing-page,
+.subscription-billing-page * {
+  font-family: var(--font-nunito), 'Nunito', sans-serif !important;
+}
+
+/* Scope font family to Notifications page */
+.notifications-page,
+.notifications-page * {
+  font-family: var(--font-nunito), 'Nunito', sans-serif !important;
+}
+
+/* Scope font family to Appearance page */
+.appearance-page,
+.appearance-page * {
+  font-family: var(--font-nunito), 'Nunito', sans-serif !important;
+}
+
+/* Scope font family to Language page */
+.language-page,
+.language-page * {
+  font-family: var(--font-nunito), 'Nunito', sans-serif !important;
+}
+
+
+
+
+
 

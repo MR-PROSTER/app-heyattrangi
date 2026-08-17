@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getBotAvatar } from "@/lib/avatar";
 import { useSpeechToText } from "../../hooks/useSpeechToText";
+import LimitExceededModal, { type LimitExceededInfo } from "@/components/ui/LimitExceededModal";
 
 interface ChatMessage {
     role: "user" | "assistant";
@@ -350,6 +351,7 @@ export default function TryPragyaChat({
     const [isLoading, setIsLoading] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [botExpression, setBotExpression] = useState("NEUTRAL");
+    const [limitInfo, setLimitInfo] = useState<LimitExceededInfo | null>(null);
     const [lastUserMessage, setLastUserMessage] = useState("");
 
     const [summarizing, setSummarizing] = useState(false);
@@ -525,7 +527,18 @@ export default function TryPragyaChat({
             });
 
             if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}));
+                const errorData = await res.json().catch(() => ({}))
+                if (res.status === 429 || errorData.error === "LIMIT_EXCEEDED") {
+                    setLimitInfo({
+                        feature: "AI Companion",
+                        message: errorData.message || "You have reached your usage limit for the AI Companion.",
+                        resetInSeconds: errorData.resetInSeconds,
+                        upgradeable: true,
+                    })
+                    setIsLoading(false)
+                    setIsTyping(false)
+                    return
+                }
                 throw new Error(
                     errorData.error || "Failed to connect to the assistant.",
                 );
@@ -724,7 +737,9 @@ export default function TryPragyaChat({
         stopRecording,
         toggleRecording,
         formatTime,
-    } = useSpeechToText(handleTranscript);
+    } = useSpeechToText(handleTranscript, (info) => {
+        setLimitInfo({ feature: "Voice Input", message: info.message, resetInSeconds: info.resetInSeconds, upgradeable: true })
+    });
 
     const initialEntryModeAttemptedRef = useRef(false);
 
@@ -777,7 +792,7 @@ export default function TryPragyaChat({
                                         router.push("/patient/dashboard");
                                     }
                                 }}
-                                className="p-2 text-[#004f69] hover:text-[#00384d] hover:bg-white/20 transition-colors rounded-full -ml-3"
+                                className="p-2 text-[#004f69] hover:text-[#00384d] hover:bg-white/20 transition-colors rounded-full ml-0 min-[360px]:-ml-3"
                             >
                                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -798,12 +813,14 @@ export default function TryPragyaChat({
                         {/* Right side: History */}
                         <div className="flex items-center gap-4">
                             {isGuestSession && (
-                                <Link
-                                    href="/auth/signin"
-                                    className="px-4 py-1.5 text-[14px] font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors rounded-full shadow-sm whitespace-nowrap"
-                                >
-                                    Login
-                                </Link>
+                                <div className="flex items-center">
+                                    <Link
+                                        href="/auth"
+                                        className="px-5 py-1.5 text-[13px] sm:text-[14px] font-extrabold text-white bg-[#f4a261] hover:bg-[#e39454] transition-colors rounded-full shadow-sm whitespace-nowrap"
+                                    >
+                                        Join
+                                    </Link>
+                                </div>
                             )}
                             <button
                                 onClick={async () => {
@@ -909,14 +926,14 @@ export default function TryPragyaChat({
                                     : "opacity-0 max-h-0 mb-0 scale-95 pointer-events-none"
                                     }`}
                             >
-                                <div className="relative w-[340px] h-[300px] flex items-center justify-center">
+                                <div className="relative w-full max-w-[340px] h-[300px] flex items-center justify-center px-2 min-[360px]:px-0">
                                     <motion.div layoutId="chat-avatar" transition={{ layout: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }} className="relative z-10 flex items-center justify-center shrink-0 transition-transform duration-700 ease-in-out pointer-events-none">
                                         <Image
                                             src={botExpression === "NEUTRAL" ? "/bot_expressions/Attrangi_s_HQ/NEUTRAL.png" : getBotAvatar(botExpression)}
                                             alt="Pragya Bot"
                                             width={140}
                                             height={140}
-                                            className="object-contain"
+                                            className="object-contain w-[100px] min-[360px]:w-[120px] min-[390px]:w-[140px] h-auto"
                                             priority
                                         />
                                     </motion.div>
@@ -928,11 +945,11 @@ export default function TryPragyaChat({
                                                 onClick={() => {
                                                     if (selectedMode !== "think") setSelectedMode("think");
                                                 }}
-                                                className={`absolute top-0 left-[-10px] rounded-full px-5 py-3 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "think" ? "bg-[#004f69] text-white" : "bg-white text-[#004f69]"}`}
+                                                className={`absolute top-0 left-[-10px] max-[389px]:left-[6px] max-[359px]:left-[12px] rounded-full px-5 py-3 max-[389px]:px-4 max-[389px]:py-2.5 max-[359px]:px-3 max-[359px]:py-2 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] max-[389px]:text-[12px] max-[359px]:text-[11px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "think" ? "bg-[#004f69] text-white" : "bg-white text-[#004f69]"}`}
                                             >
                                                 <span>Help Me Think</span>
                                                 {/* Tail pointing bottom-right */}
-                                                <div className={`absolute right-5 -bottom-1.5 w-3 h-3 rotate-45 rounded-[2px] ${selectedMode === "think" ? "bg-[#004f69]" : "bg-white"}`} style={{ boxShadow: selectedMode === "think" ? "none" : "1px 1px 1px rgba(0,0,0,0.02)" }}></div>
+                                                <div className={`absolute right-5 max-[359px]:right-4 -bottom-1.5 w-3 h-3 rotate-45 rounded-[2px] ${selectedMode === "think" ? "bg-[#004f69]" : "bg-white"}`} style={{ boxShadow: selectedMode === "think" ? "none" : "1px 1px 1px rgba(0,0,0,0.02)" }}></div>
                                             </button>
 
                                             {/* Answer Directly - Top Right */}
@@ -940,11 +957,11 @@ export default function TryPragyaChat({
                                                 onClick={() => {
                                                     if (selectedMode !== "direct") setSelectedMode("direct");
                                                 }}
-                                                className={`absolute top-3 right-[-10px] rounded-full px-5 py-3 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "direct" ? "bg-[#004f69] text-white" : "bg-white text-[#004f69]"}`}
+                                                className={`absolute top-3 right-[-10px] max-[389px]:right-[6px] max-[359px]:right-[12px] rounded-full px-5 py-3 max-[389px]:px-4 max-[389px]:py-2.5 max-[359px]:px-3 max-[359px]:py-2 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] max-[389px]:text-[12px] max-[359px]:text-[11px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "direct" ? "bg-[#004f69] text-white" : "bg-white text-[#004f69]"}`}
                                             >
                                                 <span>Answer Directly</span>
                                                 {/* Tail pointing bottom-left */}
-                                                <div className={`absolute left-6 -bottom-1.5 w-3 h-3 rotate-45 rounded-[2px] ${selectedMode === "direct" ? "bg-[#004f69]" : "bg-white"}`} style={{ boxShadow: selectedMode === "direct" ? "none" : "-1px 1px 1px rgba(0,0,0,0.02)" }}></div>
+                                                <div className={`absolute left-6 max-[359px]:left-4 -bottom-1.5 w-3 h-3 rotate-45 rounded-[2px] ${selectedMode === "direct" ? "bg-[#004f69]" : "bg-white"}`} style={{ boxShadow: selectedMode === "direct" ? "none" : "-1px 1px 1px rgba(0,0,0,0.02)" }}></div>
                                             </button>
 
                                             {/* Just Listen - Top Left (Lower) */}
@@ -952,11 +969,11 @@ export default function TryPragyaChat({
                                                 onClick={() => {
                                                     if (selectedMode !== "listen") setSelectedMode("listen");
                                                 }}
-                                                className={`absolute top-[75px] left-[-30px] rounded-full px-5 py-3 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "listen" ? "bg-[#004f69] text-white" : "bg-white text-[#004f69]"}`}
+                                                className={`absolute top-[75px] left-[-30px] max-[389px]:left-[2px] max-[359px]:left-[6px] rounded-full px-5 py-3 max-[389px]:px-4 max-[389px]:py-2.5 max-[359px]:px-3 max-[359px]:py-2 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] max-[389px]:text-[12px] max-[359px]:text-[11px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "listen" ? "bg-[#004f69] text-white" : "bg-white text-[#004f69]"}`}
                                             >
                                                 <span>Just Listen</span>
                                                 {/* Tail pointing bottom-right */}
-                                                <div className={`absolute right-5 -bottom-1.5 w-3 h-3 rotate-45 rounded-[2px] ${selectedMode === "listen" ? "bg-[#004f69]" : "bg-white"}`} style={{ boxShadow: selectedMode === "listen" ? "none" : "1px 1px 1px rgba(0,0,0,0.02)" }}></div>
+                                                <div className={`absolute right-5 max-[359px]:right-4 -bottom-1.5 w-3 h-3 rotate-45 rounded-[2px] ${selectedMode === "listen" ? "bg-[#004f69]" : "bg-white"}`} style={{ boxShadow: selectedMode === "listen" ? "none" : "1px 1px 1px rgba(0,0,0,0.02)" }}></div>
                                             </button>
 
                                             {/* Reflect - Top Right (Lower) */}
@@ -964,11 +981,11 @@ export default function TryPragyaChat({
                                                 onClick={() => {
                                                     if (selectedMode !== "reflect") setSelectedMode("reflect");
                                                 }}
-                                                className={`absolute top-[85px] right-[-30px] rounded-full px-5 py-3 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "reflect" ? "bg-[#004f69] text-white" : "bg-white text-[#004f69]"}`}
+                                                className={`absolute top-[85px] right-[-30px] max-[389px]:right-[2px] max-[359px]:right-[6px] rounded-full px-5 py-3 max-[389px]:px-4 max-[389px]:py-2.5 max-[359px]:px-3 max-[359px]:py-2 shadow-sm hover:shadow-md hover:scale-105 transition-all text-[13px] max-[389px]:text-[12px] max-[359px]:text-[11px] font-extrabold flex items-center justify-center z-20 ${selectedMode === "reflect" ? "bg-[#004f69] text-white" : "bg-white text-[#004f69]"}`}
                                             >
                                                 <span>Reflect</span>
                                                 {/* Tail pointing bottom-left */}
-                                                <div className={`absolute left-5 -bottom-1.5 w-3 h-3 rotate-45 rounded-[2px] ${selectedMode === "reflect" ? "bg-[#004f69]" : "bg-white"}`} style={{ boxShadow: selectedMode === "reflect" ? "none" : "-1px 1px 1px rgba(0,0,0,0.02)" }}></div>
+                                                <div className={`absolute left-5 max-[359px]:left-4 -bottom-1.5 w-3 h-3 rotate-45 rounded-[2px] ${selectedMode === "reflect" ? "bg-[#004f69]" : "bg-white"}`} style={{ boxShadow: selectedMode === "reflect" ? "none" : "-1px 1px 1px rgba(0,0,0,0.02)" }}></div>
                                             </button>
                                         </>
                                     )}
@@ -1232,18 +1249,18 @@ export default function TryPragyaChat({
 
                                     <form
                                         onSubmit={sendMessage}
-                                        className="w-full flex items-end gap-3"
+                                        className="w-full flex items-end gap-2 min-[360px]:gap-3"
                                     >
-                                        <div className={`flex-1 overflow-hidden bg-white/95 backdrop-blur-xl text-[#004f69] transition-colors duration-300 flex items-end gap-2 border border-white/80 shadow-lg rounded-3xl py-1.5 pl-6 pr-2`}>
+                                        <div className={`flex-1 overflow-hidden bg-white/95 backdrop-blur-xl text-[#004f69] transition-colors duration-300 flex items-end gap-2 border border-white/80 shadow-lg rounded-3xl py-1 min-[360px]:py-1.5 pl-3.5 min-[360px]:pl-5 pr-1.5`}>
                                             {isRecording ? (
-                                                <div className="flex-1 flex items-center justify-center gap-3 py-3 min-h-[44px]">
+                                                <div className="flex-1 flex items-center justify-center gap-3 py-3 min-h-[38px] min-[360px]:min-h-[44px]">
                                                     <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
                                                     <span className="text-red-500 font-bold text-sm tracking-wider">
                                                         Recording {formatTime(recordingTime)}
                                                     </span>
                                                 </div>
                                             ) : isTranscribing ? (
-                                                <div className="flex-1 flex items-center justify-center gap-3 py-3 min-h-[44px]">
+                                                <div className="flex-1 flex items-center justify-center gap-3 py-3 min-h-[38px] min-[360px]:min-h-[44px]">
                                                     <div className="w-4 h-4 border-2 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
                                                     <span className="text-orange-500 font-bold text-[13px] tracking-widest uppercase">
                                                         Transcribing...
@@ -1251,23 +1268,23 @@ export default function TryPragyaChat({
                                                 </div>
                                             ) : (
                                                 <div className="flex-1 relative">
-                                                    <div 
-                                                        className="invisible whitespace-pre-wrap break-words py-3 leading-relaxed text-[15px] min-h-[44px] max-h-[200px] pointer-events-none"
-                                                        aria-hidden="true"
-                                                    >
-                                                        {inputMessage + " "}
-                                                    </div>
-                                                    <textarea
-                                                        ref={inputRef}
-                                                        value={inputMessage}
-                                                        onChange={handleInputChange}
-                                                        onKeyDown={handleKeyDown}
-                                                        placeholder="Tell me what's on your mind..."
-                                                        rows={1}
-                                                        className="absolute inset-0 w-full h-full bg-transparent text-gray-800 placeholder-gray-400 py-3 focus:outline-none resize-none leading-relaxed text-[15px] overflow-y-auto style-scrollbar"
-                                                        disabled={isLoading || isRecording || isTranscribing}
-                                                        autoFocus
-                                                    />
+                                                     <div 
+                                                         className="invisible whitespace-pre-wrap break-words py-2.5 min-[360px]:py-3 leading-relaxed text-[13px] min-[360px]:text-[14px] min-[390px]:text-[15px] min-h-[38px] min-[360px]:min-h-[44px] max-h-[200px] pointer-events-none"
+                                                         aria-hidden="true"
+                                                     >
+                                                         {inputMessage + " "}
+                                                     </div>
+                                                     <textarea
+                                                         ref={inputRef}
+                                                         value={inputMessage}
+                                                         onChange={handleInputChange}
+                                                         onKeyDown={handleKeyDown}
+                                                         placeholder="Tell me what's on your mind..."
+                                                         rows={1}
+                                                         className="absolute inset-0 w-full h-full bg-transparent text-gray-800 placeholder-gray-400 py-2.5 min-[360px]:py-3 focus:outline-none resize-none leading-relaxed text-[13px] min-[360px]:text-[14px] min-[390px]:text-[15px] overflow-y-auto style-scrollbar placeholder:truncate"
+                                                         disabled={isLoading || isRecording || isTranscribing}
+                                                         autoFocus
+                                                      />
                                                 </div>
                                             )}
 
@@ -1275,7 +1292,7 @@ export default function TryPragyaChat({
                                                 <button
                                                     type="submit"
                                                     disabled={isLoading || !inputMessage.trim() || isTranscribing}
-                                                    className={`p-2.5 rounded-full h-[40px] w-[40px] shrink-0 mb-1 transition-all duration-300 flex items-center justify-center ${isLoading || !inputMessage.trim() || isTranscribing
+                                                    className={`p-2 rounded-full h-[36px] w-[36px] max-[359px]:h-[32px] max-[359px]:w-[32px] shrink-0 mb-1 transition-all duration-300 flex items-center justify-center ${isLoading || !inputMessage.trim() || isTranscribing
                                                         ? "text-gray-400 bg-[#f4f4f5]"
                                                         : "text-gray-700 bg-[#f4f4f5] hover:bg-[#e4e4e7]"
                                                         }`}
@@ -1296,7 +1313,7 @@ export default function TryPragyaChat({
                                             type="button"
                                             onClick={toggleRecording}
                                             disabled={isLoading || isTranscribing}
-                                            className={`rounded-[24px] w-[54px] h-[54px] shrink-0 mb-1 transition-all duration-300 flex items-center justify-center font-bold text-[14px] ${
+                                            className={`rounded-full w-[54px] h-[54px] max-[389px]:w-[48px] max-[389px]:h-[48px] max-[359px]:w-[42px] max-[359px]:h-[42px] shrink-0 mb-1 transition-all duration-300 flex items-center justify-center font-bold text-[14px] ${
                                                 isRecording ? "bg-red-500 text-white" :
                                                 (isLoading || isTranscribing) ? "bg-orange-300 text-white" :
                                                 "bg-[#f4a261] text-white hover:bg-[#e39454] shadow-[0_2px_8px_rgba(244,162,97,0.4)]"
@@ -1553,6 +1570,7 @@ export default function TryPragyaChat({
                     </div>
                 </div>
             )}
+            <LimitExceededModal info={limitInfo} onClose={() => setLimitInfo(null)} />
         </>
     );
 }

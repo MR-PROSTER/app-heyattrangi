@@ -471,20 +471,8 @@ export default function AssessmentPage() {
                         </div>
                     </div>
                 ) : isSubmitting ? (
-                    <div className="flex-1 flex flex-col items-center justify-center animate-in fade-in duration-500 pb-20">
-                        <div className="bg-white rounded-[24px] min-[360px]:rounded-[28px] min-[390px]:rounded-[32px] p-5 min-[360px]:p-8 min-[390px]:p-10 shadow-lg border border-slate-100 w-full text-center relative overflow-hidden flex flex-col items-center justify-center">
-                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 to-purple-500 animate-pulse"></div>
-
-                            <div className="relative w-20 h-20 mb-6 flex items-center justify-center">
-                                <div className="absolute inset-0 rounded-full border-4 border-slate-100"></div>
-                                <div className="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
-                            </div>
-
-                            <h2 className="text-2xl font-extrabold text-slate-800 mb-2">Analyzing Responses</h2>
-                            <p className="text-slate-500 text-sm max-w-sm">
-                                Calculating severity bands, checking crisis thresholds, and generating your clinical summary...
-                            </p>
-                        </div>
+                    <div className="flex-1 flex items-center justify-center min-h-[400px] pb-20">
+                        <div className="w-10 h-10 border-4 border-slate-150 border-t-indigo-500 rounded-full animate-spin"></div>
                     </div>
                 ) : submitError ? (
                     <div className="flex-1 flex flex-col items-center justify-center animate-in slide-in-from-bottom-8 duration-700 pb-20">

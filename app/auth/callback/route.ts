@@ -41,6 +41,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(new URL("/auth/signup", req.url))
     }
 
+    let isNewUser = !user.patient && !user.doctor && !user.admin
+
+    // If this is a signup attempt, but the user is already registered (existing user)
+    if (isSignup && !isNewUser) {
+      console.log("Existing user tried to signup via OAuth - redirecting to signin with error")
+      return NextResponse.redirect(new URL("/auth/signin?error=existing_user", req.url))
+    }
+
     // If this is a signup and role needs to be set/updated
     if (isSignup && selectedRole) {
       // Update user role if different or not set
@@ -81,7 +89,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const isNewUser = !user.patient && !user.doctor && !user.admin
+    isNewUser = !user.patient && !user.doctor && !user.admin
 
     if (isNewUser) {
       if (!selectedRole) {

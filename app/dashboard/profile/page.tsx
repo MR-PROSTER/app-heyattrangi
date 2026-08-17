@@ -1,10 +1,10 @@
 import { Suspense } from "react"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import Image from "next/image"
 import { getCurrentUser } from "@/lib/auth"
 import { ChevronLeft, ChevronRight, Settings, Trophy, Smile, Edit3, Bell } from "lucide-react"
 import UnlockFeaturesCard from "@/components/premium/UnlockFeaturesCard"
+import AvatarUpload from "@/components/profile/AvatarUpload"
 
 async function ProfileContent() {
     const user = await getCurrentUser()
@@ -35,19 +35,11 @@ async function ProfileContent() {
 
                 {/* Avatar & Details Section */}
                 <div className="flex flex-col items-center pt-2 select-none">
-                  {/* Avatar */}
-                  <div className="relative w-24 h-24 rounded-full overflow-hidden bg-[#E0F2FE] border-[3px] border-white shadow-sm ring-1 ring-black/5">
-                    <Image
-                      src={user.image || "/images/default_user.png"}
-                      alt={displayName}
-                      fill
-                      className="object-cover bg-[#E0F2FE]"
-                      priority
-                    />
-                  </div>
+                  {/* Avatar Upload */}
+                  <AvatarUpload initialImage={user.image} displayName={displayName} />
                   
                   {/* Name */}
-                  <h2 className="mt-4 text-xl font-bold text-slate-850 tracking-tight text-center">
+                  <h2 className="mt-4 text-xl font-bold text-slate-800 tracking-tight text-center">
                     {displayName}
                   </h2>
                   
@@ -65,7 +57,7 @@ async function ProfileContent() {
                 </div>
 
                 {/* Card 1 (Stats Card) */}
-                <div className="w-full rounded-[28px] border border-slate-900 p-4 sm:p-5 flex flex-row items-center justify-between text-center select-none shadow-[0_4px_20px_rgba(0,0,0,0.01)] mt-2" style={{ backgroundColor: "#FFF9F6" }}>
+                <div className="w-full rounded-[28px] border border-slate-100 p-4 sm:p-5 flex flex-row items-center justify-between text-center select-none shadow-[0_4px_20px_rgba(0,0,0,0.01)] mt-2" style={{ backgroundColor: "#FFF9F6" }}>
                   {/* Active Days */}
                   <div className="flex-1 flex flex-col items-center">
                     <Trophy className="w-5 h-5 text-[#3B82F6] stroke-[2]" />

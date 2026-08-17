@@ -93,9 +93,9 @@ export default function SubscriptionBillingDetails({
           <div className="bg-white rounded-[32px] p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-zinc-100/80 flex flex-col gap-5">
             {/* Subtle Premium Gradient Area */}
             <div 
-              className="rounded-[24px] p-5 sm:p-6 flex flex-col gap-4 relative overflow-hidden"
+              className="rounded-[24px] p-5 sm:p-6 flex flex-col gap-4 relative overflow-hidden bg-cover bg-center"
               style={{
-                background: "linear-gradient(135deg, #FFFDF5 0%, #FFF5F7 35%, #F6F1FF 70%, #EAF5FF 100%)"
+                backgroundImage: "url('https://res.cloudinary.com/dxoiluua8/image/upload/v1786789037/Banner_bg_rrixld.png')"
               }}
             >
               <h3 className="text-xs font-black uppercase tracking-widest text-zinc-800 flex items-center gap-1 font-sans">
@@ -183,7 +183,7 @@ export default function SubscriptionBillingDetails({
                 FREE
               </span>
               
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+              <div className="flex flex-row items-start justify-between gap-3">
                 {/* Price block */}
                 <div className="flex items-baseline gap-1 shrink-0">
                   <span className="text-[38px] sm:text-[44px] font-black tracking-tight text-zinc-950 leading-none font-sans">

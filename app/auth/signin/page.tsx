@@ -1,13 +1,12 @@
 "use client"
 
-import { signIn, useSession } from "next-auth/react"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { signIn, signOut, useSession } from "next-auth/react"
+import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import AuthBrandingPanel from "@/components/auth/AuthBrandingPanel"
 
-type SignupRole = "PATIENT" | "DOCTOR"
-type Step = "EMAIL" | "PASSWORD" | "ROLE_SELECTION" | "PASSWORD_SETUP" | "SSO" | "OTP"
+type Step = "EMAIL" | "CODE" | "SSO"
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -32,42 +31,29 @@ function GoogleIcon({ className }: { className?: string }) {
   )
 }
 
-function RoleIcon({ role, selected }: { role: SignupRole; selected: boolean }) {
-  if (role === "PATIENT") {
-    return (
-      <div className={`w-12 h-12 rounded-full grid place-items-center transition-colors ${selected ? 'bg-[#fdf2ee] text-[#e26843]' : 'bg-gray-100 text-gray-400'}`}>
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+function AttrangiLogo({ className = "" }: { className?: string }) {
+  return (
+    <div className={`flex items-center gap-3 ${className}`}>
+      <div className="w-8 h-8 grid grid-cols-2 grid-rows-2 gap-[2px] shrink-0">
+        <div className="bg-[#FFC107] rounded-tl-[4px]" />
+        <div className="bg-[#FF5252] rounded-tr-[4px]" />
+        <div className="bg-[#FF9800] rounded-bl-[4px]" />
+        <div className="bg-[#E64A19] rounded-br-[4px]" />
       </div>
-    )
-  }
-  return (
-    <div className={`w-12 h-12 rounded-full grid place-items-center transition-colors ${selected ? 'bg-[#fdf2ee] text-[#e26843]' : 'bg-gray-100 text-gray-400'}`}>
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-      </svg>
+      <span className="font-extrabold text-xl sm:text-2xl tracking-tighter text-gray-900">Hey Attrangi!</span>
     </div>
-  )
-}
-
-export default function SignInPage() {
-  return (
-    <SignInContent />
   )
 }
 
 function SignInContent() {
   const [step, setStep] = useState<Step>("EMAIL")
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [selectedRole, setSelectedRole] = useState<SignupRole | null>(null)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isCredentialsLoading, setIsCredentialsLoading] = useState(false)
 
-  // OTP Login/Signup states
-  const [otpCode, setOtpCode] = useState("")
+  // Code verification states
+  const [verificationCode, setVerificationCode] = useState("")
   const [resendTimer, setResendTimer] = useState(0)
 
   // SSO fields
@@ -76,12 +62,24 @@ function SignInContent() {
   
   const { data: session, status } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user) {
+    const errorParam = searchParams.get("error")
+    if (errorParam === "existing_user") {
+      setError("You are an existing user. Please log in.")
+      if (status === "authenticated") {
+        signOut({ redirect: false })
+      }
+    }
+  }, [searchParams, status])
+
+  useEffect(() => {
+    const errorParam = searchParams.get("error")
+    if (status === "authenticated" && session?.user && errorParam !== "existing_user") {
       checkAndRedirect()
     }
-  }, [session, status])
+  }, [session, status, searchParams])
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -115,18 +113,19 @@ function SignInContent() {
             router.push("/institution")
             break
           default:
-            setStep("ROLE_SELECTION")
+            router.push("/patient/dashboard")
             break
         }
       } else {
         if (data.role) {
           router.push(`/onboarding?role=${data.role}`)
         } else {
-          setStep("ROLE_SELECTION")
+          router.push("/onboarding?role=PATIENT")
         }
       }
-    } catch (error) {
-      console.error("Error checking onboarding:", error)
+    } catch (err) {
+      console.error("Error checking onboarding:", err)
+      router.push("/patient/dashboard")
     }
   }
 
@@ -146,42 +145,60 @@ function SignInContent() {
       return
     }
 
-    setEmail(trimmedEmail.toLowerCase())
+    const lowercaseEmail = trimmedEmail.toLowerCase()
+    setEmail(lowercaseEmail)
     setIsLoading(true)
 
     try {
+      // 1. Verify that user exists for Login flow
+      const checkRes = await fetch("/api/auth/check-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: lowercaseEmail }),
+      })
+      
+      if (checkRes.ok) {
+        const checkData = await checkRes.json()
+        if (!checkData.exists) {
+          setError("No account found with this email. Please create an account.")
+          setIsLoading(false)
+          return
+        }
+      }
+
+      // 2. If user exists, send OTP verification code
       const response = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: trimmedEmail.toLowerCase() }),
+        body: JSON.stringify({ email: lowercaseEmail }),
       })
       const data = await response.json()
 
       if (response.ok && data.success) {
-        setOtpCode("")
-        setResendTimer(30)
-        setStep("OTP")
+        setVerificationCode("")
+        setResendTimer(25) // timer set to 25s
+        setStep("CODE")
       } else {
-        setError(data.message || "Failed to send OTP. Please try again.")
+        setError(data.message || "Failed to send verification code. Please try again.")
       }
     } catch (err) {
-      console.error("Error sending OTP:", err)
+      console.error("Error sending verification code:", err)
       setError("An unexpected error occurred. Please try again.")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleOtpVerify = async (e: React.FormEvent) => {
+  const handleCodeVerify = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!otpCode || otpCode.length !== 6) return
+    if (!verificationCode || verificationCode.length !== 6) return
     setIsCredentialsLoading(true)
     setError("")
 
     try {
       const result = await signIn("credentials", {
         email: email.trim().toLowerCase(),
-        otp: otpCode.replace(/\D/g, ""),
+        otp: verificationCode.replace(/\D/g, ""),
         redirect: false,
       })
 
@@ -192,13 +209,13 @@ function SignInContent() {
         checkAndRedirect()
       }
     } catch (err) {
-      console.error("OTP verification error:", err)
+      console.error("Code verification error:", err)
       setError("An unexpected error occurred during verification.")
       setIsCredentialsLoading(false)
     }
   }
 
-  const handleResendOtp = async () => {
+  const handleResendCode = async () => {
     if (resendTimer > 0) return
     setIsLoading(true)
     setError("")
@@ -210,117 +227,15 @@ function SignInContent() {
       })
       const data = await response.json()
       if (response.ok && data.success) {
-        setResendTimer(30)
+        setResendTimer(25)
       } else {
         setError(data.message || "Failed to resend code. Please try again.")
       }
     } catch (err) {
-      console.error("Resend OTP error:", err)
+      console.error("Resend code error:", err)
       setError("An unexpected error occurred")
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const handleCredentialsSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsCredentialsLoading(true)
-    setError("")
-    
-    try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        setError("Invalid email or password")
-        setIsCredentialsLoading(false)
-      } else {
-        checkAndRedirect()
-      }
-    } catch (error) {
-      console.error("Sign in error:", error)
-      setError("An unexpected error occurred")
-      setIsCredentialsLoading(false)
-    }
-  }
-
-  const handleCredentialsSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedRole) {
-      setError("Please select a role first")
-      return
-    }
-    
-    setIsCredentialsLoading(true)
-    setError("")
-    
-    try {
-      const registerRes = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          role: selectedRole,
-        }),
-      })
-
-      const registerData = await registerRes.json()
-
-      if (!registerRes.ok) {
-        setError(registerData.message || "Something went wrong")
-        setIsCredentialsLoading(false)
-        return
-      }
-
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        setError("Registration successful, but sign in failed. Please try signing in.")
-        setIsCredentialsLoading(false)
-      } else {
-        router.push(`/auth/callback?signup=true&role=${selectedRole}`)
-      }
-    } catch (error) {
-      console.error("Sign up error:", error)
-      setError("An unexpected error occurred")
-      setIsCredentialsLoading(false)
-    }
-  }
-
-  const handleRoleSelect = async (role: SignupRole) => {
-    setSelectedRole(role)
-    if (status === "authenticated") {
-      setIsLoading(true)
-      setError("")
-      try {
-        const response = await fetch("/api/auth/update-role", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ role }),
-        })
-        if (response.ok) {
-          router.push(`/auth/callback?signup=true&role=${role}`)
-        } else {
-          setError("Failed to update role. Please try again.")
-        }
-      } catch (err) {
-        console.error("Error updating role:", err)
-        setError("An unexpected error occurred.")
-      } finally {
-        setIsLoading(false)
-      }
-    } else {
-      setStep("PASSWORD_SETUP")
     }
   }
 
@@ -328,11 +243,8 @@ function SignInContent() {
     setIsLoading(true)
     setError("")
     try {
-      const callbackUrl = selectedRole 
-        ? `/auth/callback?signup=true&role=${selectedRole}`
-        : "/auth/callback"
       await signIn("google", {
-        callbackUrl,
+        callbackUrl: "/auth/callback",
         redirect: true,
       })
     } catch (error) {
@@ -358,10 +270,23 @@ function SignInContent() {
       setEmail(workEmail)
 
       if (data.exists) {
-        setStep("PASSWORD")
+        // Send OTP for existing user login
+        const otpResponse = await fetch("/api/auth/send-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: workEmail.toLowerCase() }),
+        })
+        const otpData = await otpResponse.json()
+
+        if (otpResponse.ok && otpData.success) {
+          setVerificationCode("")
+          setResendTimer(25)
+          setStep("CODE")
+        } else {
+          setError(otpData.message || "Failed to send verification code.")
+        }
       } else {
-        setSelectedRole("DOCTOR")
-        setStep("PASSWORD_SETUP")
+        setError("No organization SSO account found with this email.")
       }
     } catch (err) {
       console.error("SSO error:", err)
@@ -372,54 +297,64 @@ function SignInContent() {
   }
 
   const signedIn = status === "authenticated" && !!session?.user
-  const actionsDisabled = isLoading || isCredentialsLoading || (signedIn && step !== "ROLE_SELECTION")
+  const actionsDisabled = isLoading || isCredentialsLoading || signedIn
 
   return (
-    <div className="min-h-screen w-full flex bg-white font-sans">
+    <div className="min-h-screen w-full flex bg-white font-sans select-none">
       <AuthBrandingPanel />
 
-      {/* Right form panel — fixed width so cards never clip */}
+      {/* Right form panel */}
       <div className="w-full lg:w-[min(100%,480px)] xl:w-[500px] shrink-0 flex items-center justify-center p-8 sm:p-12 bg-white relative">
         <div className="w-full max-w-[420px]">
-          {/* Top back — only when not on SSO (SSO has its own back control) */}
-          {step !== "SSO" && (
+          {/* Back Action Header */}
+          {step === "EMAIL" ? (
             <Link
-              href="/auth"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#e26843] hover:underline mb-6"
+              href="/auth/individual"
+              aria-label="Back"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-slate-200 hover:bg-slate-50 text-[#e26843] transition-colors mb-6 cursor-pointer"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <svg className="w-4 h-4 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
-              Back
             </Link>
+          ) : (
+            <button
+              onClick={() => {
+                setError("")
+                setStep("EMAIL")
+              }}
+              aria-label="Back"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-slate-200 hover:bg-slate-50 text-[#e26843] transition-colors mb-6 cursor-pointer bg-transparent"
+            >
+              <svg className="w-4 h-4 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
           )}
 
           {/* Header section - Hidden in SSO Step */}
           {step !== "SSO" && (
             <div className="mb-8 text-left">
-              <h2 className="text-[32px] font-bold text-gray-900 tracking-tight leading-[1.2] mb-2">
-                {step === "ROLE_SELECTION"
-                  ? "Choose Profile Type"
-                  : "Login or Signup to Hey Attrangi"}
+              <h2 className="text-[32px] font-bold text-gray-900 tracking-tight leading-[1.2] mb-2 font-sans">
+                Log in to Hey Attrangi
               </h2>
-              <p className="text-gray-500 text-sm font-normal leading-relaxed">
-                {step === "EMAIL" && "Enter your email address to continue your mental wellness journey."}
-                {step === "OTP" && "Verify the 6-digit OTP code sent to your email."}
-                {step === "PASSWORD" && "Enter your password to sign in."}
-                {step === "ROLE_SELECTION" && "Select your role to get started with Attrangi."}
-                {step === "PASSWORD_SETUP" && "Create a secure password to complete your account."}
+              <p className="text-gray-500 text-sm font-normal leading-relaxed font-sans">
+                {step === "EMAIL"
+                  ? "Enter your email address to continue your mental wellness journey."
+                  : "Verify the 6-digit code sent to your email."}
               </p>
             </div>
           )}
 
-          {signedIn && step !== "ROLE_SELECTION" ? (
+          {signedIn ? (
             <div className="mb-8 w-full flex flex-col items-center justify-center py-10">
               <div className="w-12 h-12 border-4 border-gray-100 border-t-[#e26843] rounded-full animate-spin mb-4"></div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1">Authenticating...</h3>
-              <p className="text-sm text-gray-500">Getting your dashboard ready</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-1 font-sans">Authenticating...</h3>
+              <p className="text-sm text-gray-500 font-sans">Getting your dashboard ready</p>
             </div>
           ) : (
             <div className="space-y-6">
+              
               {/* STEP 1: EMAIL ENTRY */}
               {step === "EMAIL" && (
                 <div className="space-y-4">
@@ -432,7 +367,7 @@ function SignInContent() {
                           setEmail(e.target.value)
                           setError("")
                         }}
-                        className={`w-full px-4 py-3.5 rounded-[8px] border outline-none transition-all text-[15px] text-gray-800 placeholder-gray-400 ${
+                        className={`w-full px-4 py-3.5 rounded-[8px] border outline-none transition-all text-[15px] text-gray-800 placeholder-gray-400 font-sans ${
                           error
                             ? "border-red-500 focus:ring-1 focus:ring-red-500 focus:border-red-500"
                             : "border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843]"
@@ -440,7 +375,7 @@ function SignInContent() {
                         placeholder="Email address"
                       />
                       {error && (
-                        <p className="text-red-500 text-sm font-medium mt-1">
+                        <p className="text-red-500 text-sm font-medium mt-1 font-sans">
                           {error}
                         </p>
                       )}
@@ -448,7 +383,7 @@ function SignInContent() {
                     <button
                       type="submit"
                       disabled={actionsDisabled}
-                      className="w-full flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-[30px] py-4 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-bold text-base uppercase tracking-wider"
+                      className="w-full flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-[30px] py-4 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-bold text-base uppercase tracking-wider font-sans"
                     >
                       {isLoading ? (
                         <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -460,7 +395,7 @@ function SignInContent() {
 
                   <div className="relative flex items-center py-2">
                     <div className="flex-grow border-t border-gray-200"></div>
-                    <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-semibold uppercase tracking-widest">or</span>
+                    <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-semibold uppercase tracking-widest font-sans">or</span>
                     <div className="flex-grow border-t border-gray-200"></div>
                   </div>
 
@@ -468,7 +403,7 @@ function SignInContent() {
                     type="button"
                     onClick={handleGoogleSignIn}
                     disabled={actionsDisabled}
-                    className="w-full flex items-center justify-center gap-3 bg-white text-gray-700 border border-gray-200 hover:border-gray-300 transition-all rounded-[30px] py-4 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed group"
+                    className="w-full flex items-center justify-center gap-3 bg-white text-gray-700 border border-gray-200 hover:border-gray-300 transition-all rounded-[30px] py-4 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed group font-sans"
                   >
                     <GoogleIcon className="w-6 h-6 group-hover:scale-110 transition-transform text-[#ea4335]" />
                     <span className="font-bold text-base text-gray-700">Continue with Google</span>
@@ -476,29 +411,24 @@ function SignInContent() {
                 </div>
               )}
 
-              {/* STEP: OTP ENTRY */}
-              {step === "OTP" && (
-                <form onSubmit={handleOtpVerify} className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-500 font-medium">
-                      We sent a 6-digit verification code to <span className="text-[#e26843] font-semibold">{email}</span>.
-                    </p>
-                  </div>
+              {/* STEP 2: CODE VERIFICATION */}
+              {step === "CODE" && (
+                <form onSubmit={handleCodeVerify} className="space-y-4">
                   <input
                     type="text"
                     pattern="\d{6}"
                     maxLength={6}
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                    className="w-full px-4 py-3.5 text-center tracking-[0.5em] font-bold text-xl rounded-[8px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-gray-800 placeholder-gray-400 placeholder:tracking-normal placeholder:font-normal placeholder:text-sm"
-                    placeholder="Enter 6-digit OTP"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ""))}
+                    className="w-full px-4 py-3.5 text-center tracking-[0.5em] font-bold text-xl rounded-[8px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-gray-800 placeholder-gray-400 placeholder:tracking-normal placeholder:font-normal placeholder:text-sm font-sans"
+                    placeholder="Enter 6-digit code"
                     required
                   />
-                  {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
+                  {error && <p className="text-red-500 text-sm font-medium font-sans">{error}</p>}
                   <button
                     type="submit"
-                    disabled={actionsDisabled || otpCode.length !== 6}
-                    className="w-full flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-[30px] py-4 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-bold text-base uppercase tracking-wider"
+                    disabled={actionsDisabled || verificationCode.length !== 6}
+                    className="w-full flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-[30px] py-4 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-bold text-base uppercase tracking-wider font-sans"
                   >
                     {isCredentialsLoading ? (
                       <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -511,181 +441,55 @@ function SignInContent() {
                     <button
                       type="button"
                       onClick={() => setStep("EMAIL")}
-                      className="font-semibold text-[#e26843] hover:underline flex items-center gap-1 bg-transparent border-none cursor-pointer"
+                      className="font-semibold text-[#e26843] hover:underline flex items-center gap-1 bg-transparent border-none cursor-pointer font-sans"
                     >
                       &larr; Use a different email
                     </button>
                     <button
                       type="button"
-                      onClick={handleResendOtp}
+                      onClick={handleResendCode}
                       disabled={resendTimer > 0 || isLoading}
-                      className="font-semibold text-[#e26843] hover:underline disabled:text-gray-400 disabled:no-underline bg-transparent border-none cursor-pointer"
+                      className="font-semibold text-[#e26843] hover:underline disabled:text-gray-400 disabled:no-underline bg-transparent border-none cursor-pointer font-sans"
                     >
-                      {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : "Resend OTP"}
+                      {resendTimer > 0 ? `Resend Code in ${resendTimer}s` : "Resend Code"}
                     </button>
                   </div>
                 </form>
               )}
 
-              {/* STEP 2: PASSWORD FOR EXISTING USER */}
-              {step === "PASSWORD" && (
-                <form onSubmit={handleCredentialsSignIn} className="space-y-4">
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-[8px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-gray-800 placeholder-gray-400"
-                    placeholder="Password"
-                    required
-                  />
-                  {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
-                  <button
-                    type="submit"
-                    disabled={actionsDisabled}
-                    className="w-full flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-[30px] py-4 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-bold text-base uppercase tracking-wider"
-                  >
-                    {isCredentialsLoading ? (
-                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <span>SIGN IN</span>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setStep("EMAIL")}
-                    className="text-sm font-semibold text-[#e26843] hover:underline flex items-center gap-1"
-                  >
-                    &larr; Use a different email
-                  </button>
-                </form>
-              )}
-
-              {/* STEP 3: ROLE SELECTION FOR NEW USER */}
-              {step === "ROLE_SELECTION" && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 gap-4">
-                    <button
-                      type="button"
-                      onClick={() => handleRoleSelect("DOCTOR")}
-                      className={`relative overflow-hidden group text-left p-5 rounded-[24px] border-2 transition-all duration-300 ${selectedRole === "DOCTOR"
-                          ? 'border-[#e26843] bg-white shadow-[0_8px_30px_rgb(226,104,67,0.08)] -translate-y-0.5'
-                          : 'border-gray-100 bg-gray-50 hover:bg-gray-100 hover:border-gray-200'
-                        }`}
-                    >
-                      <div className={`absolute top-0 left-0 w-1.5 h-full transition-colors ${selectedRole === "DOCTOR" ? 'bg-[#e26843]' : 'bg-transparent'}`}></div>
-                      <RoleIcon role="DOCTOR" selected={selectedRole === "DOCTOR"} />
-                      <h3 className={`mt-4 font-bold text-lg mb-1 transition-colors ${selectedRole === "DOCTOR" ? 'text-[#e26843]' : 'text-gray-900'}`}>I am a therapist</h3>
-                      <p className="text-xs text-gray-500 font-medium leading-relaxed">Manage practice, connect with patients securely.</p>
-                    </button>
-                  </div>
-                  {!signedIn && (
-                    <button
-                      type="button"
-                      onClick={() => setStep("EMAIL")}
-                      className="text-sm font-semibold text-[#e26843] hover:underline flex items-center gap-1"
-                    >
-                      &larr; Use a different email
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* STEP 4: PASSWORD SETUP FOR NEW USER */}
-              {step === "PASSWORD_SETUP" && (
-                <form onSubmit={handleCredentialsSignUp} className="space-y-4">
-                  {!email && (
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-4 py-3.5 rounded-[8px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-gray-800 placeholder-gray-400"
-                      placeholder="Email address"
-                      required
-                    />
-                  )}
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-[8px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-gray-800 placeholder-gray-400"
-                    placeholder="Create a Password"
-                    required
-                  />
-                  {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
-                  <button
-                    type="submit"
-                    disabled={actionsDisabled}
-                    className="w-full flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-[30px] py-4 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-bold text-base uppercase tracking-wider"
-                  >
-                    {isCredentialsLoading ? (
-                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <span>SIGN UP</span>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setStep("EMAIL")}
-                    className="text-sm font-semibold text-[#e26843] hover:underline flex items-center gap-1"
-                  >
-                    &larr; Back
-                  </button>
-                </form>
-              )}
-
-              {/* STEP 5: WORK EMAIL SSO — same as before */}
+              {/* STEP 3: WORK EMAIL SSO STEP */}
               {step === "SSO" && (
                 <div className="space-y-6">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setError("")
-                      // Back from patient SSO → email step
-                      setStep("EMAIL")
-                    }}
-                    className="text-gray-500 hover:text-gray-900 transition-colors self-start flex items-center"
-                    aria-label="Back"
-                  >
-                    <svg className="w-6 h-6 text-[#e26843]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                  </button>
-
                   <div className="text-left mb-6">
-                    <h2 className="text-[24px] font-bold text-gray-800 tracking-tight mb-2">
+                    <h2 className="text-[24px] font-bold text-gray-800 tracking-tight mb-2 font-sans">
                       Welcome to Hey Attrangi
                     </h2>
-                    <p className="text-gray-500 text-sm font-normal leading-relaxed">
+                    <p className="text-gray-500 text-sm font-normal leading-relaxed font-sans">
                       Enter your work email address to proceed.
                     </p>
                   </div>
 
                   <form onSubmit={handleSSOSubmit} className="space-y-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 font-sans">
                         Work Email Address*
                       </label>
                       <input
                         type="email"
                         value={workEmail}
                         onChange={(e) => setWorkEmail(e.target.value)}
-                        className="w-full px-4 py-3.5 rounded-[8px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-gray-800 placeholder-gray-400"
+                        className="w-full px-4 py-3.5 rounded-[8px] border border-gray-300 focus:ring-1 focus:ring-[#e26843] focus:border-[#e26843] outline-none transition-all text-[15px] text-gray-800 placeholder-gray-400 font-sans"
                         placeholder="Enter Work Email Address"
                         required
                       />
                     </div>
 
-                    {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
-                    {ssoOrgName && (
-                      <p className="text-green-600 text-sm font-medium">
-                        ✓ Organization Found: {ssoOrgName}. Redirecting...
-                      </p>
-                    )}
+                    {error && <p className="text-red-500 text-sm font-medium font-sans">{error}</p>}
 
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-[30px] py-4 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-bold text-base uppercase tracking-wider"
+                      className="w-full flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-[30px] py-4 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-bold text-base uppercase tracking-wider font-sans"
                     >
                       {isLoading ? (
                         <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -705,7 +509,7 @@ function SignInContent() {
                       setError("")
                       setStep("SSO")
                     }}
-                    className="text-sm font-semibold text-[#e26843] hover:underline underline-offset-4 bg-transparent border-none cursor-pointer"
+                    className="text-sm font-semibold text-[#e26843] hover:underline underline-offset-4 bg-transparent border-none cursor-pointer font-sans"
                   >
                     Use single sign-on (SSO)
                   </button>
@@ -716,5 +520,17 @@ function SignInContent() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen w-full flex items-center justify-center bg-white">
+        <div className="w-8 h-8 border-4 border-gray-100 border-t-[#e26843] rounded-full animate-spin"></div>
+      </div>
+    }>
+      <SignInContent />
+    </Suspense>
   )
 }

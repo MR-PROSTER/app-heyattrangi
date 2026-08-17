@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth.config";
 import { prisma } from "@/lib/prisma";
+import { enforceLimit } from "@/lib/limits/checkLimits";
 
 export async function GET() {
     try {
@@ -53,6 +54,34 @@ export async function POST(req: Request) {
 
         if (!mood || typeof mood !== "string" || !mood.trim()) {
             return NextResponse.json({ error: "mood is required" }, { status: 400 });
+        }
+
+        // Fetch user plan
+        const dbUser = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { plan: true },
+        });
+        const plan = dbUser?.plan || "FREE";
+        const isPremium = plan === "PREMIUM" || plan === "ORGANIZATION";
+
+        // Enforce note character limit (Free: 1000, Premium: 2000)
+        const maxNoteChars = isPremium ? 2000 : 1000;
+        if (note && String(note).length > maxNoteChars) {
+            return NextResponse.json({ error: "LIMIT_EXCEEDED", message: `Mood note too long. Maximum is ${maxNoteChars} characters.` }, { status: 400 });
+        }
+
+        // Enforce daily check-in limit (Free: 10, Premium: 20)
+        const dailyCheck = await enforceLimit({
+            userId: session.user.id,
+            action: "MOOD_CHECKIN_DAILY",
+            plan,
+            limitFree: 10,
+            limitPremium: 20,
+            windowMs: 24 * 60 * 60 * 1000,
+            errorMessage: "Daily mood check-in limit reached",
+        });
+        if (!dailyCheck.allowed) {
+            return NextResponse.json({ error: "LIMIT_EXCEEDED", message: dailyCheck.message, resetInSeconds: dailyCheck.resetInSeconds }, { status: 429 });
         }
 
         const entry = await prisma.moodEntry.create({

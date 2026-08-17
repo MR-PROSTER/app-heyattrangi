@@ -3,6 +3,13 @@
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
+import { Fraunces } from "next/font/google"
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+})
 
 export default function FounderMessagePage() {
   const router = useRouter()
@@ -48,17 +55,12 @@ export default function FounderMessagePage() {
         {/* Message Card */}
         <div className="bg-white rounded-[32px] border border-zinc-100 shadow-[0_4px_24px_rgba(0,0,0,0.015)] p-8 pt-16 flex flex-col gap-5 w-full text-left">
           
-          <h2 className="text-[#1C2038] font-bold text-[24px] min-[360px]:text-[26px] leading-[1.3] tracking-tight">
-            Hi, I'm Sandesh<br />
-            I started Attrangi, and I still read everything that comes through here myself.
+          <h2 className={`${fraunces.className} text-[#1C2038] font-bold text-[24px] min-[360px]:text-[26px] leading-[1.3] tracking-tight`}>
+            Hi, I'm Sandesh
           </h2>
 
-          <p className="text-[14px] min-[360px]:text-[15px] font-semibold text-zinc-500 leading-relaxed">
-            If something felt confusing, or just didn't sit right while using Attrangi, I'd like to know. Not because we need to hear nice things — because we're building this for people who are already carrying a lot, and getting the small things right matters more here than it does for most apps.
-          </p>
-
-          <p className="text-[14px] min-[360px]:text-[15px] font-semibold text-zinc-500 leading-relaxed">
-            For everything else, take your time. I read every word.
+          <p className={`${fraunces.className} text-[15px] min-[360px]:text-[16px] min-[390px]:text-[17px] font-medium text-[#1C2038] leading-relaxed italic`}>
+            “Great products need both ambition and grounding. I’m here to help Attrangi turn a good idea into something that can genuinely last.”
           </p>
 
           <hr className="border-t border-zinc-100 my-1" />

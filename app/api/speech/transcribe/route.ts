@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth.config";
+import { prisma } from "@/lib/prisma";
 import ffmpeg from "fluent-ffmpeg";
 import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
 import stream from "stream";
+import { enforceLimit } from "@/lib/limits/checkLimits";
 
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
@@ -79,6 +82,7 @@ export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await auth();
     const formData = await req.formData();
     const audioFile = formData.get("audio") as Blob | null;
     
@@ -94,6 +98,48 @@ export async function POST(req: NextRequest) {
         { error: "Audio file is empty." },
         { status: 400 }
       );
+    }
+
+    // Resolve plan
+    let plan = "FREE";
+    if (session?.user?.id) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { plan: true },
+      });
+      if (dbUser) plan = dbUser.plan;
+    }
+
+    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || null;
+
+    // Enforce RPM (Free: 3, Premium: 5)
+    const rpmCheck = await enforceLimit({
+      userId: session?.user?.id || null,
+      ip: session?.user?.id ? null : ip,
+      action: "VOICE_STT_RPM",
+      plan,
+      limitFree: 3,
+      limitPremium: 5,
+      windowMs: 60 * 1000,
+      errorMessage: "Voice requests per minute limit reached",
+    });
+    if (!rpmCheck.allowed) {
+      return NextResponse.json({ error: "LIMIT_EXCEEDED", message: rpmCheck.message, resetInSeconds: rpmCheck.resetInSeconds }, { status: 429 });
+    }
+
+    // Enforce Daily limit (Free: 10, Premium: 50, Guest: 2)
+    const dailyCheck = await enforceLimit({
+      userId: session?.user?.id || null,
+      ip: session?.user?.id ? null : ip,
+      action: "VOICE_STT_DAILY",
+      plan,
+      limitFree: session?.user?.id ? 10 : 2,
+      limitPremium: 50,
+      windowMs: 24 * 60 * 60 * 1000,
+      errorMessage: "Daily voice message limit reached",
+    });
+    if (!dailyCheck.allowed) {
+      return NextResponse.json({ error: "LIMIT_EXCEEDED", message: dailyCheck.message, resetInSeconds: dailyCheck.resetInSeconds }, { status: 429 });
     }
 
     // Modular provider pattern - swapping to VocabDotAI

@@ -235,7 +235,7 @@ export default function SettingsClient({ user }: SettingsClientProps) {
               <img
                 src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786785602/Sign_out_vwjtfv.png"
                 alt="Delete account"
-                className="w-[18px] h-[18px] min-[360px]:w-5 min-[360px]:h-5 object-contain"
+                className="w-[22px] h-[22px] min-[360px]:w-[26px] min-[360px]:h-[26px] object-contain"
               />
             </div>
             <span className="text-[clamp(13.5px,4.0vw,15px)] font-bold text-red-700 ml-3 min-[360px]:ml-4">Delete account</span>
