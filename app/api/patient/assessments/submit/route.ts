@@ -3,6 +3,7 @@ import { auth } from "@/auth.config"
 import { prisma } from "@/lib/prisma"
 import { SCREENERS } from "@/lib/data/screeners"
 import { scoreAssessment } from "@/lib/assessments/scoreAssessment"
+import { enforceLimit } from "@/lib/limits/checkLimits"
 
 export async function POST(req: Request) {
   try {
@@ -27,6 +28,30 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: `Assessment not found: ${assessmentKey}` },
         { status: 404 }
+      )
+    }
+
+    // Fetch user plan and enforce weekly assessment limit
+    const dbUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { plan: true },
+    })
+    const plan = dbUser?.plan || "FREE"
+
+    // Weekly limit: Free = 1/week, Premium = 3/week
+    const weeklyCheck = await enforceLimit({
+      userId,
+      action: "ASSESSMENT_SUBMIT_WEEKLY",
+      plan,
+      limitFree: 1,
+      limitPremium: 3,
+      windowMs: 7 * 24 * 60 * 60 * 1000,
+      errorMessage: "Weekly assessment limit reached. You can take 1 assessment per week on the free plan.",
+    })
+    if (!weeklyCheck.allowed) {
+      return NextResponse.json(
+        { error: "LIMIT_EXCEEDED", message: weeklyCheck.message, resetInSeconds: weeklyCheck.resetInSeconds },
+        { status: 429 }
       )
     }
 

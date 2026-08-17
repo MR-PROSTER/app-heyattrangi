@@ -11,6 +11,7 @@ import {
   isAndroidRequest,
 } from "@/lib/pragya/persistence"
 import { getMemoryGraph, upsertMemoryGraph } from "@/lib/pragya/memory"
+import { enforceLimit, checkConcurrency } from "@/lib/limits/checkLimits"
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -79,6 +80,100 @@ export async function POST(req: NextRequest) {
   const platformHeader = req.headers.get("x-platform") || req.headers.get("x-client-platform")
   const platform = platformHeader?.toUpperCase() === "ANDROID" ? Platform.ANDROID : Platform.WEB
 
+  // 1. Enforce Max characters/message limit (Free: 2,000, Premium: 4,000)
+  const maxChars = plan === "PREMIUM" || plan === "ORGANIZATION" ? 4000 : 2000
+  if (message.length > maxChars) {
+    return NextResponse.json({
+      error: "LIMIT_EXCEEDED",
+      message: `Message too long. Maximum allowed is ${maxChars} characters.`
+    }, { status: 429 })
+  }
+
+  // 2. Enforce Concurrency limit (Max 1 concurrent request)
+  const userOrGuestIdentifier = session?.user?.id || resolvedGuestToken || guestToken || "guest"
+  const concurrencyCheck = await checkConcurrency({
+    userId: session?.user?.id || null,
+    ip: session?.user?.id ? null : (resolvedGuestToken || guestToken || null),
+    action: "AI_CHAT_CONCURRENCY",
+    maxConcurrency: 1,
+    windowMs: 12000, // 12 seconds request lock window
+  })
+  if (!concurrencyCheck.allowed) {
+    return NextResponse.json({
+      error: "LIMIT_EXCEEDED",
+      message: "Please wait for your previous message response."
+    }, { status: 429 })
+  }
+
+  // Log concurrency entry
+  const concurrencyLog = await prisma.technicalLimitLog.create({
+    data: {
+      userId: session?.user?.id || null,
+      ip: session?.user?.id ? null : (resolvedGuestToken || guestToken || null),
+      action: "AI_CHAT_CONCURRENCY"
+    }
+  })
+
+  // 3. Enforce Requests/minute limit (Free: 10, Premium: 15)
+  const rpmCheck = await enforceLimit({
+    userId: session?.user?.id || null,
+    ip: session?.user?.id ? null : (resolvedGuestToken || guestToken || null),
+    action: "AI_CHAT_RPM",
+    plan,
+    limitFree: 10,
+    limitPremium: 15,
+    windowMs: 60 * 1000,
+    errorMessage: "Requests per minute limit reached",
+  })
+  if (!rpmCheck.allowed) {
+    await prisma.technicalLimitLog.delete({ where: { id: concurrencyLog.id } }).catch(() => {})
+    return NextResponse.json({
+      error: "LIMIT_EXCEEDED",
+      message: rpmCheck.message,
+      resetInSeconds: rpmCheck.resetInSeconds
+    }, { status: 429 })
+  }
+
+  // 4. Enforce Daily message limit (Free: 30, Premium: 150, Guest: 5 total)
+  const dailyCheck = await enforceLimit({
+    userId: session?.user?.id || null,
+    ip: session?.user?.id ? null : (resolvedGuestToken || guestToken || null),
+    action: "AI_CHAT_DAILY",
+    plan,
+    limitFree: session?.user?.id ? 30 : 5,
+    limitPremium: 150,
+    windowMs: 24 * 60 * 60 * 1000,
+    errorMessage: "Daily message limit reached",
+  })
+  if (!dailyCheck.allowed) {
+    await prisma.technicalLimitLog.delete({ where: { id: concurrencyLog.id } }).catch(() => {})
+    return NextResponse.json({
+      error: "LIMIT_EXCEEDED",
+      message: dailyCheck.message,
+      resetInSeconds: dailyCheck.resetInSeconds
+    }, { status: 429 })
+  }
+
+  // 5. Enforce Monthly message limit (Free: 300, Premium: 4500)
+  const monthlyCheck = await enforceLimit({
+    userId: session?.user?.id || null,
+    ip: session?.user?.id ? null : (resolvedGuestToken || guestToken || null),
+    action: "AI_CHAT_MONTHLY",
+    plan,
+    limitFree: session?.user?.id ? 300 : 5,
+    limitPremium: 4500,
+    windowMs: 30 * 24 * 60 * 60 * 1000,
+    errorMessage: "Monthly message limit reached",
+  })
+  if (!monthlyCheck.allowed) {
+    await prisma.technicalLimitLog.delete({ where: { id: concurrencyLog.id } }).catch(() => {})
+    return NextResponse.json({
+      error: "LIMIT_EXCEEDED",
+      message: monthlyCheck.message,
+      resetInSeconds: monthlyCheck.resetInSeconds
+    }, { status: 429 })
+  }
+
   let context: Awaited<ReturnType<typeof resolveChatContext>>
   try {
     context = await resolveChatContext({
@@ -88,6 +183,7 @@ export async function POST(req: NextRequest) {
     })
   } catch (ctxErr) {
     console.error("resolveChatContext failed:", ctxErr)
+    await prisma.technicalLimitLog.delete({ where: { id: concurrencyLog.id } }).catch(() => {})
     return NextResponse.json(
       { error: "Could not reach the assistant. Please try again in a moment." },
       { status: 503 },
@@ -98,6 +194,7 @@ export async function POST(req: NextRequest) {
     conversationId = context.user.conversationId
   } else {
     if (context.guest.requiresLogin) {
+      await prisma.technicalLimitLog.delete({ where: { id: concurrencyLog.id } }).catch(() => {})
       return NextResponse.json({
         requiresLogin: true,
         requiresSignIn: true,
@@ -373,8 +470,13 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    // Release concurrency lock
+    await prisma.technicalLimitLog.delete({ where: { id: concurrencyLog.id } }).catch(() => {})
+
     return response
   } catch {
+    // Release concurrency lock on error too
+    await prisma.technicalLimitLog.deleteMany({ where: { action: "AI_CHAT_CONCURRENCY", userId: session?.user?.id || undefined } }).catch(() => {})
     const response = NextResponse.json(
       { error: "Invalid upstream response" },
       { status: 502 },

@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getBotAvatar } from "@/lib/avatar";
 import { useSpeechToText } from "../../hooks/useSpeechToText";
+import LimitExceededModal, { type LimitExceededInfo } from "@/components/ui/LimitExceededModal";
 
 interface ChatMessage {
     role: "user" | "assistant";
@@ -351,6 +352,7 @@ export default function TryPragyaChat({
     const [isLoading, setIsLoading] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [botExpression, setBotExpression] = useState("NEUTRAL");
+    const [limitInfo, setLimitInfo] = useState<LimitExceededInfo | null>(null);
     const [lastUserMessage, setLastUserMessage] = useState("");
 
     const [summarizing, setSummarizing] = useState(false);
@@ -526,7 +528,18 @@ export default function TryPragyaChat({
             });
 
             if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}));
+                const errorData = await res.json().catch(() => ({}))
+                if (res.status === 429 || errorData.error === "LIMIT_EXCEEDED") {
+                    setLimitInfo({
+                        feature: "AI Companion",
+                        message: errorData.message || "You have reached your usage limit for the AI Companion.",
+                        resetInSeconds: errorData.resetInSeconds,
+                        upgradeable: true,
+                    })
+                    setIsLoading(false)
+                    setIsTyping(false)
+                    return
+                }
                 throw new Error(
                     errorData.error || "Failed to connect to the assistant.",
                 );
@@ -725,7 +738,9 @@ export default function TryPragyaChat({
         stopRecording,
         toggleRecording,
         formatTime,
-    } = useSpeechToText(handleTranscript);
+    } = useSpeechToText(handleTranscript, (info) => {
+        setLimitInfo({ feature: "Voice Input", message: info.message, resetInSeconds: info.resetInSeconds, upgradeable: true })
+    });
 
     const initialEntryModeAttemptedRef = useRef(false);
 
@@ -1554,6 +1569,7 @@ export default function TryPragyaChat({
                     </div>
                 </div>
             )}
+            <LimitExceededModal info={limitInfo} onClose={() => setLimitInfo(null)} />
         </>
     );
 }

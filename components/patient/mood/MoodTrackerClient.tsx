@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import LimitExceededModal, { type LimitExceededInfo } from "@/components/ui/LimitExceededModal"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -61,6 +62,7 @@ export default function MoodTrackerClient({
 
   const [submitting, setSubmitting] = useState(false)
   const [toast, setToast] = useState<{ type: "success" | "error"; title: string; body?: string } | null>(null)
+  const [limitInfo, setLimitInfo] = useState<LimitExceededInfo | null>(null)
 
   // Guide State (starts automatically as 0 to pop up)
   const [guideIndex, setGuideIndex] = useState<number | null>(0)
@@ -188,7 +190,18 @@ export default function MoodTrackerClient({
         }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed to save")
+      if (!res.ok) {
+        if (res.status === 429 || data.error === "LIMIT_EXCEEDED") {
+          setLimitInfo({
+            feature: "Mood Tracker",
+            message: data.message || "You have reached your daily mood check-in limit.",
+            resetInSeconds: data.resetInSeconds,
+            upgradeable: true,
+          })
+          return
+        }
+        throw new Error(data.error || "Failed to save")
+      }
 
       setEntries((prev) => [data.entry, ...prev])
       setStreak(data.streak)
@@ -438,6 +451,7 @@ export default function MoodTrackerClient({
             </div>
           </div>
         )}
+        <LimitExceededModal info={limitInfo} onClose={() => setLimitInfo(null)} />
       </div>
     </div>
   )

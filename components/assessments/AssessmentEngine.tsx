@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from "react"
+import LimitExceededModal, { type LimitExceededInfo } from "@/components/ui/LimitExceededModal"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Activity, AlertTriangle, Brain, ListChecks, MessageSquare, ChevronLeft, Info, Sparkles, ShieldAlert, ShieldCheck, Check } from "lucide-react"
@@ -128,6 +129,7 @@ export default function AssessmentEngine() {
 
     // Results State
     const [finalResults, setFinalResults] = useState<any>(null)
+    const [limitInfo, setLimitInfo] = useState<LimitExceededInfo | null>(null)
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -345,13 +347,24 @@ export default function AssessmentEngine() {
 
         setFinalResults(payload)
 
-        // Save to DB (mock endpoint for now)
+        // Save to DB
         try {
-            await fetch('/api/patient/assessments', {
+            const res = await fetch('/api/patient/assessments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             })
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}))
+                if (res.status === 429 || errData.error === "LIMIT_EXCEEDED") {
+                    setLimitInfo({
+                        feature: "Assessments",
+                        message: errData.message || "You have reached your weekly assessment limit.",
+                        resetInSeconds: errData.resetInSeconds,
+                        upgradeable: true,
+                    })
+                }
+            }
         } catch (e) {
             console.error("Failed to save assessment", e)
         }
@@ -654,6 +667,7 @@ export default function AssessmentEngine() {
                     </div>
                 </div>
             )}
+            <LimitExceededModal info={limitInfo} onClose={() => setLimitInfo(null)} />
         </div>
     )
 }

@@ -25,6 +25,7 @@ async function Content() {
         contactPhone: user.patient?.emergencyContactPhone || "",
         relationship: user.patient?.emergencyRelationship || "",
       }}
+      initialContacts={(user.patient as any)?.emergencyContacts || []}
     />
   )
 }
