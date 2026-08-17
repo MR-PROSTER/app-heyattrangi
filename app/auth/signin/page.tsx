@@ -294,18 +294,16 @@ export default function SignInPage() {
       {/* Right form panel */}
       <div className="w-full lg:w-[min(100%,480px)] xl:w-[500px] shrink-0 flex items-center justify-center p-8 sm:p-12 bg-white relative">
         <div className="w-full max-w-[420px]">
-          <AttrangiLogo className="lg:hidden mb-8" />
-          
           {/* Back Action Header */}
           {step === "EMAIL" ? (
             <Link
               href="/auth/individual"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#e26843] hover:underline mb-6"
+              aria-label="Back"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-slate-200 hover:bg-slate-50 text-[#e26843] transition-colors mb-6 cursor-pointer"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <svg className="w-4 h-4 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
-              Back
             </Link>
           ) : (
             <button
@@ -313,12 +311,12 @@ export default function SignInPage() {
                 setError("")
                 setStep("EMAIL")
               }}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#e26843] hover:underline mb-6 bg-transparent border-none cursor-pointer"
+              aria-label="Back"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-slate-200 hover:bg-slate-50 text-[#e26843] transition-colors mb-6 cursor-pointer bg-transparent"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <svg className="w-4 h-4 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
-              Back
             </button>
           )}
 
@@ -404,11 +402,6 @@ export default function SignInPage() {
               {/* STEP 2: CODE VERIFICATION */}
               {step === "CODE" && (
                 <form onSubmit={handleCodeVerify} className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-500 font-medium font-sans">
-                      We sent a 6-digit verification code to <span className="text-[#e26843] font-semibold">{email}</span>.
-                    </p>
-                  </div>
                   <input
                     type="text"
                     pattern="\d{6}"

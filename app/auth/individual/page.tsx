@@ -38,15 +38,17 @@ export default function RedesignedIndividualAuthPage() {
           </svg>
         </Link>
 
-        {/* Top Hero Image Section - touches the top and sides of the screen with rounded top corners */}
-        <div className="relative w-full h-[360px] sm:h-[395px] shrink-0 overflow-hidden rounded-t-[32px]">
-          <Image
-            src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786829868/welcome_ndizse.png"
-            alt="Hey Attrangi student wellbeing welcome illustration"
-            fill
-            priority
-            className="object-cover object-center"
-          />
+        {/* Top Hero Image Section - styled as a floating card matching Image 1 */}
+        <div className="px-3 pt-3 shrink-0 w-full">
+          <div className="relative w-full h-[280px] sm:h-[320px] overflow-hidden rounded-t-[32px]">
+            <Image
+              src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786829868/welcome_ndizse.png"
+              alt="Hey Attrangi student wellbeing welcome illustration"
+              fill
+              priority
+              className="object-cover object-center rounded-t-[32px]"
+            />
+          </div>
         </div>
 
         {/* Middle Content Section */}
@@ -56,7 +58,20 @@ export default function RedesignedIndividualAuthPage() {
           <AttrangiLogo />
 
           {/* Wellbeing Heading */}
-          <h2 className="text-[19px] sm:text-[22px] font-black text-slate-900 tracking-tight leading-tight whitespace-nowrap font-sans">
+          <h2 
+            style={{
+              width: "166.29px",
+              height: "19px",
+              fontFamily: "var(--font-nunito), sans-serif",
+              fontStyle: "normal",
+              fontWeight: 800,
+              fontSize: "12px",
+              lineHeight: "19px",
+              color: "#1E1E1E",
+              textAlign: "center"
+            }}
+            className="flex items-center justify-center font-sans tracking-tight whitespace-nowrap"
+          >
             Built for student wellbeing
           </h2>
 
@@ -65,7 +80,7 @@ export default function RedesignedIndividualAuthPage() {
             style={{
               width: "166.29px",
               height: "22px",
-              fontFamily: "'Nunito', sans-serif",
+              fontFamily: "var(--font-nunito), sans-serif",
               fontStyle: "normal",
               fontWeight: 500,
               fontSize: "7.87185px",
@@ -81,7 +96,7 @@ export default function RedesignedIndividualAuthPage() {
           </div>
 
           {/* IDRP Logo Display */}
-          <div className="relative w-[150px] h-[52px] shrink-0 mt-3.5">
+          <div className="relative w-[270px] h-[92px] shrink-0 mt-3.5">
             <Image
               src="https://res.cloudinary.com/dxoiluua8/image/upload/v1786820584/IDRP_hk4gpn.png"
               alt="IIT Dharwad Research Park logo"

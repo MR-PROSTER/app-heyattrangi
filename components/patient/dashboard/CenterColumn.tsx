@@ -108,6 +108,96 @@ function generateDashboardPrompt(responseText: string): string {
   return "Would you like to continue where we left off?"
 }
 
+const CalendarCircle = ({ item, isMobile }: { item: any; isMobile: boolean }) => {
+  const [isFlipped, setIsFlipped] = useState(false)
+
+  useEffect(() => {
+    if (item.type === "mood") {
+      const timer = setTimeout(() => {
+        setIsFlipped(true)
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [item.type])
+
+  const isText = item.type === "text"
+  const sizeClass = isMobile ? "w-6 h-6" : "w-7 h-7"
+
+  if (isText) {
+    const circleStyle = isMobile
+      ? { borderColor: "#64748B", color: "#64748B", backgroundColor: "#ffffff" }
+      : { backgroundColor: item.bg, color: item.color }
+    const borderClass = isMobile ? "border border-[#64748B]" : ""
+
+    return (
+      <div 
+        style={circleStyle}
+        className={`${sizeClass} rounded-full flex items-center justify-center shadow-sm shrink-0 ${borderClass} font-sans`}
+      >
+        <span className={`${isMobile ? "text-[10px]" : "text-[11px]"} font-bold leading-none`}>
+          {item.value}
+        </span>
+      </div>
+    )
+  }
+
+  return (
+    <div className={`${sizeClass} shrink-0`} style={{ perspective: "1000px" }}>
+      <div 
+        className="relative w-full h-full rounded-full transition-transform duration-700"
+        style={{
+          transformStyle: "preserve-3d",
+          transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+        }}
+      >
+        {/* Front Side: Shows Date number */}
+        <div 
+          className="absolute inset-0 rounded-full flex items-center justify-center bg-white shadow-sm border border-[#64748B] font-sans"
+          style={{
+            backfaceVisibility: "hidden",
+            color: "#64748B",
+            WebkitBackfaceVisibility: "hidden",
+          }}
+        >
+          <span className={`${isMobile ? "text-[10px]" : "text-[11px]"} font-bold leading-none`}>
+            {item.value}
+          </span>
+        </div>
+
+        {/* Back Side: Shows mood face */}
+        <div 
+          className="absolute inset-0 rounded-full flex items-center justify-center bg-transparent"
+          style={{
+            backfaceVisibility: "hidden",
+            transform: "rotateY(180deg)",
+            WebkitBackfaceVisibility: "hidden",
+          }}
+        >
+          {item.moodName && (
+            <Image 
+              src={
+                item.moodName === "Low"
+                  ? "https://res.cloudinary.com/dxoiluua8/image/upload/v1786799140/Low_sujxbx.png"
+                  : item.moodName === "Meh"
+                  ? "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Meh_fh0ndp.png"
+                  : item.moodName === "Okay"
+                  ? "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Okay_ikdsom.png"
+                  : item.moodName === "Good"
+                  ? "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730507/Good_qtm32o.png"
+                  : "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Great_hbqsmr.png"
+              } 
+              alt={item.moodName} 
+              width={28} 
+              height={28} 
+              className="w-full h-full object-contain rounded-full"
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function CenterColumn({
   displayName,
   plan,
@@ -523,47 +613,7 @@ export default function CenterColumn({
   }, [moodEntries])
 
   const renderCalendarCircle = (item: any, isMobile: boolean = false) => {
-    const isText = item.type === "text"
-    const circleStyle = isText
-      ? ((isMobile)
-        ? { borderColor: "#64748B", color: "#64748B", backgroundColor: "#ffffff" }
-        : { backgroundColor: item.bg, color: item.color })
-      : { backgroundColor: "transparent" }
-
-    const sizeClass = isMobile ? "w-6 h-6" : "w-7 h-7"
-    const borderClass = (isText && isMobile) ? "border border-[#64748B]" : ""
-
-    return (
-      <div 
-        style={circleStyle}
-        className={`${sizeClass} rounded-full flex items-center justify-center shadow-sm shrink-0 ${borderClass}`}
-      >
-        {item.type === "text" && (
-          <span className={`${isMobile ? "text-[10px]" : "text-[11px]"} font-bold leading-none`}>
-            {item.value}
-          </span>
-        )}
-        {item.type === "mood" && item.moodName && (
-          <Image 
-            src={
-              item.moodName === "Low"
-                ? "https://res.cloudinary.com/dxoiluua8/image/upload/v1786799140/Low_sujxbx.png"
-                : item.moodName === "Meh"
-                ? "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Meh_fh0ndp.png"
-                : item.moodName === "Okay"
-                ? "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Okay_ikdsom.png"
-                : item.moodName === "Good"
-                ? "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730507/Good_qtm32o.png"
-                : "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730508/Great_hbqsmr.png"
-            } 
-            alt={item.moodName} 
-            width={28} 
-            height={28} 
-            className="w-full h-full object-contain rounded-full"
-          />
-        )}
-      </div>
-    )
+    return <CalendarCircle item={item} isMobile={isMobile} />
   }
 
   return (
@@ -584,36 +634,26 @@ export default function CenterColumn({
         <div className="block md:hidden w-full flex flex-col">
           {/* Blue Rounded Header Area */}
           <div className="w-full px-4 min-[360px]:px-5 min-[390px]:px-6 pt-[72px] min-[360px]:pt-[76px] min-[390px]:pt-20 pb-9 min-[360px]:pb-11 min-[390px]:pb-14 flex flex-col gap-4 min-[360px]:gap-5 min-[390px]:gap-6 relative">
-            {/* Background & Robot Wrapper (Clipped by rounded bottom) */}
-            <div className="absolute inset-0 bg-gradient-to-b from-[#8BDDEE] via-[#A6E8F6] to-[#D7F5FC] rounded-b-[32px] min-[360px]:rounded-b-[38px] min-[390px]:rounded-b-[42px] overflow-hidden pointer-events-none shadow-[0_8px_30px_rgba(139,221,238,0.12)]">
-              {/* Peeking Robot Image */}
-              <div className="absolute right-0 bottom-[56px] min-[360px]:bottom-[60px] min-[390px]:bottom-[68px] w-[55px] min-[360px]:w-[80px] min-[390px]:w-[95px] h-[78px] min-[360px]:h-[113px] min-[390px]:h-[135px] pointer-events-none scale-x-[-1]">
-                <Image
-                  src="/images/robot_peeking.png"
-                  alt="Peeking Robot"
-                  fill
-                  className="object-contain object-right-bottom"
-                />
-              </div>
-            </div>
+            {/* Background Wrapper (Clipped by rounded bottom) */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#8BDDEE] via-[#A6E8F6] to-[#D7F5FC] rounded-b-[32px] min-[360px]:rounded-b-[38px] min-[390px]:rounded-b-[42px] overflow-hidden pointer-events-none shadow-[0_8px_30px_rgba(139,221,238,0.12)]" />
 
-            {/* Header Row: Title & Avatar */}
-            <div className="flex items-center justify-between w-full z-10 relative gap-2 min-[360px]:gap-3">
-              <div className="flex flex-col pl-1 min-[360px]:pl-2.5 min-[390px]:pl-4 min-w-0 flex-1">
-                <h1 className="font-sans font-[1000] text-[28px] min-[360px]:text-[32px] min-[390px]:text-[36px] leading-[34px] min-[390px]:leading-[38px] tracking-[-0.5px] text-white whitespace-nowrap truncate">
+            {/* Header Row: Title & Avatar on the same line */}
+            <div className="flex flex-col pl-1 min-[360px]:pl-2.5 min-[390px]:pl-4 w-full z-10 relative gap-2 min-[360px]:gap-2.5 min-[390px]:gap-3">
+              <div className="flex items-center justify-between w-full gap-2 min-[360px]:gap-3">
+                <h1 className="font-sans font-[1000] text-[28px] min-[360px]:text-[32px] min-[390px]:text-[36px] leading-[34px] min-[390px]:leading-[38px] tracking-[-0.5px] text-white whitespace-nowrap truncate min-w-0 flex-1">
                   Hello, {firstName}
                 </h1>
-                <span className="text-[#00829B] text-[13px] min-[360px]:text-[14px] min-[390px]:text-[15px] font-medium mt-2 min-[360px]:mt-3 line-clamp-3 leading-snug break-words pr-2 font-sans tracking-[-0.5px]">
-                  {latestBotMessage}
-                </span>
+                <div className="shrink-0">
+                  <ProfileAvatar
+                    name={displayName}
+                    image={userImage}
+                    className="w-[34px] h-[34px] min-[360px]:w-10 min-[360px]:h-10 min-[390px]:w-11 min-[390px]:h-11 border-2 border-white/80 shadow-sm"
+                  />
+                </div>
               </div>
-              <div className="shrink-0">
-                <ProfileAvatar
-                  name={displayName}
-                  image={userImage}
-                  className="w-[34px] h-[34px] min-[360px]:w-10 min-[360px]:h-10 min-[390px]:w-11 min-[390px]:h-11 border-2 border-white/80 shadow-sm"
-                />
-              </div>
+              <span className="block text-[#00829B] text-[13px] min-[360px]:text-[14px] min-[390px]:text-[15px] font-medium mt-1 line-clamp-3 leading-snug break-words pr-2 font-sans tracking-[-0.5px] max-w-[340px]">
+                {latestBotMessage}
+              </span>
             </div>
 
             {/* Spacing to push down the form */}

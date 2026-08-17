@@ -59,6 +59,7 @@ export default function PatientOnboarding() {
     const [showAiModal, setShowAiModal] = useState(false)
     const [showDataConsentModal, setShowDataConsentModal] = useState(false)
     const [showTrustSafetyModal, setShowTrustSafetyModal] = useState(false)
+    const [showAllPolicies, setShowAllPolicies] = useState(false)
 
     // Pricing & Payment State
     const [selectedPlan, setSelectedPlan] = useState<"ESSENTIAL" | "PREMIUM">("PREMIUM")
@@ -74,9 +75,8 @@ export default function PatientOnboarding() {
         })
     }
 
-    const handlePayment = async () => {
+    const handlePayment = async (amount: number) => {
         setIsProcessingPayment(true)
-        const amount = selectedPlan === "ESSENTIAL" ? 49 : 149
         try {
             const isLoaded = await loadRazorpayScript()
             if (!isLoaded) {
@@ -88,7 +88,7 @@ export default function PatientOnboarding() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    plan: selectedPlan,
+                    plan: "PREMIUM",
                     amount,
                 }),
             })
@@ -101,7 +101,7 @@ export default function PatientOnboarding() {
                 amount: orderData.amount,
                 currency: orderData.currency,
                 name: "Hey Attrangi",
-                description: `${selectedPlan === "PREMIUM" ? "Companion" : "Listener"} Plan Subscription`,
+                description: `PREMIUM Plan Subscription`,
                 order_id: orderData.orderId,
                 handler: async function (response: any) {
                     try {
@@ -112,14 +112,14 @@ export default function PatientOnboarding() {
                                 razorpay_order_id: response.razorpay_order_id,
                                 razorpay_payment_id: response.razorpay_payment_id,
                                 razorpay_signature: response.razorpay_signature,
-                                plan: selectedPlan,
+                                plan: "PREMIUM",
                                 amount,
                             }),
                         })
 
                         const verifyData = await verifyRes.json()
                         if (verifyData.success) {
-                            alert(`Successfully subscribed to ${selectedPlan === "PREMIUM" ? "Companion" : "Listener"} plan!`)
+                            alert(`Successfully subscribed to PREMIUM plan!`)
                             setStep(4)
                         } else {
                             alert(verifyData.error || "Payment verification failed.")
@@ -147,7 +147,7 @@ export default function PatientOnboarding() {
                     body: JSON.stringify({
                         status: "FAILED",
                         amount,
-                        description: `${selectedPlan === "PREMIUM" ? "Companion" : "Listener"} plan subscription`,
+                        description: `PREMIUM plan subscription`,
                         paymentId: response?.error?.metadata?.payment_id || null,
                         orderId: orderData.orderId,
                         reason,
@@ -165,11 +165,7 @@ export default function PatientOnboarding() {
     }
 
     const handleNext = () => {
-        if (step === 2) {
-            handlePayment()
-        } else {
-            setStep((s) => s + 1)
-        }
+        setStep((s) => s + 1)
     }
 
     const handleBack = () => {
@@ -298,20 +294,14 @@ export default function PatientOnboarding() {
                                         <ConsentScreen
                                             data={data}
                                             onChange={(fields) => setData({ ...data, ...fields })}
-                                            onOpenTerms={() => setShowTermsModal(true)}
-                                            onOpenPrivacy={() => setShowPrivacyModal(true)}
-                                            onOpenAi={() => setShowAiModal(true)}
-                                            onOpenDataConsent={() => setShowDataConsentModal(true)}
-                                            onOpenTrustSafety={() => setShowTrustSafetyModal(true)}
                                         />
                                     )}
                                     {step === 2 && (
                                         <PricingScreen
-                                            selectedPlan={selectedPlan}
-                                            onSelectPlan={setSelectedPlan}
                                             onOpenTerms={() => setShowTermsModal(true)}
                                             onOpenPrivacy={() => setShowPrivacyModal(true)}
-                                            onSkip={() => setStep(3)}
+                                            handlePayment={handlePayment}
+                                            isProcessingPayment={isProcessingPayment}
                                         />
                                     )}
                                     {step === 3 && <FinalScreen userName={userName} />}
@@ -322,6 +312,116 @@ export default function PatientOnboarding() {
 
                     {/* Navigation Buttons and Dots Indicator */}
                     <div className={`z-10 w-full shrink-0 ${step === 2 ? "pt-2" : ""}`}>
+                        {step === 1 && (
+                            <div className="mb-5 flex flex-col gap-3 font-sans w-full text-left">
+                                <label className="flex items-start gap-3.5 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={data.consentAgreed}
+                                        onChange={(e) => setData({ ...data, consentAgreed: e.target.checked })}
+                                        className="w-[18px] h-[18px] mt-1 shrink-0 rounded text-[#e26843] focus:ring-[#e26843] border-gray-300 cursor-pointer"
+                                    />
+                                    <span className="text-[13px] text-gray-600 font-medium leading-relaxed">
+                                        I agree to the{" "}
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowTermsModal(true)}
+                                            className="inline font-bold text-gray-800 hover:text-[#e26843] cursor-pointer bg-transparent border-none p-0 outline-none"
+                                        >
+                                            Terms &amp; Conditions
+                                        </button>{" "}
+                                        and acknowledge Attrangi&apos;s{" "}
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPrivacyModal(true)}
+                                            className="inline font-bold text-gray-800 hover:text-[#e26843] cursor-pointer bg-transparent border-none p-0 outline-none"
+                                        >
+                                            Privacy
+                                        </button>
+                                        ,{" "}
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAiModal(true)}
+                                            className="inline font-bold text-gray-800 hover:text-[#e26843] cursor-pointer bg-transparent border-none p-0 outline-none"
+                                        >
+                                            AI Transparency
+                                        </button>{" "}
+                                        and{" "}
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowTrustSafetyModal(true)}
+                                            className="inline font-bold text-gray-800 hover:text-[#e26843] cursor-pointer bg-transparent border-none p-0 outline-none"
+                                        >
+                                            Safety policies
+                                        </button>
+                                        .
+                                    </span>
+                                </label>
+
+                                <div className="pl-[32px]">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAllPolicies(!showAllPolicies)}
+                                        className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer bg-transparent border-none p-0 outline-none"
+                                    >
+                                        {showAllPolicies ? "Hide all policies" : "Read all policies"}
+                                    </button>
+                                </div>
+
+                                {showAllPolicies && (
+                                    <div className="pl-[32px] mt-2 py-3 px-4 bg-white rounded-lg border border-gray-150 animate-fadeIn">
+                                        <h4 className="font-bold text-[12px] text-gray-700 mb-2">Available Documents:</h4>
+                                        <ul className="space-y-2 text-[12px] font-semibold text-gray-500">
+                                            <li>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowTermsModal(true)}
+                                                    className="text-[#e26843] hover:underline text-left cursor-pointer outline-none bg-transparent font-semibold"
+                                                >
+                                                    Terms &amp; Conditions
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPrivacyModal(true)}
+                                                    className="text-[#e26843] hover:underline text-left cursor-pointer outline-none bg-transparent font-semibold"
+                                                >
+                                                    Privacy Policy
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowAiModal(true)}
+                                                    className="text-[#e26843] hover:underline text-left cursor-pointer outline-none bg-transparent font-semibold"
+                                                >
+                                                    AI Transparency Statement
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowTrustSafetyModal(true)}
+                                                    className="text-[#e26843] hover:underline text-left cursor-pointer outline-none bg-transparent font-semibold"
+                                                >
+                                                    Trust, Safety &amp; Acceptable Use Policy
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowDataConsentModal(true)}
+                                                    className="text-[#e26843] hover:underline text-left cursor-pointer outline-none bg-transparent font-semibold"
+                                                >
+                                                    Data Processing Consent
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         <div className="flex w-full gap-3">
                             {step > 0 && step < 2 && (
                                 <button
@@ -333,13 +433,15 @@ export default function PatientOnboarding() {
                             )}
 
                             {step < 3 ? (
-                                <button
-                                    onClick={handleNext}
-                                    disabled={isContinueDisabled}
-                                    className={`${step > 0 && step !== 2 ? "flex-1" : "w-full"} flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-full py-3.5 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-[16px] lg:font-bold lg:text-sm lg:uppercase lg:tracking-wider cursor-pointer`}
-                                >
-                                    {step === 2 ? "Subscribe & Pay" : (step === 0 || step === 1) ? "Continue →" : "Continue"}
-                                </button>
+                                step === 2 ? null : (
+                                    <button
+                                        onClick={handleNext}
+                                        disabled={isContinueDisabled}
+                                        className={`${step > 0 && step !== 2 ? "flex-1" : "w-full"} flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-full py-3.5 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-[16px] lg:font-bold lg:text-sm lg:uppercase lg:tracking-wider cursor-pointer`}
+                                    >
+                                        {(step === 0 || step === 1) ? "Continue →" : "Continue"}
+                                    </button>
+                                )
                             ) : (
                                 <button
                                     onClick={handleFinish}
@@ -934,19 +1036,9 @@ export default function PatientOnboarding() {
 function ConsentScreen({
     data,
     onChange,
-    onOpenTerms,
-    onOpenPrivacy,
-    onOpenAi,
-    onOpenDataConsent,
-    onOpenTrustSafety,
 }: {
     data: OnboardingData
     onChange: (fields: Partial<OnboardingData>) => void
-    onOpenTerms: () => void
-    onOpenPrivacy: () => void
-    onOpenAi: () => void
-    onOpenDataConsent: () => void
-    onOpenTrustSafety: () => void
 }) {
     return (
         <div className="w-full max-w-xl text-left space-y-6">
@@ -999,78 +1091,6 @@ function ConsentScreen({
                         </div>
                     </div>
                 </div>
-            </div>
-
-            {/* Consent Checkbox */}
-            <div className="bg-gray-50/50 p-5 rounded-[16px] border border-gray-100 space-y-4">
-                <h3 className="font-bold text-gray-800 text-[15px] uppercase tracking-wider font-sans">
-                    Consent
-                </h3>
-                <p className="text-gray-500 text-[13px] font-semibold -mt-2 mb-2 font-sans">
-                    Before you continue
-                </p>
-                <div className="text-sm text-gray-600 space-y-2 font-sans">
-                    <p className="font-semibold text-[13px] text-gray-800">Please review:</p>
-                    <ul className="grid grid-cols-2 gap-x-4 gap-y-1 list-disc pl-5 text-[12px] text-gray-500 font-semibold">
-                        <li>
-                            <button
-                                type="button"
-                                onClick={onOpenTerms}
-                                className="text-[#e26843] hover:underline font-semibold text-left cursor-pointer outline-none bg-transparent"
-                            >
-                                Terms &amp; Conditions
-                            </button>
-                        </li>
-                        <li>
-                            <button
-                                type="button"
-                                onClick={onOpenPrivacy}
-                                className="text-[#e26843] hover:underline font-semibold text-left cursor-pointer outline-none bg-transparent"
-                            >
-                                Privacy Policy
-                            </button>
-                        </li>
-                        <li>
-                            <button
-                                type="button"
-                                onClick={onOpenAi}
-                                className="text-[#e26843] hover:underline font-semibold text-left cursor-pointer outline-none bg-transparent"
-                            >
-                                AI Transparency Statement
-                            </button>
-                        </li>
-                        <li>
-                            <button
-                                type="button"
-                                onClick={onOpenTrustSafety}
-                                className="text-[#e26843] hover:underline font-semibold text-left cursor-pointer outline-none bg-transparent"
-                            >
-                                Trust, Safety &amp; Acceptable Use Policy
-                            </button>
-                        </li>
-                        <li>
-                            <button
-                                type="button"
-                                onClick={onOpenDataConsent}
-                                className="text-[#e26843] hover:underline font-semibold text-left cursor-pointer outline-none bg-transparent"
-                            >
-                                Data Processing Consent
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-
-                <label className="flex items-start gap-3 mt-4 cursor-pointer select-none font-sans">
-                    <input
-                        type="checkbox"
-                        checked={data.consentAgreed}
-                        onChange={(e) => onChange({ consentAgreed: e.target.checked })}
-                        className="w-5 h-5 mt-0.5 rounded text-[#e26843] focus:ring-[#e26843] border-gray-300 cursor-pointer"
-                    />
-                    <span className="text-[13px] text-gray-600 font-semibold leading-relaxed">
-                        I agree to the documents above.
-                    </span>
-                </label>
             </div>
         </div>
     )
@@ -1398,199 +1418,171 @@ function ExperienceScreen({ selected, onSelect }: { selected: string; onSelect: 
 }
 
 function PricingScreen({
-    selectedPlan,
-    onSelectPlan,
     onOpenTerms,
     onOpenPrivacy,
-    onSkip,
+    handlePayment,
+    isProcessingPayment,
 }: {
-    selectedPlan: "ESSENTIAL" | "PREMIUM"
-    onSelectPlan: (plan: "ESSENTIAL" | "PREMIUM") => void
     onOpenTerms: () => void
     onOpenPrivacy: () => void
-    onSkip: () => void
+    handlePayment: (amount: number) => void
+    isProcessingPayment: boolean
 }) {
-    const unlockFeatures = [
-        {
-            title: "Personalised Wellbeing Plan",
-            subtitle: "5-min a day to rewire your mindset",
-            bg: "bg-[#f3a69a]",
-            icon: (
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2l1.4 4.3h4.5l-3.6 2.7 1.4 4.3L12 10.6 8.3 13.3l1.4-4.3-3.6-2.7h4.5L12 2zm7 12l.9 2.7h2.8l-2.3 1.7.9 2.7-2.3-1.7-2.3 1.7.9-2.7-2.3-1.7h2.8L19 14zm-14 0l.9 2.7h2.8l-2.3 1.7.9 2.7-2.3-1.7-2.3 1.7.9-2.7-2.3-1.7h2.8L5 14z" />
-                </svg>
-            ),
-        },
-        {
-            title: "AI Insights",
-            subtitle: "Uncover surprising patterns about you",
-            bg: "bg-[#c4b0d8]",
-            icon: (
-                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12h3l2-5 3 10 3-7 2 2h5" />
-                </svg>
-            ),
-        },
-        {
-            title: "Mood Dashboard",
-            subtitle: "Keep track of your progress",
-            bg: "bg-[#e8c96a]",
-            icon: (
-                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4-5 3 3 5-7 4 4" />
-                </svg>
-            ),
-        },
-        {
-            title: "Longer Conversations",
-            subtitle: "Record up to 20 minutes per entry",
-            bg: "bg-[#8eb8d8]",
-            icon: (
-                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3zm5-3a5 5 0 01-10 0M12 19v3m-4 0h8" />
-                </svg>
-            ),
-        },
-    ]
+    const [billingPeriod, setBillingPeriod] = useState<"monthly" | "semester" | "annual">("monthly")
+
+    const getPriceDetails = () => {
+        switch (billingPeriod) {
+            case "semester":
+                return { price: "₹134", label: "/ month", subtext: "Billed ₹805 every 6 months", amount: 805 }
+            case "annual":
+                return { price: "₹119", label: "/ month", subtext: "Billed ₹1430 every year", amount: 1430 }
+            case "monthly":
+            default:
+                return { price: "₹149", label: "/ month", subtext: "Billed monthly", amount: 149 }
+        }
+    }
+
+    const { price, label, subtext, amount } = getPriceDetails()
 
     return (
-        <div className="w-full max-w-xl text-left flex flex-col">
-            {/* Unlock more ways to feel better */}
-            <div className="mb-4">
-                <h2 className="text-[24px] lg:text-[26px] font-bold text-gray-900 tracking-tight leading-[1.2] text-left mb-3">
-                    Unlock more ways to feel better
-                </h2>
-                <div className="flex flex-col gap-3">
-                    {unlockFeatures.map((feature) => (
-                        <div key={feature.title} className="flex items-center gap-3 min-w-0">
-                            <div className={`w-9 h-9 rounded-[10px] ${feature.bg} flex items-center justify-center shrink-0`}>
-                                {feature.icon}
-                            </div>
-                            <div className="min-w-0">
-                                <h4 className="font-bold text-[14px] text-gray-900 leading-snug">{feature.title}</h4>
-                                <p className="text-[12px] text-gray-500 mt-0.5 leading-snug">{feature.subtitle}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Main Title */}
-            <h2 className="text-[24px] lg:text-[26px] font-bold text-gray-900 tracking-tight leading-[1.2] text-left mb-3">
-                Start your journey
-            </h2>
-
-            {/* Plans List */}
-            <div className="w-full space-y-2.5 text-left">
-                {/* Card 1: Companion (Premium) */}
-                <div
-                    onClick={() => onSelectPlan("PREMIUM")}
-                    className={`relative border-2 rounded-[16px] p-3.5 cursor-pointer flex items-center justify-between transition-all duration-300 select-none ${selectedPlan === "PREMIUM"
-                        ? "border-[#e26843] bg-[#fffbf7] shadow-lg shadow-orange-500/5"
-                        : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/30"
-                        }`}
+        <div className="w-full max-w-md mx-auto flex flex-col gap-4 text-left">
+            {/* Card 2: PREMIUM */}
+            <div className="bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-zinc-100/60 p-4 sm:p-5 flex flex-col gap-4 w-full">
+                {/* Nested Rounded Gradient Box */}
+                <div 
+                    className="rounded-[24px] p-4 sm:p-5 flex flex-col justify-between min-h-[295px] sm:min-h-[305px] relative overflow-hidden bg-cover bg-center"
+                    style={{
+                        backgroundImage: "url('https://res.cloudinary.com/dxoiluua8/image/upload/v1786789037/Banner_bg_rrixld.png')",
+                    }}
                 >
-                    <div className="flex flex-col gap-1.5 flex-1 pr-3">
-                        <span
-                            className={`inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full w-max ${selectedPlan === "PREMIUM"
-                                ? "bg-[#e26843] text-white"
-                                : "bg-gray-100 text-gray-500"
+                    <div className="flex flex-col gap-2.5">
+                        <h3 className="text-xs font-extrabold uppercase tracking-widest text-zinc-800 flex items-center gap-1 font-sans">
+                            ✦ PREMIUM
+                        </h3>
+                        
+                        {/* Segmented control billing toggle */}
+                        <div className="flex items-center bg-zinc-950/5 p-1 rounded-full w-full max-w-[340px] select-none">
+                            <button
+                                type="button"
+                                onClick={() => setBillingPeriod("monthly")}
+                                className={`flex-1 py-1.5 rounded-full font-extrabold text-[10px] sm:text-[11px] transition-all duration-300 cursor-pointer ${
+                                    billingPeriod === "monthly" ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-600 hover:text-zinc-950"
                                 }`}
-                        >
-                            Best Offer
-                        </span>
-                        <div>
-                            <h4 className="font-bold text-base text-gray-900 leading-tight">Companion</h4>
-                            <p className="text-[11px] font-medium text-gray-500 mt-0.5 leading-snug">
-                                Unlimited AI support &amp; long-term memory
-                            </p>
+                            >
+                                Monthly
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setBillingPeriod("semester")}
+                                className={`flex-1 py-1.5 rounded-full font-extrabold text-[10px] sm:text-[11px] transition-all duration-300 cursor-pointer flex items-center justify-center ${
+                                    billingPeriod === "semester" ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-600 hover:text-zinc-950"
+                                }`}
+                            >
+                                Semester
+                                <span className="bg-emerald-100 text-emerald-700 text-[8px] px-1 py-0.5 rounded-full font-black ml-1 scale-90 sm:scale-100">
+                                    10%
+                                </span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setBillingPeriod("annual")}
+                                className={`flex-1 py-1.5 rounded-full font-extrabold text-[10px] sm:text-[11px] transition-all duration-300 cursor-pointer flex items-center justify-center ${
+                                    billingPeriod === "annual" ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-600 hover:text-zinc-950"
+                                }`}
+                            >
+                                Annual
+                                <span className="bg-emerald-100 text-emerald-700 text-[8px] px-1 py-0.5 rounded-full font-black ml-1 scale-90 sm:scale-100">
+                                    20%
+                                </span>
+                            </button>
                         </div>
+
+                        {/* Price displays */}
+                        <div className="flex flex-col mt-2">
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-[36px] sm:text-[40px] font-black tracking-tight text-zinc-950 leading-none font-sans">
+                                    {price}
+                                </span>
+                                <span className="text-xs text-zinc-500 font-bold font-sans">
+                                    {label}
+                                </span>
+                            </div>
+                            <span className="text-[9px] text-zinc-500 font-bold font-sans mt-0.5">
+                                {subtext}
+                            </span>
+                        </div>
+
+                        <p className="text-xs sm:text-[12px] text-zinc-700 font-medium leading-relaxed font-sans mt-1">
+                            More space to understand yourself - with longer continuity and personalized support.
+                        </p>
                     </div>
 
-                    <div className="flex items-center gap-2.5 text-right">
-                        <div>
-                            <span className="block font-black text-lg text-gray-900">₹149.00</span>
-                            <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">per month</span>
-                        </div>
-
-                        <div
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedPlan === "PREMIUM"
-                                ? "bg-[#e26843] border-[#e26843]"
-                                : "border-gray-200"
-                                }`}
-                        >
-                            {selectedPlan === "PREMIUM" && (
-                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Card 2: Listener (Essential) */}
-                <div
-                    onClick={() => onSelectPlan("ESSENTIAL")}
-                    className={`relative border-2 rounded-[16px] p-3.5 cursor-pointer flex items-center justify-between transition-all duration-300 select-none ${selectedPlan === "ESSENTIAL"
-                        ? "border-[#e26843] bg-[#fffbf7] shadow-lg shadow-orange-500/5"
-                        : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/30"
-                        }`}
-                >
-                    <div className="flex flex-col gap-1.5 flex-1 pr-3">
-                        <span
-                            className={`inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full w-max ${selectedPlan === "ESSENTIAL"
-                                ? "bg-[#e26843] text-white"
-                                : "bg-gray-100 text-gray-500"
-                                }`}
-                        >
-                            Easy Start
-                        </span>
-                        <div>
-                            <h4 className="font-bold text-base text-gray-900 leading-tight">Listener</h4>
-                            <p className="text-[11px] font-medium text-gray-500 mt-0.5 leading-snug">
-                                Daily check-ins &amp; basic mood tracking
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-2.5 text-right">
-                        <div>
-                            <span className="block font-black text-lg text-gray-900">₹49.00</span>
-                            <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">per month</span>
-                        </div>
-
-                        <div
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedPlan === "ESSENTIAL"
-                                ? "bg-[#e26843] border-[#e26843]"
-                                : "border-gray-200"
-                                }`}
-                        >
-                            {selectedPlan === "ESSENTIAL" && (
-                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Footer cluster — tight under plans, no large empty gap */}
-            <div className="mt-4 flex flex-col items-center lg:items-start">
-                <div className="flex items-center gap-2 text-gray-500 text-xs font-semibold tracking-wide">
-                    <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    <span>Cancel anytime</span>
-                </div>
-
-                <div className="flex gap-5 mt-2 text-xs font-semibold text-gray-400">
-                    <button onClick={onOpenTerms} className="underline hover:text-gray-600 transition-colors bg-transparent border-none cursor-pointer">
-                        Terms
+                    {/* Action Button */}
+                    <button
+                        onClick={() => handlePayment(amount)}
+                        disabled={isProcessingPayment}
+                        className="w-full mt-4 py-3 px-4 bg-zinc-950 hover:bg-zinc-900 text-white text-xs sm:text-[13px] font-extrabold rounded-full transition-all flex items-center justify-center gap-2 select-none shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20 cursor-pointer"
+                    >
+                        {isProcessingPayment ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                            "Get Premium"
+                        )}
                     </button>
-                    <button onClick={onOpenPrivacy} className="underline hover:text-gray-600 transition-colors bg-transparent border-none cursor-pointer">
-                        Privacy Policy
-                    </button>
+                </div>
+
+                {/* Features section */}
+                <div className="flex flex-col gap-2.5 px-1 mt-2">
+                    <h4 className="text-xs sm:text-sm font-extrabold text-zinc-900 font-sans">
+                        Includes
+                    </h4>
+                    <ul className="space-y-2 text-xs sm:text-[13px] font-bold text-zinc-700">
+                        <li className="flex items-center gap-3">
+                            <svg className="w-5 h-5 text-blue-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            <span>150 AI messages/day</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <svg className="w-5 h-5 text-blue-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            <span>Full listening library</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <svg className="w-5 h-5 text-blue-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            <span>Unlimited assessments</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <svg className="w-5 h-5 text-blue-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            <span>1 year of history</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <svg className="w-5 h-5 text-blue-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            <span>Personalized reminders</span>
+                        </li>
+                    </ul>
+
+                    <div className="text-center mt-3">
+                        <span className="text-[11px] font-bold text-zinc-400 font-sans">
+                            Cancel anytime.
+                        </span>
+                    </div>
+
+                    <div className="flex gap-5 justify-center mt-2 text-[10px] font-semibold text-gray-400">
+                        <button onClick={onOpenTerms} className="underline hover:text-gray-600 transition-colors bg-transparent border-none cursor-pointer">
+                            Terms
+                        </button>
+                        <button onClick={onOpenPrivacy} className="underline hover:text-gray-600 transition-colors bg-transparent border-none cursor-pointer">
+                            Privacy Policy
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
