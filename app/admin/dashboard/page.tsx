@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import SignOutButton from "@/components/auth/SignOutButton"
+import AdminDashboardClient from "@/components/admin/dashboard/AdminDashboardClient"
 
 export default async function AdminDashboard() {
   const session = await auth()
@@ -73,10 +74,10 @@ export default async function AdminDashboard() {
         </div>
       </nav>
  
-      <main className="relative z-10 max-w-7xl mx-auto px-6 py-12">
+      <main className="relative z-10 max-w-7xl mx-auto px-6 py-12 space-y-12">
         
         {/* Header */}
-        <div className="mb-12">
+        <div>
           <h2 className="text-4xl font-black text-gray-900 mb-3 tracking-tight">
             Dashboard Overview
           </h2>
@@ -86,7 +87,7 @@ export default async function AdminDashboard() {
         </div>
  
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Stat Card 1 */}
           <Link href="/admin/doctors" className="group relative bg-white border border-gray-100 rounded-[2rem] p-8 hover:border-orange-200 hover:shadow-[0_8px_30px_rgba(249,107,19,0.08)] transition-all duration-300 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
             <div className="relative z-10">
@@ -144,6 +145,9 @@ export default async function AdminDashboard() {
             </div>
           </Link>
         </div>
+
+        {/* Dynamic Database Analytics Section */}
+        <AdminDashboardClient />
  
         {/* Quick Actions Grid */}
         <div className="mb-6">
