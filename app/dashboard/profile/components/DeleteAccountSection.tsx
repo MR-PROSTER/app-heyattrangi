@@ -35,11 +35,22 @@ export default function DeleteAccountSection({ className = "" }: DeleteAccountSe
     setIsDeleting(true)
 
     try {
-      // UI-only deletion phase — success reuses the existing logout / redirect flow.
+      const deleteRes = await fetch("/api/patient/delete-account", {
+        method: "DELETE",
+      })
+
+      if (!deleteRes.ok) {
+        const errorData = await deleteRes.json().catch(() => ({}))
+        toast.error(errorData.error || "Couldn't delete account. Please try again.")
+        setIsDeleting(false)
+        inFlight.current = false
+        return
+      }
+
       await new Promise((resolve) => setTimeout(resolve, 500))
       const result = await performClientSignOut({ redirectOnError: false })
       if (!result.ok) {
-        toast.error(result.error || "Couldn't delete account. Please try again.")
+        toast.error(result.error || "Account deleted but failed to sign out. Please refresh.")
         setIsDeleting(false)
         inFlight.current = false
       }

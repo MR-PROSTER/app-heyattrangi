@@ -2,9 +2,10 @@ import { Suspense } from "react"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { getCurrentUser } from "@/lib/auth"
-import { ChevronLeft, ChevronRight, Settings, Trophy, Smile, Edit3, Bell } from "lucide-react"
+import { ChevronLeft, ChevronRight, Settings, Bell } from "lucide-react"
 import UnlockFeaturesCard from "@/components/premium/UnlockFeaturesCard"
 import AvatarUpload from "@/components/profile/AvatarUpload"
+import ProfileStatsCard from "@/components/profile/ProfileStatsCard"
 
 async function ProfileContent() {
     const user = await getCurrentUser()
@@ -14,7 +15,6 @@ async function ProfileContent() {
     }
 
     const displayName = (user.name || user.email || "Individual User").trim()
-    const streakDays = user.patient?.currentStreak ?? 0
 
     return (
         <main className="flex h-full min-h-screen w-full flex-col overflow-x-hidden font-sans" style={{ backgroundColor: "#ffffff" }}>
@@ -39,7 +39,24 @@ async function ProfileContent() {
                   <AvatarUpload initialImage={user.image} displayName={displayName} />
                   
                   {/* Name */}
-                  <h2 className="mt-4 text-xl font-bold text-slate-800 tracking-tight text-center">
+                  <h2 
+                    className="mt-4 text-center"
+                    style={{
+                      width: "260px",
+                      height: "25px",
+                      fontFamily: "'Nunito', sans-serif",
+                      fontStyle: "normal",
+                      fontWeight: 800,
+                      fontSize: "20px",
+                      lineHeight: "125%",
+                      letterSpacing: "-0.01em",
+                      color: "#1C162E",
+                      flex: "none",
+                      order: 0,
+                      alignSelf: "stretch",
+                      flexGrow: 0,
+                    }}
+                  >
                     {displayName}
                   </h2>
                   
@@ -57,44 +74,7 @@ async function ProfileContent() {
                 </div>
 
                 {/* Card 1 (Stats Card) */}
-                <div className="w-full rounded-[28px] border border-slate-100 p-4 sm:p-5 flex flex-row items-center justify-between text-center select-none shadow-[0_4px_20px_rgba(0,0,0,0.01)] mt-2" style={{ backgroundColor: "#FFF9F6" }}>
-                  {/* Active Days */}
-                  <div className="flex-1 flex flex-col items-center">
-                    <Trophy className="w-5 h-5 text-[#3B82F6] stroke-[2]" />
-                    <span className="text-xl sm:text-2xl font-black text-slate-800 mt-1">
-                      {streakDays || 8}
-                    </span>
-                    <span className="text-[10px] sm:text-xs text-slate-400 font-bold mt-0.5">
-                      Active days
-                    </span>
-                  </div>
-
-                  <div className="h-10 border-r border-slate-100" />
-
-                  {/* Mood check-ins */}
-                  <div className="flex-1 flex flex-col items-center">
-                    <Smile className="w-5 h-5 text-[#3B82F6] stroke-[2]" />
-                    <span className="text-xl sm:text-2xl font-black text-slate-800 mt-1">
-                      {streakDays ? streakDays + 2 : 6}
-                    </span>
-                    <span className="text-[10px] sm:text-xs text-slate-400 font-bold mt-0.5">
-                      Mood check-ins
-                    </span>
-                  </div>
-
-                  <div className="h-10 border-r border-slate-100" />
-
-                  {/* Reflections */}
-                  <div className="flex-1 flex flex-col items-center">
-                    <Edit3 className="w-5 h-5 text-[#3B82F6] stroke-[2]" />
-                    <span className="text-xl sm:text-2xl font-black text-slate-800 mt-1">
-                      {streakDays ? Math.max(1, Math.floor(streakDays / 3)) : 2}
-                    </span>
-                    <span className="text-[10px] sm:text-xs text-slate-400 font-bold mt-0.5">
-                      Reflections
-                    </span>
-                  </div>
-                </div>
+                <ProfileStatsCard />
 
                 <UnlockFeaturesCard />
 
