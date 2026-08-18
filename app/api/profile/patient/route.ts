@@ -16,6 +16,8 @@ export async function GET(req: NextRequest) {
       select: {
         name: true,
         email: true,
+        plan: true,
+        role: true,
         patient: {
           select: {
             rollNumber: true,
@@ -31,6 +33,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       name: user.name || "",
       email: user.email || "",
+      plan: user.plan || "FREE",
+      role: user.role || "PATIENT",
       rollNumber: user.patient?.rollNumber || "",
     })
   } catch (error: unknown) {
