@@ -61,19 +61,46 @@ function getDefaultSelectedDayKey(targetMonth: number, targetYear: number) {
   return format(new Date(targetYear, targetMonth, 1), "yyyy-MM-dd")
 }
 
+function getNormalizedTrendsMood(mood: string, moodScore?: number | null): string {
+  const key = mood.toUpperCase().trim()
+  if (key === "GREAT" || key === "HAPPY" || key === "EXCITED") return "GREAT"
+  if (key === "GOOD" || key === "CALM") return "GOOD"
+  if (key === "OKAY" || key === "NEUTRAL") return "OKAY"
+  if (key === "MEH" || key === "BAD" || key === "TIRED" || key === "SAD" || key === "ANXIOUS") return "MEH"
+  if (key === "LOW" || key === "VERY_BAD" || key === "STRESSED" || key === "ANGRY") return "LOW"
+
+  if (typeof moodScore === "number") {
+    if (moodScore > 4) {
+      if (moodScore >= 8) return "GREAT"
+      if (moodScore >= 6) return "GOOD"
+      if (moodScore >= 4) return "OKAY"
+      if (moodScore >= 3) return "MEH"
+      return "LOW"
+    } else {
+      if (moodScore === 4) return "GREAT"
+      if (moodScore === 3) return "GOOD"
+      if (moodScore === 2) return "OKAY"
+      if (moodScore === 1) return "MEH"
+      if (moodScore === 0) return "LOW"
+    }
+  }
+  return "OKAY"
+}
+
 function getMoodScore(mood: MoodRecord) {
   if (typeof mood.moodScore === "number") return mood.moodScore
 
-  switch (mood.mood.toUpperCase()) {
+  const normalized = getNormalizedTrendsMood(mood.mood, mood.moodScore)
+  switch (normalized) {
     case "GREAT":
       return 4
     case "GOOD":
       return 3
-    case "NEUTRAL":
+    case "OKAY":
       return 2
-    case "BAD":
+    case "MEH":
       return 1
-    case "VERY_BAD":
+    case "LOW":
       return 0
     default:
       return 2
@@ -230,14 +257,8 @@ export default function MoodTrendsPage() {
     
     if (entriesOnDay.length > 0) {
       const latestEntry = entriesOnDay[entriesOnDay.length - 1]
-      const key = latestEntry.mood.toUpperCase()
-      
-      const config = MOOD_IMAGE_MAP[key] || MOOD_IMAGE_MAP[
-        key === "NEUTRAL" ? "OKAY" :
-        key === "BAD" ? "MEH" :
-        key === "VERY_BAD" ? "LOW" :
-        key
-      ]
+      const normalizedKey = getNormalizedTrendsMood(latestEntry.mood, latestEntry.moodScore)
+      const config = MOOD_IMAGE_MAP[normalizedKey]
       if (config) {
         moodImage = config.image
         moodLabel = config.label

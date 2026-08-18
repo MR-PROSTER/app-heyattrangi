@@ -45,26 +45,44 @@ const MOOD_SEGMENTS = [
   },
   {
     label: "Meh",
-    dbKey: "BAD",
+    dbKey: "MEH",
     color: "#C2DDF8",
     bgClass: "bg-[#C2DDF8]",
     image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Meh-emotion_nozhzi.png",
   },
   {
     label: "Low",
-    dbKey: "VERY_BAD",
+    dbKey: "LOW",
     color: "#E9C9FF",
     bgClass: "bg-[#E9C9FF]",
     image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730629/Low-emotion_vbpanv.png",
   },
 ] as const
 
-function normalizeMoodKey(mood: string) {
-  const key = mood.toUpperCase()
-  if (key === "NEUTRAL") return "OKAY"
-  if (key === "BAD") return "MEH"
-  if (key === "VERY_BAD") return "LOW"
-  return key
+function normalizeMoodKey(mood: string, moodScore?: number | null) {
+  const key = mood.toUpperCase().trim()
+  if (key === "GREAT" || key === "HAPPY" || key === "EXCITED") return "GREAT"
+  if (key === "GOOD" || key === "CALM") return "GOOD"
+  if (key === "OKAY" || key === "NEUTRAL") return "OKAY"
+  if (key === "MEH" || key === "BAD" || key === "TIRED" || key === "SAD" || key === "ANXIOUS") return "MEH"
+  if (key === "LOW" || key === "VERY_BAD" || key === "STRESSED" || key === "ANGRY") return "LOW"
+
+  if (typeof moodScore === "number") {
+    if (moodScore > 4) {
+      if (moodScore >= 8) return "GREAT"
+      if (moodScore >= 6) return "GOOD"
+      if (moodScore >= 4) return "OKAY"
+      if (moodScore >= 3) return "MEH"
+      return "LOW"
+    } else {
+      if (moodScore === 4) return "GREAT"
+      if (moodScore === 3) return "GOOD"
+      if (moodScore === 2) return "OKAY"
+      if (moodScore === 1) return "MEH"
+      if (moodScore === 0) return "LOW"
+    }
+  }
+  return "OKAY"
 }
 
 export async function GET(req: Request) {
@@ -104,14 +122,17 @@ export async function GET(req: Request) {
     // Week 2: 14 to 21 days ago
     // Week 1: 21 to 28 days ago
     const getWeekData = (weekNum: number, startDaysAgo: number, endDaysAgo: number) => {
-      const endDate = new Date(now)
-      endDate.setDate(now.getDate() - endDaysAgo)
       const startDate = new Date(now)
       startDate.setDate(now.getDate() - startDaysAgo)
+      startDate.setHours(0, 0, 0, 0)
+
+      const endDate = new Date(now)
+      endDate.setDate(now.getDate() - endDaysAgo)
+      endDate.setHours(23, 59, 59, 999)
 
       const entries = moodEntries.filter((e) => {
         const t = new Date(e.timestamp)
-        return t >= startDate && t < endDate
+        return t >= startDate && t <= endDate
       })
 
       return calculateMoodStats(entries, weekNum)
@@ -194,7 +215,7 @@ function calculateMoodStats(entries: MoodEntryRecord[], periodId: number): MoodS
 
   let totalScore = 0
   entries.forEach((e) => {
-    const moodKey = normalizeMoodKey(e.mood)
+    const moodKey = normalizeMoodKey(e.mood, e.moodScore)
     if (countMap[moodKey] !== undefined) {
       countMap[moodKey]++
     }
