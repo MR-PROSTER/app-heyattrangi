@@ -525,11 +525,6 @@ export default function CenterColumn({
     //     </svg>
     //   ),
     // },
-    {
-      href: "/patient/journal",
-      title: "Journal",
-      subtitle: "Clear your mind",
-    },
   ]
 
   const desktopCalendarDays = useMemo(() => {

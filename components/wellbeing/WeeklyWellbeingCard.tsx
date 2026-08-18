@@ -1,8 +1,7 @@
 "use client"
 
 import React from "react"
-import Link from "next/link"
-import { ChevronLeft, ChevronRight, FileText } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import MoodVisualization from "./MoodVisualization"
 import MoodLegend from "./MoodLegend"
 
@@ -38,55 +37,11 @@ export default function WeeklyWellbeingCard({
       {/* Main White Card */}
       <div className="bg-white rounded-[32px] p-5 sm:px-8 sm:py-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border border-slate-100/80 w-full flex flex-col gap-4 relative">
         
-        {/* Card Header: Week title & History Button */}
+        {/* Card Header: Week title */}
         <div className="flex justify-between items-center">
           <span className="text-sm sm:text-base font-extrabold text-[#7A8B99] tracking-wide">
             {weekLabel}
           </span>
-          
-          <Link href="/patient/journal?tab=history">
-            <button
-              aria-label="View wellbeing history"
-              className="relative w-9 h-9 bg-transparent border border-black rounded-full text-slate-800 hover:text-black hover:bg-slate-50/50 transition-all duration-200 cursor-pointer active:scale-95 flex items-center justify-center"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{
-                  position: "absolute",
-                  width: "22px",
-                  height: "22px",
-                  left: "calc(50% - 22px / 2)",
-                  top: "calc(50% - 22px / 2)"
-                }}
-              >
-                <path
-                  d="M9 11v6m0 0l-2-2m2 2l2-2"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M22 10v5c0 5-2 7-7 7H9c-5 0-7-2-7-7V9c0-5 2-7 7-7h5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M22 10h-4c-3 0-4-1-4-4V2l8 8z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </Link>
         </div>
 
         {/* Circular Mood Visualization */}

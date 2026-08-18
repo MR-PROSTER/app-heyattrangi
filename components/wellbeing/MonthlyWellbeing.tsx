@@ -1,8 +1,7 @@
 "use client"
 
 import React from "react"
-import Link from "next/link"
-import { ChevronLeft, ChevronRight, FileText } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import MoodVisualization from "./MoodVisualization"
 import MoodLegend from "./MoodLegend"
 import MonthlyEmptyState from "./MonthlyEmptyState"
@@ -44,20 +43,11 @@ export default function MonthlyWellbeing({
         className="bg-white rounded-[32px] p-5 sm:px-8 sm:py-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border border-slate-100/80 w-full flex flex-col gap-4 relative animate-in fade-in slide-in-from-right-3 duration-200"
       >
         
-        {/* Card Header: Month title & History Button */}
+        {/* Card Header: Month title */}
         <div className="flex justify-between items-center">
           <span className="text-sm sm:text-base font-extrabold text-[#7A8B99] tracking-wide">
             {monthLabel}
           </span>
-          
-          <Link href="/patient/journal?tab=history">
-            <button
-              aria-label="View wellbeing history"
-              className="w-9 h-9 rounded-full bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#4B5563] flex items-center justify-center transition-all duration-200 active:scale-95 cursor-pointer"
-            >
-              <FileText className="w-4 h-4" />
-            </button>
-          </Link>
         </div>
 
         {hasData ? (

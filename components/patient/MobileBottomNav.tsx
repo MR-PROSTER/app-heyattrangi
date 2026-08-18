@@ -13,10 +13,9 @@ export default function MobileBottomNav() {
 
   const isHome = pathname === "/patient/dashboard"
   const isSearch = pathname.startsWith("/patient/library")
-  const isJournal = pathname.startsWith("/patient/journal")
 
   return (
-    <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[290px] h-16 bg-white/95 backdrop-blur-md rounded-full shadow-[0_12px_36px_rgba(0,0,0,0.12)] border border-slate-100 flex items-center justify-around px-4">
+    <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[200px] h-16 bg-white/95 backdrop-blur-md rounded-full shadow-[0_12px_36px_rgba(0,0,0,0.12)] border border-slate-100 flex items-center justify-around px-4">
       {/* Home Button */}
       <Link
         href="/patient/dashboard"
@@ -62,31 +61,6 @@ export default function MobileBottomNav() {
         >
           <circle cx="11" cy="11" r="8" />
           <path d="m21 21-4.3-4.3" />
-        </svg>
-      </Link>
-
-      {/* Journal/Stats Button */}
-      <Link
-        href="/patient/journal"
-        className={`flex h-11 w-11 items-center justify-center rounded-full transition-all duration-300 ${
-          isJournal
-            ? "bg-orange-50 text-orange-600 scale-110 shadow-sm"
-            : "text-slate-400 hover:text-slate-600"
-        }`}
-        aria-label="Go to journal analytics"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="h-5 w-5"
-        >
-          <line x1="18" y1="20" x2="18" y2="10" />
-          <line x1="12" y1="20" x2="12" y2="4" />
-          <line x1="6" y1="20" x2="6" y2="14" />
         </svg>
       </Link>
     </div>
