@@ -222,36 +222,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return `${baseUrl}/auth/callback`
     },
     async jwt({ token, user, trigger }) {
-      // Hydrate claims once at sign-in (or explicit update) so session()
-      // does not hit Mongo on every auth()/getSession call.
-      if (user?.id) {
-        token.id = user.id
+      const userId = user?.id || (token?.id as string) || (token?.sub as string)
+      if (userId) {
+        token.id = userId
         try {
           const dbUser = await prisma.user.findUnique({
-            where: { id: user.id },
+            where: { id: userId },
             select: { role: true, plan: true, orgId: true, name: true },
           })
           if (dbUser) {
             token.role = dbUser.role
             token.plan = dbUser.plan
             token.orgId = dbUser.orgId
-            token.name = dbUser.name
-          }
-        } catch (error) {
-          console.error("Error hydrating JWT claims:", error)
-          token.role = token.role || "PATIENT"
-        }
-      } else if (trigger === "update" && token.id) {
-        try {
-          const dbUser = await prisma.user.findUnique({
-            where: { id: token.id as string },
-            select: { role: true, plan: true, orgId: true, name: true },
-          })
-          if (dbUser) {
-            token.role = dbUser.role
-            token.plan = dbUser.plan
-            token.orgId = dbUser.orgId
-            token.name = dbUser.name
+            if (dbUser.name) token.name = dbUser.name
           }
         } catch (error) {
           console.error("Error refreshing JWT claims:", error)
