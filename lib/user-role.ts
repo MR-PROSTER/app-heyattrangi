@@ -10,11 +10,6 @@ type RoleSource = {
 export function resolveEffectiveRole(user?: RoleSource | null): UserRole | null {
   if (!user) return null
 
-  // Prefer persisted profile relations over a potentially stale role field.
-  if (user.admin) return "ADMIN"
-  if (user.doctor) return "DOCTOR"
-  if (user.patient) return "PATIENT"
-
   const role = user.role
   if (
     role === "PATIENT" ||
@@ -24,6 +19,13 @@ export function resolveEffectiveRole(user?: RoleSource | null): UserRole | null 
   ) {
     return role
   }
+
+  // Fall back to attached profile records only when the persisted role value is
+  // missing or legacy. This keeps manual role promotions (for example, PATIENT
+  // -> ADMIN) working even if older profile rows are still attached.
+  if (user.admin) return "ADMIN"
+  if (user.doctor) return "DOCTOR"
+  if (user.patient) return "PATIENT"
 
   return null
 }

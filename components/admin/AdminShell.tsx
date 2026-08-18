@@ -1,6 +1,7 @@
 import Link from "next/link"
 import SignOutButton from "@/components/auth/SignOutButton"
 import type { ReactNode } from "react"
+import AdminFilters from "@/components/admin/AdminFilters"
 
 type NavItem = {
   label: string
@@ -11,6 +12,7 @@ type NavItem = {
 type AdminShellProps = {
   pathname: string
   userName?: string | null
+  organizations: { id: string; name: string }[]
   children: ReactNode
 }
 
@@ -115,7 +117,7 @@ function AdminNavSection({
   )
 }
 
-export default function AdminShell({ pathname, userName, children }: AdminShellProps) {
+export default function AdminShell({ pathname, userName, organizations, children }: AdminShellProps) {
   const activeSection =
     primaryNav.find((item) => isActive(pathname, item.href))?.label || "Overview"
 
@@ -173,34 +175,9 @@ export default function AdminShell({ pathname, userName, children }: AdminShellP
               </h2>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <select
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm outline-none"
-                defaultValue="last7"
-                aria-label="Date range"
-              >
-                <option value="today">Today</option>
-                <option value="last7">Last 7 days</option>
-                <option value="last30">Last 30 days</option>
-                <option value="month">This month</option>
-                <option value="custom">Custom</option>
-              </select>
+            <AdminFilters userName={userName} organizations={organizations} />
 
-              <select
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm outline-none"
-                defaultValue="all"
-                aria-label="Institution filter"
-              >
-                <option value="all">All institutions</option>
-                <option value="institution-a">Institution A</option>
-                <option value="institution-b">Institution B</option>
-                <option value="institution-c">Institution C</option>
-              </select>
-
-              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm">
-                {userName || "Admin"}
-              </div>
-
+            <div className="flex items-center gap-3">
               <div className="lg:hidden">
                 <SignOutButton className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm" />
               </div>

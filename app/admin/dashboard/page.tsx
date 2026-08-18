@@ -1,12 +1,70 @@
 import { redirect } from "next/navigation"
+import { addDays } from "date-fns"
 import { auth } from "@/auth.config"
 import { getCurrentUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
-import Link from "next/link"
-import SignOutButton from "@/components/auth/SignOutButton"
-import AdminDashboardClient from "@/components/admin/dashboard/AdminDashboardClient"
+import { buildOverviewSnapshot, resolveAdminRange } from "@/lib/admin/analytics"
 
-export default async function AdminDashboard() {
+function toSearchParams(
+  input?: Promise<Record<string, string | string[] | undefined>> | Record<string, string | string[] | undefined>
+) {
+  if (!input) return new URLSearchParams()
+
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(input)) {
+    if (Array.isArray(value)) {
+      if (value[0]) params.set(key, value[0])
+      continue
+    }
+    if (typeof value === "string" && value.length > 0) {
+      params.set(key, value)
+    }
+  }
+  return params
+}
+
+function pctChange(current: number, previous: number) {
+  if (previous === 0) return current === 0 ? 0 : 100
+  return Number((((current - previous) / previous) * 100).toFixed(1))
+}
+
+function deltaLabel(delta: number, isPercent = false) {
+  if (!Number.isFinite(delta) || delta === 0) return "No change"
+  const sign = delta > 0 ? "↑" : "↓"
+  return `${sign} ${Math.abs(delta)}${isPercent ? "%" : ""}`
+}
+
+function StatCard({
+  label,
+  value,
+  delta,
+  sublabel,
+}: {
+  label: string
+  value: string
+  delta: string
+  sublabel: string
+}) {
+  return (
+    <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+      <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-slate-400">
+        {label}
+      </p>
+      <div className="mt-4 flex items-end justify-between gap-3">
+        <div className="text-4xl font-black tracking-tight text-slate-950">{value}</div>
+        <div className="rounded-full bg-slate-950 px-3 py-1 text-xs font-bold text-white">
+          {delta}
+        </div>
+      </div>
+      <p className="mt-3 text-sm text-slate-500">{sublabel}</p>
+    </div>
+  )
+}
+
+export default async function AdminDashboard({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>> | Record<string, string | string[] | undefined>
+}) {
   const session = await auth()
 
   if (!session?.user) {
@@ -15,241 +73,320 @@ export default async function AdminDashboard() {
 
   const user = await getCurrentUser()
 
-  if (!user || (user.role !== "ADMIN" && process.env.NODE_ENV !== "development")) {
+  if (!user || user.role !== "ADMIN") {
     redirect("/auth/unauthorized")
   }
 
-  // Fetch doctor statistics
-  const doctors = await prisma.doctor.findMany({
-    select: {
-      status: true,
-    },
+  const params = toSearchParams(await Promise.resolve(searchParams))
+
+  const parsed = resolveAdminRange(params)
+  if (parsed.error) {
+    return (
+      <div className="rounded-[2rem] border border-amber-200 bg-amber-50 p-6 text-sm font-medium text-amber-900">
+        {parsed.error}
+      </div>
+    )
+  }
+
+  const current = await buildOverviewSnapshot({
+    range: parsed.range,
+    organizationId: parsed.organizationId || null,
   })
 
-  const pendingCount = doctors.filter(d => d.status === "PENDING_PROFILE" || d.status === "PENDING_DOCUMENTS" || d.status === "PENDING_REVIEW").length
-  const totalDoctors = doctors.length
- 
-  // Fetch support message statistics
-  const newMessagesCount = await prisma.supportMessage.count({
-    where: {
-      isRead: false,
-    },
+  const spanDays = Math.max(
+    1,
+    Math.ceil((parsed.range.end.getTime() - parsed.range.start.getTime()) / (24 * 60 * 60 * 1000))
+  )
+  const previousRange = {
+    start: addDays(parsed.range.start, -(spanDays + 1)),
+    end: addDays(parsed.range.start, -1),
+    preset: parsed.range.preset,
+    label: "Previous period",
+  } as const
+
+  const previous = await buildOverviewSnapshot({
+    range: previousRange,
+    organizationId: parsed.organizationId || null,
   })
- 
+
+  const totalUsersDelta = pctChange(current.summary.totalUsers, previous.summary.totalUsers)
+  const activeUsersDelta = pctChange(current.summary.activeUsers, previous.summary.activeUsers)
+  const activationDelta = current.summary.activationRate - previous.summary.activationRate
+  const retentionDelta = current.summary.retentionRate - previous.summary.retentionRate
+
+  const maxGrowth = Math.max(
+    1,
+    ...current.growth.map((point) => Math.max(point.value, point.activatedUsers))
+  )
+  const maxMood = Math.max(1, ...current.wellbeing.moodByWeekday.map((point) => point.value))
+
   return (
-    <div className="min-h-screen bg-[#fafcfd] text-gray-800 font-sans relative overflow-hidden">
-      
-      {/* Subtle Background Elements */}
-      <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-orange-100/40 blur-[100px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-blue-100/40 blur-[100px] rounded-full pointer-events-none" />
- 
-      {/* Navigation */}
-      <nav className="relative z-10 border-b border-gray-100 bg-white/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-[0_4px_14px_rgba(249,107,19,0.25)]">
-                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-              </div>
-              <h1 className="text-xl font-black tracking-tight text-gray-900">Attrangi Admin</h1>
-            </div>
-            <div className="flex items-center gap-6">
-              <Link
-                href="/admin/profile"
-                className="text-sm font-bold text-gray-400 hover:text-gray-800 transition-colors"
-              >
-                Profile
-              </Link>
-              <div className="h-4 w-px bg-gray-200" />
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-bold text-gray-700">
-                  {session.user.name?.split(" ")[0] || "Admin"}
-                </span>
-                <div className="scale-90 opacity-80 hover:opacity-100 transition-opacity">
-                  <SignOutButton />
-                </div>
-              </div>
-            </div>
+    <div className="grid gap-6">
+      <section className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[0.24em] text-slate-400">
+              Executive snapshot
+            </p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
+              Founder view of Attrangi usage
+            </h1>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+              {current.range.label}. The dashboard focuses on acquisition, activation,
+              engagement, retention, and institution performance.
+            </p>
+          </div>
+          <div className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-bold text-white">
+            Admin data only
           </div>
         </div>
-      </nav>
- 
-      <main className="relative z-10 max-w-7xl mx-auto px-6 py-12 space-y-12">
-        
-        {/* Header */}
-        <div>
-          <h2 className="text-4xl font-black text-gray-900 mb-3 tracking-tight">
-            Dashboard Overview
-          </h2>
-          <p className="text-gray-500 font-medium">
-            Monitor platform health, verify doctors, and manage global settings.
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label="Total users"
+          value={String(current.summary.totalUsers)}
+          delta={deltaLabel(totalUsersDelta)}
+          sublabel="Users registered up to the selected period end."
+        />
+        <StatCard
+          label="Active users"
+          value={String(current.summary.activeUsers)}
+          delta={deltaLabel(activeUsersDelta)}
+          sublabel="Unique users with activity in the selected period."
+        />
+        <StatCard
+          label="Activation"
+          value={`${current.summary.activationRate}%`}
+          delta={deltaLabel(activationDelta, true)}
+          sublabel="First Pragya message within 48 hours of signup."
+        />
+        <StatCard
+          label="Retention"
+          value={`${current.summary.retentionRate}%`}
+          delta={deltaLabel(retentionDelta, true)}
+          sublabel="Average weekly cohort retention across W1-W4."
+        />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[1.4fr_0.9fr]">
+        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-slate-400">
+                User growth
+              </p>
+              <h2 className="mt-2 text-xl font-black tracking-tight text-slate-950">
+                New signups vs activated users
+              </h2>
+            </div>
+          </div>
+          <div className="mt-6 space-y-3">
+            {current.growth.map((point) => {
+              const signupsWidth = `${(point.value / maxGrowth) * 100}%`
+              const activatedWidth = `${(point.activatedUsers / maxGrowth) * 100}%`
+              return (
+                <div key={point.date} className="grid grid-cols-[92px_1fr] items-center gap-4">
+                  <div className="text-sm font-bold text-slate-600">{point.label}</div>
+                  <div className="space-y-2">
+                    <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+                      <div
+                        className="h-full rounded-full bg-slate-950"
+                        style={{ width: signupsWidth }}
+                      />
+                    </div>
+                    <div className="h-3 overflow-hidden rounded-full bg-orange-100">
+                      <div
+                        className="h-full rounded-full bg-[#f59e0b]"
+                        style={{ width: activatedWidth }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <div className="mt-5 flex flex-wrap items-center gap-4 text-xs font-bold text-slate-500">
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-slate-950" /> New signups
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#f59e0b]" /> Activated users
+            </span>
+          </div>
+        </div>
+
+        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-slate-400">
+            Activation
           </p>
-        </div>
- 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Stat Card 1 */}
-          <Link href="/admin/doctors" className="group relative bg-white border border-gray-100 rounded-[2rem] p-8 hover:border-orange-200 hover:shadow-[0_8px_30px_rgba(249,107,19,0.08)] transition-all duration-300 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
-            <div className="relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center mb-6 text-orange-500 group-hover:scale-110 transition-transform duration-500">
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              </div>
-              <h3 className="text-gray-500 font-bold mb-2">Pending Approvals</h3>
-              <div className="flex items-baseline gap-3">
-                <p className="text-5xl font-black text-gray-900">{pendingCount}</p>
-                <span className="text-xs font-black uppercase tracking-wider text-orange-500 bg-orange-50 px-2 py-1 rounded-lg">Action Required</span>
-              </div>
-            </div>
-          </Link>
- 
-          {/* Stat Card 2 */}
-          <Link href="/admin/doctors" className="group relative bg-white border border-gray-100 rounded-[2rem] p-8 hover:border-blue-200 hover:shadow-[0_8px_30px_rgba(59,130,246,0.08)] transition-all duration-300 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
-            <div className="relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center mb-6 text-blue-500 group-hover:scale-110 transition-transform duration-500">
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              </div>
-              <h3 className="text-gray-500 font-bold mb-2">Total Verified Doctors</h3>
-              <div className="flex items-baseline gap-3">
-                <p className="text-5xl font-black text-gray-900">{totalDoctors}</p>
-              </div>
-            </div>
-          </Link>
- 
-          {/* Stat Card 3 */}
-          <div className="group relative bg-white border border-gray-100 rounded-[2rem] p-8 transition-all duration-300 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
-            <div className="relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center mb-6 text-green-500">
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              </div>
-              <h3 className="text-gray-500 font-bold mb-2">Platform Revenue</h3>
-              <div className="flex items-baseline gap-3">
-                <p className="text-5xl font-black text-gray-900">₹0</p>
-                <span className="text-xs font-black uppercase tracking-wider text-gray-400">This Month</span>
-              </div>
-            </div>
+          <div className="mt-4 text-4xl font-black tracking-tight text-slate-950">
+            {current.summary.activationRate}%
           </div>
- 
-          {/* Stat Card 4: Support Messages */}
-          <Link href="/admin/support-messages" className="group relative bg-white border border-gray-100 rounded-[2rem] p-8 hover:border-rose-200 hover:shadow-[0_8px_30px_rgba(244,63,94,0.08)] transition-all duration-300 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
-            <div className="relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center mb-6 text-rose-500 group-hover:scale-110 transition-transform duration-500">
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          <p className="mt-2 text-sm text-slate-600">
+            {current.summary.activatedUsers} / {current.summary.newUsers} users activated
+            within 48 hours.
+          </p>
+          <div className="mt-6 space-y-3">
+            {current.activation.funnel.map((item, index) => (
+              <div key={item.label} className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-xs font-black text-white">
+                  {index + 1}
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-bold text-slate-900">{item.label}</div>
+                  <div className="text-xs text-slate-500">{item.value}</div>
+                </div>
               </div>
-              <h3 className="text-gray-500 font-bold mb-2">Support Messages</h3>
-              <div className="flex items-baseline gap-3">
-                <p className="text-5xl font-black text-gray-900">{newMessagesCount}</p>
-                {newMessagesCount > 0 && (
-                  <span className="text-xs font-black uppercase tracking-wider text-rose-500 bg-rose-50 px-2 py-1 rounded-lg">New</span>
-                )}
-              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-slate-400">
+            Retention
+          </p>
+          <h2 className="mt-2 text-xl font-black tracking-tight text-slate-950">
+            Cohort table
+          </h2>
+          {current.retention.length === 0 ? (
+            <div className="mt-6 rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-sm text-slate-500">
+              No retention cohorts found in this range.
             </div>
-          </Link>
+          ) : (
+            <div className="mt-6 overflow-hidden rounded-3xl border border-slate-200">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-xs font-extrabold uppercase tracking-[0.22em] text-slate-400">
+                  <tr>
+                    <th className="px-4 py-4">Signup cohort</th>
+                    <th className="px-4 py-4">W1</th>
+                    <th className="px-4 py-4">W2</th>
+                    <th className="px-4 py-4">W3</th>
+                    <th className="px-4 py-4">W4</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {current.retention.map((row) => (
+                    <tr key={row.cohort}>
+                      <td className="px-4 py-4 font-bold text-slate-900">{row.cohort}</td>
+                      <td className="px-4 py-4 text-slate-600">{row.w1}%</td>
+                      <td className="px-4 py-4 text-slate-600">{row.w2}%</td>
+                      <td className="px-4 py-4 text-slate-600">{row.w3}%</td>
+                      <td className="px-4 py-4 text-slate-600">{row.w4}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
-        {/* Dynamic Database Analytics Section */}
-        <AdminDashboardClient />
- 
-        {/* Quick Actions Grid */}
-        <div className="mb-6">
-          <h3 className="text-2xl font-black text-gray-900 mb-6 tracking-tight">
-            Management Modules
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            
-            <Link
-              href="/admin/doctors"
-              className="group relative p-6 bg-white border border-gray-100 rounded-[1.5rem] hover:border-blue-200 hover:bg-blue-50/30 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden"
-            >
-              <div className="relative z-10">
-                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 shadow-sm">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-slate-400">
+            Feature usage
+          </p>
+          <h2 className="mt-2 text-xl font-black tracking-tight text-slate-950">
+            What people actually use
+          </h2>
+          <div className="mt-6 space-y-3">
+            {current.featureUsage.map((feature) => (
+              <div key={feature.feature} className="rounded-2xl border border-slate-200 px-4 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-bold text-slate-900">{feature.feature}</div>
+                    <div className="text-xs text-slate-500">{feature.users} users</div>
+                  </div>
+                  <div className="text-sm font-black text-slate-900">{feature.usage}</div>
                 </div>
-                <h4 className="text-lg font-black text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">Doctors & Clinical</h4>
-                <p className="text-[13px] text-gray-500 font-medium leading-relaxed">
-                  Verify KYC documents, approve new therapists, and monitor active practitioners.
-                </p>
               </div>
-            </Link>
- 
-            <Link
-              href="/admin/patients"
-              className="group relative p-6 bg-white border border-gray-100 rounded-[1.5rem] hover:border-purple-200 hover:bg-purple-50/30 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden"
-            >
-              <div className="relative z-10">
-                <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-purple-500 group-hover:text-white transition-all duration-300 shadow-sm">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                </div>
-                <h4 className="text-lg font-black text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">Patients & Accounts</h4>
-                <p className="text-[13px] text-gray-500 font-medium leading-relaxed">
-                  Manage user profiles, view platform activity, and handle account recovery.
-                </p>
-              </div>
-            </Link>
- 
-            <Link
-              href="/admin/payments"
-              className="group relative p-6 bg-white border border-gray-100 rounded-[1.5rem] hover:border-emerald-200 hover:bg-emerald-50/30 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden"
-            >
-              <div className="relative z-10">
-                <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 shadow-sm">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
-                </div>
-                <h4 className="text-lg font-black text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors">Payments & Tranx</h4>
-                <p className="text-[13px] text-gray-500 font-medium leading-relaxed">
-                  Audit razorpay transactions, process therapist payouts, and view invoices.
-                </p>
-              </div>
-            </Link>
- 
-            <Link
-              href="/admin/organizations"
-              className="group relative p-6 bg-white border border-gray-100 rounded-[1.5rem] hover:border-orange-200 hover:bg-orange-50/30 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden"
-            >
-              <div className="relative z-10">
-                <div className="w-12 h-12 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300 shadow-sm">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                </div>
-                <h4 className="text-lg font-black text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">Institutions & B2B</h4>
-                <p className="text-[13px] text-gray-500 font-medium leading-relaxed">
-                  Manage school tie-ups, B2B enterprise plans, and institutional metrics.
-                </p>
-              </div>
-            </Link>
- 
-            <Link
-              href="/admin/support-messages"
-              className="group relative p-6 bg-white border border-gray-100 rounded-[1.5rem] hover:border-rose-200 hover:bg-rose-50/30 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden"
-            >
-              <div className="relative z-10">
-                <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-rose-500 group-hover:text-white transition-all duration-300 shadow-sm">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                </div>
-                <h4 className="text-lg font-black text-gray-900 mb-2 group-hover:text-rose-600 transition-colors">Support Messages</h4>
-                <p className="text-[13px] text-gray-500 font-medium leading-relaxed">
-                  Read messages from our founder contact flow, reply to support, and track resolution.
-                </p>
-              </div>
-            </Link>
- 
-            <Link
-              href="/institution"
-              className="group relative p-6 bg-white border border-gray-100 rounded-[1.5rem] hover:border-teal-200 hover:bg-teal-50/30 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden"
-            >
-              <div className="relative z-10">
-                <div className="w-12 h-12 rounded-xl bg-teal-50 text-teal-500 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-teal-500 group-hover:text-white transition-all duration-300 shadow-sm">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                </div>
-                <h4 className="text-lg font-black text-gray-900 mb-2 group-hover:text-teal-600 transition-colors">Institution Portal (Demo)</h4>
-                <p className="text-[13px] text-gray-500 font-medium leading-relaxed">
-                  View the new batches, students, and departments management screens.
-                </p>
-              </div>
-            </Link>
- 
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-3xl bg-slate-50 p-5">
+            <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-slate-400">
+              Mood coverage
+            </p>
+            <div className="mt-3 text-4xl font-black tracking-tight text-slate-950">
+              {current.wellbeing.moodCoveragePercent}%
+            </div>
+            <p className="mt-2 text-sm text-slate-600">
+              {current.wellbeing.moodCoverageUsers} of {current.summary.activeUsers} active users logged at
+              least one mood this period.
+            </p>
+            <div className="mt-4 space-y-2">
+              {current.wellbeing.moodByWeekday.map((day) => {
+                const width = `${(day.value / maxMood) * 100}%`
+                return (
+                  <div key={day.label} className="grid grid-cols-[52px_1fr] items-center gap-3">
+                    <div className="text-xs font-bold text-slate-500">{day.label}</div>
+                    <div className="h-2 overflow-hidden rounded-full bg-white">
+                      <div className="h-full rounded-full bg-[#f59e0b]" style={{ width }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="mt-4 text-sm font-bold text-slate-700">
+              {current.wellbeing.noEntriesMessage || `Average mood: ${current.wellbeing.averageMood}`}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-slate-400">
+              Institutions
+            </p>
+            <h2 className="mt-2 text-xl font-black tracking-tight text-slate-950">
+              Cross-institution comparison
+            </h2>
           </div>
         </div>
 
-      </main>
+        {current.institutions.length === 0 ? (
+          <div className="mt-6 rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-sm text-slate-500">
+            No institutions found for this filter.
+          </div>
+        ) : (
+          <div className="mt-6 overflow-hidden rounded-3xl border border-slate-200">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs font-extrabold uppercase tracking-[0.22em] text-slate-400">
+                <tr>
+                  <th className="px-4 py-4">Institution</th>
+                  <th className="px-4 py-4">Users</th>
+                  <th className="px-4 py-4">Active</th>
+                  <th className="px-4 py-4">Activation</th>
+                  <th className="px-4 py-4">Retention</th>
+                  <th className="px-4 py-4">Chat</th>
+                  <th className="px-4 py-4">Mood</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {current.institutions.map((institution) => (
+                  <tr key={institution.id}>
+                    <td className="px-4 py-4 font-bold text-slate-900">
+                      {institution.name}
+                      <div className="text-xs font-medium text-slate-500">
+                        {institution.domains.join(", ") || "No domains"}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-slate-600">{institution.totalUsers}</td>
+                    <td className="px-4 py-4 text-slate-600">{institution.activeUsers}</td>
+                    <td className="px-4 py-4 text-slate-600">{institution.activationRate}%</td>
+                    <td className="px-4 py-4 text-slate-600">{institution.retentionRate}%</td>
+                    <td className="px-4 py-4 text-slate-600">{institution.chatUsage}</td>
+                    <td className="px-4 py-4 text-slate-600">{institution.moodUsage}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   )
 }
