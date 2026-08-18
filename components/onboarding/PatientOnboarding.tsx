@@ -173,7 +173,7 @@ export default function PatientOnboarding() {
         setStep((s) => s - 1)
     }
 
-    const handleFinish = async () => {
+    const handleFinish = async (action: "chat" | "dashboard") => {
         setIsLoading(true)
         try {
             const response = await fetch("/api/onboarding/patient", {
@@ -194,7 +194,11 @@ export default function PatientOnboarding() {
             })
 
             if (response.ok) {
-                router.push("/patient/dashboard")
+                if (action === "chat") {
+                    router.push("/patient/ai-bot")
+                } else {
+                    router.push("/patient/dashboard")
+                }
             } else {
                 alert("Something went wrong.")
             }
@@ -455,7 +459,7 @@ export default function PatientOnboarding() {
                                 )
                             ) : (
                                 <button
-                                    onClick={handleFinish}
+                                    onClick={() => handleFinish("dashboard")}
                                     disabled={isLoading}
                                     className="w-full flex items-center justify-center bg-[#e26843] hover:bg-[#d05732] text-white transition-all rounded-full py-3.5 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-[16px] lg:font-bold lg:text-sm lg:uppercase lg:tracking-wider cursor-pointer"
                                 >
@@ -1438,7 +1442,7 @@ function OnboardingCompanionScreen({
 }: {
     userName: string
     isLoading: boolean
-    handleFinish: () => void
+    handleFinish: (action: "chat" | "dashboard") => void
 }) {
     return (
         <main className="min-h-screen w-full relative flex flex-col items-center justify-center overflow-x-hidden select-none bg-gradient-to-b from-[#FFA36C] via-[#FFF7F2] to-[#FFF9F6]">
@@ -1506,7 +1510,7 @@ function OnboardingCompanionScreen({
                     {/* Primary Button */}
                     <motion.button 
                         variants={itemVariants}
-                        onClick={handleFinish}
+                        onClick={() => handleFinish("chat")}
                         disabled={isLoading}
                         className="w-full py-4 bg-white text-slate-900 font-extrabold text-[15px] min-[360px]:text-base rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.03)] hover:bg-slate-50 transition-colors border border-slate-900 active:scale-98 flex items-center justify-center cursor-pointer select-none disabled:opacity-50"
                     >
@@ -1516,7 +1520,7 @@ function OnboardingCompanionScreen({
                     {/* Secondary Button */}
                     <motion.button 
                         variants={itemVariants}
-                        onClick={handleFinish}
+                        onClick={() => handleFinish("dashboard")}
                         className="w-full text-center text-[13px] min-[360px]:text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors bg-transparent border-none cursor-pointer select-none"
                     >
                         Maybe later

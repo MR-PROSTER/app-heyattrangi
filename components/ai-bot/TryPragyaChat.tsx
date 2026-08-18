@@ -9,6 +9,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getBotAvatar } from "@/lib/avatar";
 import { useSpeechToText } from "../../hooks/useSpeechToText";
 import LimitExceededModal, { type LimitExceededInfo } from "@/components/ui/LimitExceededModal";
+import PremiumChatModal from "./PremiumChatModal";
+import PremiumVoiceModal from "./PremiumVoiceModal";
 
 interface ChatMessage {
     role: "user" | "assistant";
@@ -282,6 +284,8 @@ export default function TryPragyaChat({
     const [guestTrialCount, setGuestTrialCount] = useState(0);
     const [guestTrialHydrated, setGuestTrialHydrated] = useState(false);
     const [guestTrialExhausted, setGuestTrialExhausted] = useState(false);
+    const [showPremiumModal, setShowPremiumModal] = useState(false);
+    const [showPremiumVoiceModal, setShowPremiumVoiceModal] = useState(false);
 
     const [activeSessionId, setActiveSessionId] = useState(() => {
         const uniqueId = Math.random().toString(36).substring(2, 10);
@@ -366,6 +370,7 @@ export default function TryPragyaChat({
     const [plan, setPlan] = useState(initialPlan);
     const [chatCount, setChatCount] = useState(initialChatCount);
     const [showMemoryPolicy, setShowMemoryPolicy] = useState(false);
+    const [voiceLimitReached, setVoiceLimitReached] = useState(false);
 
     // Inline media recording state extracted to useSpeechToText hooks
 
@@ -398,7 +403,7 @@ export default function TryPragyaChat({
         }
         const isFree = plan === "FREE";
         const isEssential = plan === "ESSENTIAL";
-        const maxChats = isFree ? 10 : isEssential ? 25 : Infinity;
+        const maxChats = isFree ? 30 : isEssential ? 25 : Infinity;
         const remaining = Math.max(0, maxChats - chatCount);
         const isLimitReached = maxChats !== Infinity && remaining <= 0;
         return { isLimitReached, maxChats, remaining };
@@ -470,10 +475,14 @@ export default function TryPragyaChat({
             (!inputMessage.trim() && !retryMsg) ||
             isLoading ||
             isSendingRef.current ||
-            !guestTrialHydrated ||
-            (!isGuestSession && limitData.isLimitReached)
+            !guestTrialHydrated
         )
             return;
+
+        if (!isGuestSession && limitData.isLimitReached) {
+            setShowPremiumModal(true);
+            return;
+        }
 
         if (isGuestSession && limitData.isLimitReached) {
             const userMsg = retryMsg || inputMessage;
@@ -529,6 +538,13 @@ export default function TryPragyaChat({
             if (!res.ok) {
                 const errorData = await res.json().catch(() => ({}))
                 if (res.status === 429 || errorData.error === "LIMIT_EXCEEDED") {
+                    if (!isGuestSession && plan === "FREE") {
+                        setShowPremiumModal(true);
+                        setIsLoading(false);
+                        setIsTyping(false);
+                        return;
+                    }
+                    
                     setLimitInfo({
                         feature: "AI Companion",
                         message: errorData.message || "You have reached your usage limit for the AI Companion.",
@@ -738,8 +754,25 @@ export default function TryPragyaChat({
         toggleRecording,
         formatTime,
     } = useSpeechToText(handleTranscript, (info) => {
-        setLimitInfo({ feature: "Voice Input", message: info.message, resetInSeconds: info.resetInSeconds, upgradeable: true })
+        setVoiceLimitReached(true);
+        if (!isGuestSession && plan === "FREE") {
+            setShowPremiumVoiceModal(true);
+        } else {
+            setLimitInfo({ feature: "Voice Input", message: info.message, resetInSeconds: info.resetInSeconds, upgradeable: true })
+        }
     });
+
+    const handleMicClick = () => {
+        if (voiceLimitReached) {
+            if (!isGuestSession && plan === "FREE") {
+                setShowPremiumVoiceModal(true);
+            } else {
+                setLimitInfo({ feature: "Voice Input", message: "Daily voice message limit reached.", upgradeable: true });
+            }
+        } else {
+            toggleRecording();
+        }
+    };
 
     const initialEntryModeAttemptedRef = useRef(false);
 
@@ -849,51 +882,7 @@ export default function TryPragyaChat({
                         </div>
                     </motion.div>
 
-                    {/* LIMIT REACHED MODAL OVERLAY */}
-                    {(!isGuestSession && limitData.isLimitReached) && (
-                        <div className="absolute inset-0 z-50 backdrop-blur-md bg-white/30 flex items-center justify-center p-6 animate-in fade-in duration-500">
-                            <div className="bg-white/90 backdrop-blur-xl p-10 rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.1)] border border-white/50 text-center max-w-md w-full scale-in-center">
-                                <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                                    <svg
-                                        className="w-10 h-10 text-orange-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                                        />
-                                    </svg>
-                                </div>
-                                <h2 className="text-2xl font-bold text-gray-800 mb-3">
-                                    Limit Reached
-                                </h2>
-                                <p className="text-gray-500 mb-8 font-medium">
-                                    {isGuestSession
-                                        ? `You've exhausted the free trial on this device. Sign in to continue chatting with Pragya.`
-                                        : `You've used all ${limitData.maxChats} chats for your current plan today. Upgrade to continue chatting!`}
-                                </p>
-
-                                <div className="space-y-4">
-                                    <a
-                                        href={
-                                            isGuestSession
-                                                ? ([...messages].reverse().find(m => m.action)?.action?.url 
-                                                    ? `/auth/signin?callbackUrl=${encodeURIComponent([...messages].reverse().find(m => m.action)!.action!.url)}`
-                                                    : "/auth/signin")
-                                                : "/patient/billing"
-                                        }
-                                        className="block w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-orange-500/30 transition-all hover:-translate-y-1 active:scale-[0.98]"
-                                    >
-                                        {isGuestSession ? "Sign In to Continue" : "Upgrade Plan"}
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    {/* LIMIT REACHED MODAL OVERLAY (Removed, replaced by dynamic PremiumChatModal at button interaction) */}
 
                     {/* Chat Limit Badge Hidden as per UI requirement */}
                     {/* Unified Chat Layout with Smooth Transitions */}
@@ -1311,7 +1300,7 @@ export default function TryPragyaChat({
                                         
                                         <button
                                             type="button"
-                                            onClick={toggleRecording}
+                                            onClick={handleMicClick}
                                             disabled={isLoading || isTranscribing}
                                             className={`rounded-full w-[54px] h-[54px] max-[389px]:w-[48px] max-[389px]:h-[48px] max-[359px]:w-[42px] max-[359px]:h-[42px] shrink-0 mb-1 transition-all duration-300 flex items-center justify-center font-bold text-[14px] ${
                                                 isRecording ? "bg-red-500 text-white" :
@@ -1570,6 +1559,8 @@ export default function TryPragyaChat({
                     </div>
                 </div>
             )}
+            <PremiumChatModal isOpen={showPremiumModal} onClose={() => setShowPremiumModal(false)} />
+            <PremiumVoiceModal isOpen={showPremiumVoiceModal} onClose={() => setShowPremiumVoiceModal(false)} />
             <LimitExceededModal info={limitInfo} onClose={() => setLimitInfo(null)} />
         </>
     );

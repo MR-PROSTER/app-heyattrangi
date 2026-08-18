@@ -269,6 +269,50 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // ── High-Sensitivity Gibberish & Unintelligible Input Guard ──
+  const SUPPORTED_LANGS = ['en', 'hi', 'te', 'ta', 'kn', 'ml', 'mr', 'bn', 'or', 'gu', 'pa', 'ur'];
+  const msgRaw = message.trim();
+  const isGibberish = 
+    msgRaw.length >= 5 && 
+    !msgRaw.includes(' ') && 
+    detectedLang && 
+    !SUPPORTED_LANGS.includes(detectedLang);
+
+  if (isGibberish) {
+    const clarificationReply = "I couldn't quite understand that. Could you try saying it another way?";
+    
+    try {
+      await appendMessage({
+        conversationId,
+        role: "assistant",
+        content: clarificationReply,
+      });
+    } catch (error) {
+      console.warn("Failed to save assistant clarification message to DB:", error);
+    }
+
+    const response = NextResponse.json({
+      reply: clarificationReply,
+      currentCount: finalChatCount,
+      plan,
+      expression: "NEUTRAL"
+    });
+
+    if (resolvedGuestToken && !isAndroid) {
+      response.cookies.set(PRAGYA_GUEST_TOKEN_COOKIE, resolvedGuestToken, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+      });
+    }
+
+    await prisma.technicalLimitLog.delete({ where: { id: concurrencyLog.id } }).catch(() => {});
+    
+    return response;
+  }
+
   // ── Call Hugging Face bot ──
   let upstream: Response
   try {
