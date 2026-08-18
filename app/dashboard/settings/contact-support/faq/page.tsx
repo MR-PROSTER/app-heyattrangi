@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import SettingsLayout from "@/components/settings/SettingsLayout"
-import { Search, ChevronDown, HelpCircle } from "lucide-react"
+import { Search, ChevronDown } from "lucide-react"
 
 const FAQ_DATA = [
   {
@@ -91,14 +91,9 @@ export default function FaqPage() {
                     onClick={() => handleToggle(idx)}
                     className="w-full px-5 py-4.5 flex items-center justify-between text-left gap-4 hover:bg-zinc-50/20 active:bg-zinc-50/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300 rounded-[24px]"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-amber-50 text-amber-500 border border-amber-100/10">
-                        <HelpCircle className="w-4.5 h-4.5" />
-                      </div>
-                      <span className="text-[#1C2038] font-bold text-[14.5px] leading-tight">
-                        {faq.q}
-                      </span>
-                    </div>
+                    <span className="text-[#1C2038] font-bold text-[14.5px] leading-tight">
+                      {faq.q}
+                    </span>
                     <ChevronDown
                       className={`w-5 h-5 text-zinc-400 stroke-[2.5] shrink-0 transition-transform duration-300 ${
                         isExpanded ? "rotate-180" : ""
