@@ -1,9 +1,13 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import Link from "next/link"
+import useSWR from "swr"
 import ExploreSectionHeader from "@/components/patient/library/explore/ExploreSectionHeader"
 import { CLINICAL_ASSESSMENTS } from "@/data/clinicalAssessments"
+import PremiumAssessmentModal from "@/components/patient/library/explore/PremiumAssessmentModal"
+
+const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 interface AssessmentsCatalogProps {
   searchQuery?: string
@@ -15,6 +19,10 @@ interface AssessmentsCatalogProps {
  * Assessments hub — clinical assessments listed directly (no Self & Mind folder).
  */
 export default function AssessmentsCatalog({ searchQuery = "", onNavigateLibraryTab }: AssessmentsCatalogProps) {
+  const { data: limitsData } = useSWR("/api/patient/limits", fetcher)
+  const isLimitReached = limitsData?.usage?.assessments?.remaining === 0
+  const [isGateOpen, setIsGateOpen] = useState(false)
+
   const filtered = useMemo(() => {
     if (!searchQuery) return CLINICAL_ASSESSMENTS
     const q = searchQuery.toLowerCase()
@@ -44,28 +52,54 @@ export default function AssessmentsCatalog({ searchQuery = "", onNavigateLibrary
             <p className="text-black/85 text-[14px] md:text-[15px] leading-relaxed mb-6 font-medium font-sans tracking-[-0.3px]">
               Take a closer look at your emotional, social, and everyday wellbeing through guided assessments.
             </p>
-            <Link
-              href="/patient/assessments/engine"
-              className="inline-flex items-center gap-3 bg-black hover:bg-zinc-900 text-white text-sm px-6 py-3 rounded-full font-bold transition-all duration-150 group shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40"
-            >
-              Start an Assessment
-              <div className="bg-white text-black rounded-full p-1 group-hover:translate-x-0.5 transition-transform">
-                <svg
-                  className="w-3.5 h-3.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={3}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </div>
-            </Link>
+            {isLimitReached ? (
+              <button
+                type="button"
+                onClick={() => setIsGateOpen(true)}
+                className="inline-flex items-center gap-3 bg-black hover:bg-zinc-900 text-white text-sm px-6 py-3 rounded-full font-bold transition-all duration-150 group shadow-md focus-visible:outline-none"
+              >
+                Start an Assessment
+                <div className="bg-white text-black rounded-full p-1 group-hover:translate-x-0.5 transition-transform">
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={3}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
+              </button>
+            ) : (
+              <Link
+                href="/patient/assessments/engine"
+                className="inline-flex items-center gap-3 bg-black hover:bg-zinc-900 text-white text-sm px-6 py-3 rounded-full font-bold transition-all duration-150 group shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40"
+              >
+                Start an Assessment
+                <div className="bg-white text-black rounded-full p-1 group-hover:translate-x-0.5 transition-transform">
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={3}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -111,17 +145,32 @@ export default function AssessmentsCatalog({ searchQuery = "", onNavigateLibrary
                 </div>
 
                 {/* Action Button */}
-                <Link
-                  href={item.href}
-                  className="inline-flex items-center justify-center bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-[0.98] text-white font-extrabold text-[11px] px-5 py-2.5 rounded-full shadow-sm hover:shadow transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 uppercase tracking-wider"
-                >
-                  Take Assessment
-                </Link>
+                {isLimitReached ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsGateOpen(true)}
+                    className="inline-flex items-center justify-center bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-[0.98] text-white font-extrabold text-[11px] px-5 py-2.5 rounded-full shadow-sm hover:shadow transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 uppercase tracking-wider cursor-pointer"
+                  >
+                    Take Assessment
+                  </button>
+                ) : (
+                  <Link
+                    href={item.href}
+                    className="inline-flex items-center justify-center bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-[0.98] text-white font-extrabold text-[11px] px-5 py-2.5 rounded-full shadow-sm hover:shadow transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 uppercase tracking-wider"
+                  >
+                    Take Assessment
+                  </Link>
+                )}
               </div>
             </article>
           ))}
         </div>
       </section>
+      {/* Premium Assessment Gate Modal */}
+      <PremiumAssessmentModal
+        isOpen={isGateOpen}
+        onClose={() => setIsGateOpen(false)}
+      />
     </div>
   )
 }

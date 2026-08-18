@@ -6,6 +6,9 @@ import { useSession } from "next-auth/react"
 import { Bell, Search, SlidersHorizontal } from "lucide-react"
 import { Source_Serif_4 } from "next/font/google"
 import ExploreTabSwitcher from "@/components/patient/library/explore/ExploreTabSwitcher"
+import UsageSummary from "@/components/patient/library/explore/UsageSummary"
+import PremiumLimitModal from "@/components/patient/library/explore/PremiumLimitModal"
+import useSWR from "swr"
 import ActivityGrid from "@/components/patient/library/explore/ActivityGrid"
 import ExploreErrorBoundary from "@/components/patient/library/explore/ExploreErrorBoundary"
 import { useExplore } from "@/components/patient/library/explore/ExploreProvider"
@@ -76,6 +79,13 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [dbListenTracks, setDbListenTracks] = useState<ListenTrack[]>([])
   const [activeCategoryName, setActiveCategoryName] = useState<string | null>(null)
+  
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false)
+  const { data: limitsData } = useSWR("/api/patient/limits", (url: string) => fetch(url).then(res => res.json()))
+  
+  const isPremium = limitsData?.plan === "PREMIUM" || limitsData?.plan === "ORGANIZATION"
+  const hasReachedFreeLimit = !isPremium && limitsData?.usage?.activities?.remaining === 0
+  const activityCount = limitsData?.usage?.activities?.used || 0
 
   const firstName = session?.user?.name?.trim().split(/\s+/)[0] || "there"
   const isShelfMode = mode === "read" || mode === "listen"
@@ -140,7 +150,11 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
   }, [recentlyPlayedIds, listenTracks])
 
   const handleSelectActivity = (activity: ExploreActivity) => {
-    openActivity(activity.slug)
+    if (hasReachedFreeLimit) {
+      setIsPremiumModalOpen(true)
+    } else {
+      openActivity(activity.slug)
+    }
   }
 
   const handleSelectArticle = (article: ReadArticle) => {
@@ -185,6 +199,8 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
         </div>
       )}
 
+
+
       {!activeCategoryName && (
         <ExploreTabSwitcher
           value={mode}
@@ -202,6 +218,7 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
             <ActivityGrid
               activities={filteredActivities}
               onSelectActivity={handleSelectActivity}
+              isLimitReached={hasReachedFreeLimit}
             />
           </div>
         )}
@@ -232,6 +249,12 @@ function SelfExploreHome({ onNavigateLibraryTab }: SelfExploreHomeProps) {
           />
         )}
       </ExploreErrorBoundary>
+
+      <PremiumLimitModal
+        isOpen={isPremiumModalOpen}
+        onClose={() => setIsPremiumModalOpen(false)}
+        activityCount={activityCount}
+      />
     </div>
   )
 }

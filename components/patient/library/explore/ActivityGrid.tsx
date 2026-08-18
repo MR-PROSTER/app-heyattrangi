@@ -9,12 +9,13 @@ import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion"
 interface ActivityGridProps {
   activities: ExploreActivity[]
   onSelectActivity?: (activity: ExploreActivity) => void
+  isLimitReached?: boolean
 }
 
 /**
  * Responsive activity card grid with filter-aware enter/exit animation.
  */
-function ActivityGrid({ activities, onSelectActivity }: ActivityGridProps) {
+function ActivityGrid({ activities, onSelectActivity, isLimitReached }: ActivityGridProps) {
   const reduced = usePrefersReducedMotion()
   const [activeCardId, setActiveCardId] = useState<string | null>(null)
 
@@ -26,6 +27,11 @@ function ActivityGrid({ activities, onSelectActivity }: ActivityGridProps) {
   }, [])
 
   const handleCardSelect = (activity: ExploreActivity) => {
+    if (isLimitReached) {
+      onSelectActivity?.(activity)
+      return
+    }
+
     setActiveCardId(activity.id)
     setTimeout(() => {
       onSelectActivity?.(activity)
