@@ -3,6 +3,7 @@ import { auth } from "@/auth.config"
 import { prisma } from "@/lib/prisma"
 import { UserRole, Prisma } from "@prisma/client"
 import { withPerf } from "@/lib/perf"
+import { resolveEffectiveRole } from "@/lib/user-role"
 
 export type CurrentUser = Prisma.UserGetPayload<{
   select: {
@@ -123,6 +124,13 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
           accounts: { select: { provider: true } },
         },
       })
+
+      if (user) {
+        const effectiveRole = resolveEffectiveRole(user)
+        if (effectiveRole) {
+          user.role = effectiveRole
+        }
+      }
 
       return user
     } catch (error) {
