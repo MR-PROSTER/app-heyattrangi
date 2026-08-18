@@ -23,72 +23,97 @@ const MONTH_NAMES = [
   "December",
 ]
 
-const DEFAULT_WEEK_MOODS = [
-  { label: "Okay", value: 0, color: "#FFD5B7", bgClass: "bg-[#FFD5B7]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Okay-emotion_sscj34.png" },
-  { label: "Good", value: 0, color: "#CEF8A4", bgClass: "bg-[#CEF8A4]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730633/Good-emotion_jimbfs.png" },
-  { label: "Great", value: 0, color: "#FCE5AF", bgClass: "bg-[#FCE5AF]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Great-emotion_rbwtzb.png" },
-  { label: "Meh", value: 0, color: "#C2DDF8", bgClass: "bg-[#C2DDF8]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730630/Meh-emotion_nozhzi.png" },
-  { label: "Low", value: 0, color: "#E9C9FF", bgClass: "bg-[#E9C9FF]", image: "https://res.cloudinary.com/dxoiluua8/image/upload/v1786730629/Low-emotion_vbpanv.png" },
-]
-
 export default function WellbeingPage() {
   const [viewMode, setViewMode] = useState<"week" | "month">("week")
-  const [selectedWeek, setSelectedWeek] = useState<number>(3) // Default to current week (Week 3)
+  const [selectedWeek, setSelectedWeek] = useState<number>(4) // Default to the current 7-day block
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth())
-  
-  const [weeklyData, setWeeklyData] = useState<any>(null)
-  const [monthlyData, setMonthlyData] = useState<any>(null)
+  const [periodData, setPeriodData] = useState<{
+    periodId: number
+    averageMood: number
+    moods: { label: string; value: number; color: string; bgClass: string; image: string }[]
+    entryCount: number
+  } | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch("/api/patient/wellbeing/stats")
+    const controller = new AbortController()
+    const params = new URLSearchParams()
+    if (viewMode === "week") {
+      params.set("period", "week")
+      params.set("week", String(selectedWeek))
+    } else {
+      params.set("period", "month")
+      params.set("month", String(selectedMonth))
+      params.set("year", String(new Date().getFullYear()))
+    }
+
+    fetch(`/api/patient/wellbeing/stats?${params.toString()}`, { signal: controller.signal })
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch wellbeing stats")
         return res.json()
       })
       .then((data) => {
-        setWeeklyData(data.weeklyData || {})
-        setMonthlyData(data.monthlyData || {})
-        setLoading(false)
+        if (controller.signal.aborted) return
+        setPeriodData(data?.summary || null)
       })
       .catch((err) => {
+        if (err?.name === "AbortError") return
         console.error("Error fetching stats:", err)
-        setLoading(false)
       })
-  }, [])
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false)
+      })
 
-  const weeks = [1, 2, 3]
+    return () => controller.abort()
+  }, [viewMode, selectedWeek, selectedMonth])
+
+  const weeks = [1, 2, 3, 4]
   const months = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
-  const currentWeekData = weeklyData?.[selectedWeek] || { averageMood: 0, moods: DEFAULT_WEEK_MOODS }
-  const currentMonthData = monthlyData?.[selectedMonth]
-  const hasMonthlyData = !!currentMonthData
+  const currentWeekData = viewMode === "week" ? periodData : null
+  const currentMonthData = viewMode === "month" ? periodData : null
+  const hasMonthlyData = (currentMonthData?.entryCount || 0) > 0
+  const hasWeeklyData = (currentWeekData?.entryCount || 0) > 0
+
+  const handleSelectWeek = (week: number) => {
+    setLoading(true)
+    setPeriodData(null)
+    setSelectedWeek(week)
+  }
+
+  const handleSelectMonth = (month: number) => {
+    setLoading(true)
+    setPeriodData(null)
+    setSelectedMonth(month)
+  }
 
   const handlePrevWeek = () => {
     if (selectedWeek > 1) {
-      setSelectedWeek(selectedWeek - 1)
+      handleSelectWeek(selectedWeek - 1)
     }
   }
 
   const handleNextWeek = () => {
     if (selectedWeek < weeks.length) {
-      setSelectedWeek(selectedWeek + 1)
+      handleSelectWeek(selectedWeek + 1)
     }
   }
 
   const handlePrevMonth = () => {
     if (selectedMonth > 0) {
-      setSelectedMonth(selectedMonth - 1)
+      handleSelectMonth(selectedMonth - 1)
     }
   }
 
   const handleNextMonth = () => {
     if (selectedMonth < 11) {
-      setSelectedMonth(selectedMonth + 1)
+      handleSelectMonth(selectedMonth + 1)
     }
   }
 
   const handleToggleMode = () => {
+    setLoading(true)
+    setPeriodData(null)
     setViewMode((prev) => (prev === "week" ? "month" : "week"))
   }
 
@@ -127,7 +152,7 @@ export default function WellbeingPage() {
             type={viewMode}
             items={viewMode === "week" ? weeks : months}
             selectedItem={viewMode === "week" ? selectedWeek : selectedMonth}
-            onSelectItem={viewMode === "week" ? setSelectedWeek : setSelectedMonth}
+            onSelectItem={viewMode === "week" ? handleSelectWeek : handleSelectMonth}
             onToggleType={handleToggleMode}
           />
         </header>
@@ -137,12 +162,13 @@ export default function WellbeingPage() {
           {viewMode === "week" ? (
             <WeeklyWellbeingCard
               weekLabel={`Week ${selectedWeek}`}
-              averageMood={currentWeekData.averageMood}
-              moods={currentWeekData.moods}
+              averageMood={currentWeekData?.averageMood || 0}
+              moods={currentWeekData?.moods || []}
               onPrevWeek={handlePrevWeek}
               onNextWeek={handleNextWeek}
               isPrevDisabled={selectedWeek === 1}
               isNextDisabled={selectedWeek === weeks.length}
+              hasData={hasWeeklyData}
             />
           ) : (
             <MonthlyWellbeing

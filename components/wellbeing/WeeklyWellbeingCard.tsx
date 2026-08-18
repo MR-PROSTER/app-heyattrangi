@@ -1,9 +1,11 @@
 "use client"
 
 import React from "react"
+import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import MoodVisualization from "./MoodVisualization"
 import MoodLegend from "./MoodLegend"
+import MonthlyEmptyState from "./MonthlyEmptyState"
 
 interface MoodSegment {
   label: string
@@ -21,6 +23,7 @@ interface WeeklyWellbeingCardProps {
   onNextWeek: () => void
   isPrevDisabled: boolean
   isNextDisabled: boolean
+  hasData?: boolean
 }
 
 export default function WeeklyWellbeingCard({
@@ -31,28 +34,35 @@ export default function WeeklyWellbeingCard({
   onNextWeek,
   isPrevDisabled,
   isNextDisabled,
+  hasData = true,
 }: WeeklyWellbeingCardProps) {
   return (
     <div className="relative w-full max-w-2xl mx-auto select-none">
       {/* Main White Card */}
       <div className="bg-white rounded-[32px] p-5 sm:px-8 sm:py-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border border-slate-100/80 w-full flex flex-col gap-4 relative">
-        
-        {/* Card Header: Week title */}
+
+        {/* Card Header: Week title & History Button */}
         <div className="flex justify-between items-center">
           <span className="text-sm sm:text-base font-extrabold text-[#7A8B99] tracking-wide">
             {weekLabel}
           </span>
         </div>
 
-        {/* Circular Mood Visualization */}
-        <div className="py-0">
-          <MoodVisualization moods={moods} averageMood={averageMood} />
-        </div>
+        {hasData ? (
+          <>
+            {/* Circular Mood Visualization */}
+            <div className="py-0">
+              <MoodVisualization moods={moods} averageMood={averageMood} />
+            </div>
 
-        {/* Mood Distribution / Legend */}
-        <div className="border-t border-slate-100 pt-3">
-          <MoodLegend moods={moods} />
-        </div>
+            {/* Mood Distribution / Legend */}
+            <div className="border-t border-slate-100 pt-3">
+              <MoodLegend moods={moods} />
+            </div>
+          </>
+        ) : (
+          <MonthlyEmptyState />
+        )}
       </div>
 
       {/* Previous Week Button (Overlayed absolutely on the left border) */}
