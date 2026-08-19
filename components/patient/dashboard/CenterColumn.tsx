@@ -628,18 +628,8 @@ export default function CenterColumn({
                             <div className="block md:hidden w-full flex flex-col">
                                 {/* Blue Rounded Header Area */}
                                 <div className="w-full px-4 min-[360px]:px-5 min-[390px]:px-6 pt-[72px] min-[360px]:pt-[76px] min-[390px]:pt-20 pb-9 min-[360px]:pb-11 min-[390px]:pb-14 flex flex-col gap-4 min-[360px]:gap-5 min-[390px]:gap-6 relative">
-                                    {/* Background & Robot Wrapper (Clipped by rounded bottom) */}
-                                    <div className="absolute inset-0 bg-gradient-to-b from-[#8BDDEE] via-[#A6E8F6] to-[#D7F5FC] rounded-b-[32px] min-[360px]:rounded-b-[38px] min-[390px]:rounded-b-[42px] overflow-hidden pointer-events-none shadow-[0_8px_30px_rgba(139,221,238,0.12)]">
-                                        {/* Peeking Robot Image */}
-                                        <div className="absolute right-0 bottom-[56px] min-[360px]:bottom-[60px] min-[390px]:bottom-[68px] w-[55px] min-[360px]:w-[80px] min-[390px]:w-[95px] h-[78px] min-[360px]:h-[113px] min-[390px]:h-[135px] pointer-events-none scale-x-[-1]">
-                                            <Image
-                                                src="/images/robot_peeking.png"
-                                                alt="Peeking Robot"
-                                                fill
-                                                className="object-contain object-right-bottom"
-                                            />
-                                        </div>
-                                    </div>
+                                    {/* Background Wrapper (Clipped by rounded bottom) */}
+                                    <div className="absolute inset-0 bg-gradient-to-b from-[#8BDDEE] via-[#A6E8F6] to-[#D7F5FC] rounded-b-[32px] min-[360px]:rounded-b-[38px] min-[390px]:rounded-b-[42px] overflow-hidden pointer-events-none shadow-[0_8px_30px_rgba(139,221,238,0.12)]" />
 
                                     {/* Header Row: Title & Avatar */}
                                     <div className="flex items-center justify-between w-full z-10 relative gap-2 min-[360px]:gap-3">
