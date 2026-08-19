@@ -228,8 +228,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = userId
         try {
           const dbUser = await prisma.user.findUnique({
-
-            where: { id: user.id },
+            where: { id: userId },
             select: {
               role: true,
               plan: true,
@@ -239,10 +238,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               doctor: { select: { id: true } },
               admin: { select: { id: true } },
             },
-
-            where: { id: userId },
-            select: { role: true, plan: true, orgId: true, name: true },
-
           })
           if (dbUser) {
             token.role = resolveEffectiveRole(dbUser) || dbUser.role

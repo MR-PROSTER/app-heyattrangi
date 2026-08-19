@@ -296,11 +296,13 @@ export default function MoodTrendsPage() {
     })
     .map((j) => {
       let moodLabel = "Okay"
-      if (j.moodScore >= 8) moodLabel = "Great"
-      else if (j.moodScore >= 6) moodLabel = "Good"
-      else if (j.moodScore >= 4) moodLabel = "Okay"
-      else if (j.moodScore >= 3) moodLabel = "Meh"
-      else moodLabel = "Low"
+      if (j.moodScore !== null && j.moodScore !== undefined) {
+        if (j.moodScore >= 8) moodLabel = "Great"
+        else if (j.moodScore >= 6) moodLabel = "Good"
+        else if (j.moodScore >= 4) moodLabel = "Okay"
+        else if (j.moodScore >= 3) moodLabel = "Meh"
+        else moodLabel = "Low"
+      }
 
       const themeMap: Record<string, { bg: string; border: string }> = {
         Great: { bg: "bg-[#FCE5AF]/25", border: "border-[#FCE5AF]/40" },
