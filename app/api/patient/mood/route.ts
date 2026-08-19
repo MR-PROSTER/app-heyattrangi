@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth.config";
 import { prisma } from "@/lib/prisma";
 import { enforceLimit } from "@/lib/limits/checkLimits";
+import {
+    getMoodDailyLimit,
+    getMoodNoteLimit,
+    getMoodRateLimit,
+    MOOD_DAILY_LIMIT_WINDOW_MS,
+    MOOD_RATE_LIMIT_WINDOW_MS,
+} from "@/lib/mood/limits";
 
 export async function GET() {
     try {
@@ -31,9 +38,9 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        let body: any;
+        let body: Record<string, unknown>;
         try {
-            body = await req.json();
+            body = await req.json() as Record<string, unknown>;
         } catch {
             return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
         }
@@ -62,12 +69,23 @@ export async function POST(req: Request) {
             select: { plan: true },
         });
         const plan = dbUser?.plan || "FREE";
-        const isPremium = plan === "PREMIUM" || plan === "ORGANIZATION";
-
-        // Enforce note character limit (Free: 1000, Premium: 2000)
-        const maxNoteChars = isPremium ? 2000 : 1000;
+        const maxNoteChars = getMoodNoteLimit(plan);
         if (note && String(note).length > maxNoteChars) {
             return NextResponse.json({ error: "LIMIT_EXCEEDED", message: `Mood note too long. Maximum is ${maxNoteChars} characters.` }, { status: 400 });
+        }
+
+        // Enforce minute-level request cap before consuming daily quota.
+        const rateCheck = await enforceLimit({
+            userId: session.user.id,
+            action: "MOOD_CHECKIN_RATE",
+            plan,
+            limitFree: getMoodRateLimit("FREE"),
+            limitPremium: getMoodRateLimit("PREMIUM"),
+            windowMs: MOOD_RATE_LIMIT_WINDOW_MS,
+            errorMessage: "Too many mood updates",
+        });
+        if (!rateCheck.allowed) {
+            return NextResponse.json({ error: "LIMIT_EXCEEDED", message: rateCheck.message, resetInSeconds: rateCheck.resetInSeconds }, { status: 429 });
         }
 
         // Enforce daily check-in limit (Free: 10, Premium: 20)
@@ -75,9 +93,9 @@ export async function POST(req: Request) {
             userId: session.user.id,
             action: "MOOD_CHECKIN_DAILY",
             plan,
-            limitFree: 10,
-            limitPremium: 20,
-            windowMs: 24 * 60 * 60 * 1000,
+            limitFree: getMoodDailyLimit("FREE"),
+            limitPremium: getMoodDailyLimit("PREMIUM"),
+            windowMs: MOOD_DAILY_LIMIT_WINDOW_MS,
             errorMessage: "Daily mood check-in limit reached",
         });
         if (!dailyCheck.allowed) {

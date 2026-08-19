@@ -15,7 +15,7 @@ export default async function Home() {
       case "ADMIN":
         redirect("/admin/dashboard")
       case "INSTITUTION_ADMIN":
-        redirect("/institution")
+        redirect("/auth/unauthorized")
       default:
         redirect("/auth")
     }

@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/auth.config"
 import { getCurrentUser } from "@/lib/auth"
-import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import PatientListClient from "@/components/admin/PatientListClient"
 
@@ -21,24 +20,20 @@ export default async function PatientsAdminPage() {
   })
 
   return (
-    <div className="min-h-screen bg-[#fafcfd] text-gray-800 font-sans relative overflow-hidden flex flex-col">
-      <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-purple-100/40 blur-[100px] rounded-full pointer-events-none" />
-      
-      <nav className="relative z-10 border-b border-gray-100 bg-white/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center h-20 gap-4">
-            <Link href="/admin/dashboard" className="text-gray-400 hover:text-gray-800 transition-colors">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-            </Link>
-            <h1 className="text-xl font-black tracking-tight text-gray-900">Patients & Accounts</h1>
-          </div>
-        </div>
-      </nav>
+    <section className="grid gap-6">
+      <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-slate-400">
+          Users
+        </p>
+        <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
+          Patients and accounts
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+          Browse patient accounts from inside the shared admin shell.
+        </p>
+      </div>
 
-      <main className="flex-1 relative z-10 p-6 overflow-y-auto">
-         <PatientListClient patients={patients} />
-      </main>
-    </div>
+      <PatientListClient patients={patients} />
+    </section>
   )
 }
-

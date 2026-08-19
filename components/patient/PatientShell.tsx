@@ -18,7 +18,6 @@ export default function PatientShell({ children }: { children: React.ReactNode }
 
   const isHomeActive = pathname === "/patient/dashboard"
   const isExploreActive = pathname.startsWith("/patient/library") || pathname.startsWith("/explore") || pathname.startsWith("/listen") || pathname.startsWith("/read")
-  const isJourneyActive = pathname.startsWith("/patient/journal")
 
   return (
     <div className="flex h-screen w-full bg-white overflow-hidden relative">
@@ -60,18 +59,6 @@ export default function PatientShell({ children }: { children: React.ReactNode }
                 <line x1="15" y1="6" x2="15" y2="21" />
               </svg>
               <span className="text-[10px] font-bold">Explore</span>
-            </Link>
-            
-            <Link 
-              href="/patient/journal" 
-              className={`flex flex-col items-center gap-1 transition-colors ${
-                isJourneyActive ? "text-[#E8722A]" : "text-slate-400 hover:text-slate-600"
-              }`}
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              <span className="text-[10px] font-bold">Journey</span>
             </Link>
           </div>
         )}

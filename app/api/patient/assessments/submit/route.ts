@@ -43,10 +43,10 @@ export async function POST(req: Request) {
       userId,
       action: "ASSESSMENT_SUBMIT_WEEKLY",
       plan,
-      limitFree: 1,
-      limitPremium: 3,
+      limitFree: 5,
+      limitPremium: 20,
       windowMs: 7 * 24 * 60 * 60 * 1000,
-      errorMessage: "Weekly assessment limit reached. You can take 1 assessment per week on the free plan.",
+      errorMessage: "Weekly assessment limit reached. You can take 5 assessments per week on the free plan.",
     })
     if (!weeklyCheck.allowed) {
       return NextResponse.json(

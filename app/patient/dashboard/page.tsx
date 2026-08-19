@@ -10,7 +10,6 @@ import { withPerf, perfLog } from "@/lib/perf"
 function buildMockDailyTasks() {
   const today = new Date()
   return [
-    { id: "mock-1", title: "Morning Journaling", type: "JOURNAL", dueDate: new Date(new Date(today).setHours(9, 30, 0)) },
     { id: "mock-2", title: "Mindful Walk", type: "ACTIVITY", dueDate: new Date(new Date(today).setHours(12, 0, 0)) },
     { id: "mock-3", title: "Deep Breathing Focus", type: "MEDITATION", dueDate: new Date(new Date(today).setHours(15, 30, 0)) },
     { id: "mock-4", title: "Pragya AI Reflection", type: "AI_CHAT", dueDate: new Date(new Date(today).setHours(19, 0, 0)) },

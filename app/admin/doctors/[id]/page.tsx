@@ -3,7 +3,6 @@ import { auth } from "@/auth.config"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
-import SignOutButton from "@/components/auth/SignOutButton"
 import DoctorVerificationPanel from "@/components/admin/DoctorVerificationPanel"
 
 export default async function AdminDoctorDetailPage({
@@ -64,82 +63,41 @@ export default async function AdminDoctorDetailPage({
   if (!doctor) {
     console.error("Doctor not found:", doctorId)
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-slate-50">
-        <nav className="bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center gap-4">
-                <Link href="/admin/dashboard" className="text-xl font-semibold text-gray-800 hover:text-gray-600">
-                  Attrangi - Admin Panel
-                </Link>
-              </div>
-              <SignOutButton />
-            </div>
-          </div>
-        </nav>
-        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100 text-center">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Doctor Not Found</h2>
-            <p className="text-gray-600 mb-6">The doctor you're looking for doesn't exist or has been removed.</p>
-            <Link
-              href="/admin/doctors"
-              className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-            >
-              Back to Doctors List
-            </Link>
-          </div>
-        </main>
-      </div>
+      <section className="grid gap-6">
+        <div className="rounded-[2rem] border border-slate-200 bg-white p-8 text-center shadow-sm">
+          <h2 className="text-2xl font-black tracking-tight text-slate-950">Doctor Not Found</h2>
+          <p className="mt-4 text-sm leading-6 text-slate-600">
+            The doctor you&apos;re looking for does not exist or has been removed.
+          </p>
+          <Link
+            href="/admin/doctors"
+            className="mt-6 inline-flex items-center rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-slate-800"
+          >
+            Back to Doctors List
+          </Link>
+        </div>
+      </section>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-slate-50">
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
-              <Link href="/admin/dashboard" className="text-xl font-semibold text-gray-800 hover:text-gray-600">
-                Attrangi - Admin Panel
-              </Link>
-              <span className="text-gray-400">/</span>
-              <Link href="/admin/doctors" className="text-sm text-gray-600 hover:text-gray-800">
-                Doctors
-              </Link>
-              <span className="text-gray-400">/</span>
-              <span className="text-sm text-gray-600">Details</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/admin/doctors"
-                className="text-sm text-gray-600 hover:text-gray-800"
-              >
-                Back to List
-              </Link>
-              <SignOutButton />
-            </div>
-          </div>
-        </div>
-      </nav>
+    <section className="grid gap-6">
+      <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <Link
+          href="/admin/doctors"
+          className="inline-flex items-center text-sm font-semibold text-slate-500 hover:text-slate-900"
+        >
+          ← Back to Doctors List
+        </Link>
+        <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-950">
+          Doctor Verification
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+          Review documents and verify doctor credentials.
+        </p>
+      </div>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <Link
-            href="/admin/doctors"
-            className="text-sm text-gray-600 hover:text-gray-800 mb-4 inline-block"
-          >
-            ← Back to Doctors List
-          </Link>
-          <h1 className="text-3xl font-semibold text-gray-800 mb-2">
-            Doctor Verification
-          </h1>
-          <p className="text-gray-600">
-            Review documents and verify doctor credentials
-          </p>
-        </div>
-
-        <DoctorVerificationPanel doctor={doctor} />
-      </main>
-    </div>
+      <DoctorVerificationPanel doctor={doctor} />
+    </section>
   )
 }

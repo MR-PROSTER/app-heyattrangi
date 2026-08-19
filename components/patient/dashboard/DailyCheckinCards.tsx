@@ -50,24 +50,6 @@ export default function DailyCheckinCards() {
                     </Link>
                 </div>
             </div>
-
-            {/* Journal Entry */}
-            <div className="relative">
-                {/* Node Dot */}
-                <div className="absolute -left-[30px] top-6 w-5 h-5 rounded-full border-4 border-white bg-purple-500 shadow-md shadow-purple-500/30 z-10 ring-4 ring-purple-500/20"></div>
-                
-                <div className="rounded-[24px] p-5 bg-gradient-to-br from-purple-50 via-white to-pink-50 border border-purple-100 text-gray-800 shadow-sm relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300 hover:shadow-md hover:border-purple-200">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/40 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none group-hover:bg-purple-200/40 transition-colors"></div>
-                    <div className="flex items-center justify-between gap-3 mb-3 relative z-10">
-                        <span className="text-[10px] font-black uppercase tracking-[0.25em] bg-white border border-purple-100 text-purple-600 px-2.5 py-1 rounded-full shadow-sm">5 mins</span>
-                    </div>
-                    <h4 className="text-[18px] font-black leading-tight mb-1 text-gray-800 relative z-10">Daily Journal</h4>
-                    <p className="text-xs text-gray-500 leading-relaxed mb-4 relative z-10">Write your journal entry for today.</p>
-                    <Link href="/patient/journal" className="w-full inline-flex items-center justify-center rounded-[14px] bg-white border border-purple-200 text-purple-600 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] shadow-sm transition hover:bg-purple-50 hover:border-purple-300 relative z-10">
-                        Write Entry
-                    </Link>
-                </div>
-            </div>
         </div>
     )
 }

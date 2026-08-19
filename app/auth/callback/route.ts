@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth.config"
 import { prisma } from "@/lib/prisma"
+import type { PlanType, UserRole } from "@prisma/client"
+import { resolveEffectiveRole } from "@/lib/user-role"
 
 export async function GET(req: NextRequest) {
   try {
@@ -41,6 +43,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(new URL("/auth/signup", req.url))
     }
 
+    const effectiveRole = resolveEffectiveRole(user) || user.role
     let isNewUser = !user.patient && !user.doctor && !user.admin
 
     // If this is a signup attempt, but the user is already registered (existing user)
@@ -52,10 +55,10 @@ export async function GET(req: NextRequest) {
     // If this is a signup and role needs to be set/updated
     if (isSignup && selectedRole) {
       // Update user role if different or not set
-      if (!user.role || user.role !== selectedRole) {
+      if (!effectiveRole || effectiveRole !== selectedRole) {
         try {
-          const updateData: { role: any; plan?: any; orgId?: string } = {
-            role: selectedRole as any,
+          const updateData: { role: UserRole; plan?: PlanType; orgId?: string } = {
+            role: selectedRole as UserRole,
           }
 
           if (selectedRole === "INSTITUTION_ADMIN" && user.email) {
@@ -90,17 +93,18 @@ export async function GET(req: NextRequest) {
     }
 
     isNewUser = !user.patient && !user.doctor && !user.admin
+    const resolvedRole = resolveEffectiveRole(user) || user.role
 
     if (isNewUser) {
       if (!selectedRole) {
         console.log("New Google/OAuth user without role - redirecting to signup for role selection")
         return NextResponse.redirect(new URL("/auth/signup", req.url))
       }
-      if (user.role !== selectedRole) {
+      if ((resolveEffectiveRole(user) || user.role) !== selectedRole) {
         try {
           user = await prisma.user.update({
             where: { id: session.user.id },
-            data: { role: selectedRole as any },
+            data: { role: selectedRole as UserRole },
             include: { patient: true, doctor: true, admin: true }
           })
         } catch (error) {
@@ -108,7 +112,7 @@ export async function GET(req: NextRequest) {
         }
       }
       if (selectedRole === "INSTITUTION_ADMIN") {
-        return NextResponse.redirect(new URL("/institution", req.url))
+        return NextResponse.redirect(new URL("/auth/unauthorized", req.url))
       }
       return NextResponse.redirect(new URL(`/onboarding?role=${selectedRole}`, req.url))
     }
@@ -118,7 +122,7 @@ export async function GET(req: NextRequest) {
     // SIGN UP: Check onboarding and redirect if incomplete
     
     // Auto-create missing profiles for existing users signing in
-    if (!isSignup && user.role === "DOCTOR" && !user.doctor) {
+    if (!isSignup && resolvedRole === "DOCTOR" && !user.doctor) {
       console.log("Auto-creating missing doctor profile for existing user")
       try {
         await prisma.doctor.create({
@@ -137,14 +141,14 @@ export async function GET(req: NextRequest) {
 
     if (!isSignup) {
       // This is a SIGN IN - go directly to dashboard, no onboarding check
-      console.log("SIGN IN detected - redirecting directly to dashboard:", {
-        userId: user.id,
-        role: user.role,
-        hasDoctor: !!user.doctor,
-      })
+    console.log("SIGN IN detected - redirecting directly to dashboard:", {
+      userId: user.id,
+      role: resolvedRole,
+      hasDoctor: !!user.doctor,
+    })
       
       // Redirect based on role (or default dashboard if no role)
-      switch (user.role) {
+      switch (resolvedRole) {
         case "PATIENT":
           return NextResponse.redirect(new URL("/patient/dashboard", req.url))
         case "DOCTOR":
@@ -152,7 +156,7 @@ export async function GET(req: NextRequest) {
         case "ADMIN":
           return NextResponse.redirect(new URL("/admin/dashboard", req.url))
         case "INSTITUTION_ADMIN":
-          return NextResponse.redirect(new URL("/institution", req.url))
+          return NextResponse.redirect(new URL("/auth/unauthorized", req.url))
         default:
           // No role set - send to signup to select role
           console.log("No role set for existing user - redirecting to signup")
@@ -163,12 +167,12 @@ export async function GET(req: NextRequest) {
     // This is a SIGN UP - check onboarding status
     console.log("SIGN UP detected - checking onboarding status:", {
       userId: user.id,
-      role: user.role,
+      role: resolvedRole,
     })
 
     // Check if onboarding is complete based on role
     let isOnboardingComplete = false
-    switch (user.role) {
+    switch (resolvedRole) {
       case "PATIENT":
         isOnboardingComplete = !!user.patient
         break
@@ -191,17 +195,17 @@ export async function GET(req: NextRequest) {
 
     // For SIGN UP, redirect to onboarding if incomplete
     if (!isOnboardingComplete) {
-      if (user.role) {
-        console.log("New signup - onboarding incomplete, redirecting to onboarding:", user.role)
-        return NextResponse.redirect(new URL(`/onboarding?role=${user.role}`, req.url))
+      if (resolvedRole) {
+        console.log("New signup - onboarding incomplete, redirecting to onboarding:", resolvedRole)
+        return NextResponse.redirect(new URL(`/onboarding?role=${resolvedRole}`, req.url))
       }
       // No role set - redirect to signup to select role
       return NextResponse.redirect(new URL("/auth/signup", req.url))
     }
 
     // Onboarding complete for signup - redirect to dashboard
-    console.log("Signup onboarding complete - redirecting to dashboard:", user.role)
-    switch (user.role) {
+    console.log("Signup onboarding complete - redirecting to dashboard:", resolvedRole)
+    switch (resolvedRole) {
       case "PATIENT":
         return NextResponse.redirect(new URL("/patient/dashboard", req.url))
       case "DOCTOR":
@@ -209,7 +213,7 @@ export async function GET(req: NextRequest) {
       case "ADMIN":
         return NextResponse.redirect(new URL("/admin/dashboard", req.url))
       case "INSTITUTION_ADMIN":
-        return NextResponse.redirect(new URL("/institution", req.url))
+        return NextResponse.redirect(new URL("/auth/unauthorized", req.url))
       default:
         return NextResponse.redirect(new URL("/auth", req.url))
     }

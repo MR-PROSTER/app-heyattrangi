@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { auth } from "@/auth.config"
 import { prisma } from "@/lib/prisma"
+import { resolveEffectiveRole } from "@/lib/user-role"
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await auth()
     
@@ -23,9 +24,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ completed: false })
     }
 
+    const effectiveRole = resolveEffectiveRole(user) || user.role
+
     // Check if user has completed onboarding based on role
     let isCompleted = false
-    switch (user.role) {
+    switch (effectiveRole) {
       case "PATIENT":
         isCompleted = !!user.patient
         break
@@ -42,11 +45,10 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ 
       completed: isCompleted,
-      role: user.role 
+      role: effectiveRole 
     })
   } catch (error) {
     console.error("Error checking onboarding:", error)
     return NextResponse.json({ completed: false })
   }
 }
-

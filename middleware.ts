@@ -9,7 +9,7 @@ export async function middleware(req: NextRequest) {
   // Allow public routes
   const publicRoutes = ["/", "/auth", "/api/auth", "/patient/ai-bot"]
   const isPublicRoute = publicRoutes.some(route => path.startsWith(route))
-  
+
   if (isPublicRoute) {
     return NextResponse.next({
       request: {
@@ -20,7 +20,7 @@ export async function middleware(req: NextRequest) {
 
   // Check for session cookie (without Prisma - just cookie check)
   // NextAuth v5 uses different cookie names depending on environment
-  const sessionToken = req.cookies.get("next-auth.session-token") || 
+  const sessionToken = req.cookies.get("next-auth.session-token") ||
                        req.cookies.get("__Secure-next-auth.session-token") ||
                        req.cookies.get("authjs.session-token") ||
                        req.cookies.get("__Secure-authjs.session-token")
@@ -50,4 +50,3 @@ export const config = {
     "/explore/:path*",
   ],
 }
-
