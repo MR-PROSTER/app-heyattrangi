@@ -286,6 +286,7 @@ export default function TryPragyaChat({
     const [guestTrialExhausted, setGuestTrialExhausted] = useState(false);
     const [showPremiumModal, setShowPremiumModal] = useState(false);
     const [showPremiumVoiceModal, setShowPremiumVoiceModal] = useState(false);
+    const [cumulativeVoiceUsed, setCumulativeVoiceUsed] = useState(0);
 
     const [activeSessionId, setActiveSessionId] = useState(() => {
         const uniqueId = Math.random().toString(36).substring(2, 10);
@@ -296,6 +297,34 @@ export default function TryPragyaChat({
         const uniqueId = Math.random().toString(36).substring(2, 10);
         setActiveSessionId(`${sessionId}_${uniqueId}`);
     }, [sessionId]);
+
+    const companionAreaRef = useRef<HTMLDivElement>(null);
+    const companionGreetingRef = useRef<HTMLDivElement>(null);
+    const [companionScale, setCompanionScale] = useState(1);
+
+    useEffect(() => {
+        if (!companionAreaRef.current) return;
+        const observer = new ResizeObserver((entries) => {
+            const entry = entries[0];
+            if (entry) {
+                const availableHeight = entry.contentRect.height;
+                const greetingHeight = companionGreetingRef.current ? companionGreetingRef.current.getBoundingClientRect().height : 110;
+                // Avatar wrapper requires 30px (mt-offset) + 300px (avatar) + 32px (mb-8) = 362px minimum space to not scale.
+                const requiredHeight = greetingHeight + 362;
+                if (availableHeight > 0 && availableHeight < requiredHeight) {
+                    // Reserve the greeting and the 30px offset organically. Scale maps to the remainder.
+                    const spaceForAvatar = Math.max(0, availableHeight - greetingHeight - 30);
+                    // Use exact 300px height for calculation, extracting uniform margin correctly.
+                    const scale = Math.min(1, Math.max(0.5, (spaceForAvatar - 32) / 300));
+                    setCompanionScale(scale);
+                } else {
+                    setCompanionScale(1);
+                }
+            }
+        });
+        observer.observe(companionAreaRef.current);
+        return () => observer.disconnect();
+    }, []);
 
     const guestBootstrapAttemptedRef = useRef(false);
 
@@ -516,6 +545,7 @@ export default function TryPragyaChat({
                 inputRef.current.style.height = "auto";
             }
             setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
+            setCumulativeVoiceUsed(0);
         }
 
         setIsLoading(true);
@@ -745,6 +775,9 @@ export default function TryPragyaChat({
         });
     }, []);
 
+    const limitMaxDurationSeconds = plan === "PREMIUM" ? 180 : (isGuestSession ? 60 : 120);
+    const remainingVoiceSeconds = Math.max(0, limitMaxDurationSeconds - cumulativeVoiceUsed);
+
     const {
         isRecording,
         isTranscribing,
@@ -760,9 +793,21 @@ export default function TryPragyaChat({
         } else {
             setLimitInfo({ feature: "Voice Input", message: info.message, resetInSeconds: info.resetInSeconds, upgradeable: true })
         }
+    }, remainingVoiceSeconds, (duration) => {
+        setCumulativeVoiceUsed(prev => prev + duration);
     });
 
     const handleMicClick = () => {
+        if (remainingVoiceSeconds <= 0) {
+            setVoiceLimitReached(true);
+            if (!isGuestSession && plan === "FREE") {
+                setShowPremiumVoiceModal(true);
+            } else {
+                setLimitInfo({ feature: "Voice Input", message: `You have reached the voice limit of ${limitMaxDurationSeconds} seconds for this message.`, upgradeable: true });
+            }
+            return;
+        }
+
         if (voiceLimitReached) {
             if (!isGuestSession && plan === "FREE") {
                 setShowPremiumVoiceModal(true);
@@ -799,7 +844,7 @@ export default function TryPragyaChat({
 
     return (
         <>
-            <motion.div className="flex flex-col h-full bg-gradient-to-b from-[#8BC8DF]/90 to-[#C8E2EF]/90 text-gray-800 overflow-hidden font-sans relative">
+            <motion.div className="absolute inset-0 flex flex-col bg-gradient-to-b from-[#8BC8DF]/90 to-[#C8E2EF]/90 text-gray-800 overflow-hidden font-sans">
                 <div className="flex-1 min-h-0 flex flex-col w-full max-w-4xl mx-auto overflow-hidden relative z-10 px-4 md:px-8">
                     {/* Top Navigation */}
                     <motion.div 
@@ -889,10 +934,12 @@ export default function TryPragyaChat({
                     <div className="w-full flex-1 min-h-0 flex flex-col bg-transparent overflow-hidden relative">
                         {/* Header / Mode Toggle Area */}
                         <div
+                            ref={companionAreaRef}
                             className={`transition-all duration-700 ease-in-out w-full flex flex-col items-center shrink-0 min-h-0 relative z-10 pt-4 md:pt-8 ${!hasStarted ? "flex-1" : "pb-2"}`}
                         >
                             {/* Greeting & Title (Hides on start) */}
                             <div
+                                ref={companionGreetingRef}
                                 className={`flex flex-col items-center transition-all duration-700 ease-in-out overflow-hidden w-full max-w-[500px] ${!hasStarted
                                     ? "opacity-100 max-h-[200px] scale-100"
                                     : "opacity-0 max-h-0 scale-95 pointer-events-none"
@@ -911,12 +958,19 @@ export default function TryPragyaChat({
                             {/* Center Avatar with Surrounding Bubbles */}
                             <div
                                 className={`flex flex-col flex-1 items-center justify-center transition-all duration-700 ease-in-out overflow-hidden w-full ${!hasStarted
-                                    ? "opacity-100 max-h-[800px] mb-8 scale-100"
-                                    : "opacity-0 max-h-0 mb-0 scale-95 pointer-events-none"
+                                    ? "opacity-100 max-h-[800px] mb-8 mt-[30px] scale-100"
+                                    : "opacity-0 max-h-0 mb-0 mt-0 scale-95 pointer-events-none"
                                     }`}
                             >
-                                <div className="relative w-full max-w-[340px] h-[300px] flex items-center justify-center px-2 min-[360px]:px-0">
-                                    <motion.div layoutId="chat-avatar" transition={{ layout: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }} className="relative z-10 flex items-center justify-center shrink-0 transition-transform duration-700 ease-in-out pointer-events-none">
+                                <div 
+                                    className="relative flex items-start justify-center transition-all duration-75 px-2 min-[360px]:px-0"
+                                    style={{ height: `${300 * companionScale}px`, width: '100%', maxWidth: `${340 * companionScale}px` }}
+                                >
+                                    <div 
+                                        className="absolute w-[340px] h-[300px] flex items-center justify-center"
+                                        style={{ transform: `scale(${companionScale})`, transformOrigin: 'top center' }}
+                                    >
+                                        <motion.div layoutId="chat-avatar" transition={{ layout: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }} className="relative z-10 flex items-center justify-center shrink-0 transition-transform duration-700 ease-in-out pointer-events-none">
                                         <Image
                                             src={botExpression === "NEUTRAL" ? "/bot_expressions/Attrangi_s_HQ/NEUTRAL.png" : getBotAvatar(botExpression)}
                                             alt="Pragya Bot"
@@ -978,6 +1032,7 @@ export default function TryPragyaChat({
                                             </button>
                                         </>
                                     )}
+                                    </div>
                                 </div>
                             </div>
                         </div>

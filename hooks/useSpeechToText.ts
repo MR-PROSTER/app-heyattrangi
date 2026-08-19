@@ -8,10 +8,13 @@ export interface SttLimitInfo {
 export function useSpeechToText(
     onTranscript: (text: string) => void,
     onLimitExceeded?: (info: SttLimitInfo) => void,
+    maxDurationSeconds?: number,
+    onRecordingStop?: (durationSeconds: number) => void
 ) {
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<BlobPart[]>([]);
     const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const recordingStartTimeRef = useRef<number>(0);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
     const [isTranscribing, setIsTranscribing] = useState(false);
@@ -19,7 +22,15 @@ export function useSpeechToText(
     useEffect(() => {
         if (isRecording) {
             recordingTimerRef.current = setInterval(() => {
-                setRecordingTime((prev) => prev + 1);
+                const elapsed = (Date.now() - recordingStartTimeRef.current) / 1000;
+                setRecordingTime(Math.floor(elapsed));
+                if (maxDurationSeconds && elapsed >= maxDurationSeconds) {
+                     if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+                     if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+                         mediaRecorderRef.current.stop();
+                         setIsRecording(false);
+                     }
+                }
             }, 1000);
         } else {
             if (recordingTimerRef.current) {
@@ -32,7 +43,7 @@ export function useSpeechToText(
                 clearInterval(recordingTimerRef.current);
             }
         };
-    }, [isRecording]);
+    }, [isRecording, maxDurationSeconds]);
 
     const startRecording = async () => {
         try {
@@ -48,6 +59,12 @@ export function useSpeechToText(
             };
 
             mediaRecorder.onstop = async () => {
+                const finalElapsed = (Date.now() - recordingStartTimeRef.current) / 1000;
+                if (onRecordingStop) {
+                    const clampedElapsed = Math.min(maxDurationSeconds || Infinity, finalElapsed);
+                    onRecordingStop(clampedElapsed);
+                }
+
                 try {
                     const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
                     stream.getTracks().forEach((track) => track.stop());
@@ -92,6 +109,7 @@ export function useSpeechToText(
             };
 
             mediaRecorder.start();
+            recordingStartTimeRef.current = Date.now();
             setIsRecording(true);
         } catch (error) {
             console.error("Microphone access denied or error:", error);
