@@ -108,7 +108,7 @@ export async function GET(req: NextRequest) {
         }
       }
       if (selectedRole === "INSTITUTION_ADMIN") {
-        return NextResponse.redirect(new URL("/institution", req.url))
+        return NextResponse.redirect(new URL("/auth/unauthorized", req.url))
       }
       return NextResponse.redirect(new URL(`/onboarding?role=${selectedRole}`, req.url))
     }
@@ -152,7 +152,7 @@ export async function GET(req: NextRequest) {
         case "ADMIN":
           return NextResponse.redirect(new URL("/admin/dashboard", req.url))
         case "INSTITUTION_ADMIN":
-          return NextResponse.redirect(new URL("/institution", req.url))
+          return NextResponse.redirect(new URL("/auth/unauthorized", req.url))
         default:
           // No role set - send to signup to select role
           console.log("No role set for existing user - redirecting to signup")
@@ -209,7 +209,7 @@ export async function GET(req: NextRequest) {
       case "ADMIN":
         return NextResponse.redirect(new URL("/admin/dashboard", req.url))
       case "INSTITUTION_ADMIN":
-        return NextResponse.redirect(new URL("/institution", req.url))
+        return NextResponse.redirect(new URL("/auth/unauthorized", req.url))
       default:
         return NextResponse.redirect(new URL("/auth", req.url))
     }

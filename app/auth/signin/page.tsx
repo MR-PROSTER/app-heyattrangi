@@ -110,7 +110,7 @@ function SignInContent() {
             router.push("/admin/dashboard")
             break
           case "INSTITUTION_ADMIN":
-            router.push("/institution")
+            router.push("/auth/unauthorized")
             break
           default:
             router.push("/patient/dashboard")
