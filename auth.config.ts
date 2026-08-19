@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 import type { Adapter } from "next-auth/adapters"
 import bcrypt from "bcryptjs"
 import { sendWelcomeBackEmail } from "@/lib/email"
+import { resolveEffectiveRole } from "@/lib/user-role"
 
 /** Legacy DB rows may still have role "ADULT", which breaks Prisma UserRole enum reads. */
 async function findUserToleratingLegacyRoles(email: string) {
@@ -155,13 +156,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const user = await findUserToleratingLegacyRoles(sanitizedEmail);
 
-        if (!user || !(user as any).password) {
+        if (!user || !user.password) {
           return null
         }
 
         const isPasswordValid = await bcrypt.compare(
           credentials.password as string,
-          (user as any).password
+          user.password
         )
 
         if (!isPasswordValid) {
@@ -227,14 +228,54 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = userId
         try {
           const dbUser = await prisma.user.findUnique({
+
+            where: { id: user.id },
+            select: {
+              role: true,
+              plan: true,
+              orgId: true,
+              name: true,
+              patient: { select: { id: true } },
+              doctor: { select: { id: true } },
+              admin: { select: { id: true } },
+            },
+
             where: { id: userId },
             select: { role: true, plan: true, orgId: true, name: true },
+
           })
           if (dbUser) {
-            token.role = dbUser.role
+            token.role = resolveEffectiveRole(dbUser) || dbUser.role
             token.plan = dbUser.plan
             token.orgId = dbUser.orgId
+
+            token.name = dbUser.name
+          }
+        } catch (error) {
+          console.error("Error hydrating JWT claims:", error)
+          token.role = token.role || "PATIENT"
+        }
+      } else if (trigger === "update" && token.id) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: {
+              role: true,
+              plan: true,
+              orgId: true,
+              name: true,
+              patient: { select: { id: true } },
+              doctor: { select: { id: true } },
+              admin: { select: { id: true } },
+            },
+          })
+          if (dbUser) {
+            token.role = resolveEffectiveRole(dbUser) || dbUser.role
+            token.plan = dbUser.plan
+            token.orgId = dbUser.orgId
+            token.name = dbUser.name
             if (dbUser.name) token.name = dbUser.name
+
           }
         } catch (error) {
           console.error("Error refreshing JWT claims:", error)
@@ -260,9 +301,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           try {
             const dbUser = await prisma.user.findUnique({
               where: { id: userId },
-              select: { role: true, plan: true, orgId: true },
+              select: {
+                role: true,
+                plan: true,
+                orgId: true,
+                patient: { select: { id: true } },
+                doctor: { select: { id: true } },
+                admin: { select: { id: true } },
+              },
             })
-            session.user.role = dbUser?.role || "PATIENT"
+            session.user.role = resolveEffectiveRole(dbUser) || dbUser?.role || "PATIENT"
             session.user.plan = dbUser?.plan
             session.user.orgId = dbUser?.orgId
           } catch (error) {
@@ -282,4 +330,3 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: "jwt",
   },
 })
-

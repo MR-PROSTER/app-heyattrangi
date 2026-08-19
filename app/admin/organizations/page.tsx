@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/auth.config"
 import { getCurrentUser } from "@/lib/auth"
-import Link from "next/link"
 import { prisma } from "@/lib/prisma"
-import { Users, CalendarDays, MoreVertical } from "lucide-react"
+import { Users, CalendarDays } from "lucide-react"
 import AddOrganizationModal from "@/components/admin/AddOrganizationModal"
 import OrganizationActionsDropdown from "@/components/admin/OrganizationActionsDropdown"
 
@@ -25,24 +24,24 @@ export default async function OrganizationsAdminPage() {
   })
 
   return (
-    <div className="min-h-screen bg-[#fafcfd] text-gray-800 font-sans relative flex flex-col">
-      <nav className="relative z-10 border-b border-gray-100 bg-white/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center gap-4">
-              <Link href="/admin/dashboard" className="text-gray-400 hover:text-gray-800 transition-colors">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-              </Link>
-              <h1 className="text-xl font-black tracking-tight text-gray-900">Institutions & B2B</h1>
-            </div>
-            <AddOrganizationModal />
-          </div>
+    <section className="grid gap-6">
+      <div className="flex flex-col gap-4 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-slate-400">
+            Institutions
+          </p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
+            Institutions and B2B
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+            Manage organizations, limits, and enrollment capacity from the shared admin shell.
+          </p>
         </div>
-      </nav>
+        <AddOrganizationModal />
+      </div>
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 relative z-10">
-        <div className="bg-white rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-gray-100">
-          <table className="w-full text-left">
+      <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+        <table className="w-full text-left">
             <thead className="bg-gray-50 border-b border-gray-100 text-sm font-bold text-gray-500 uppercase tracking-wider rounded-t-[1.5rem]">
               <tr>
                 <th className="px-6 py-5">Institution</th>
@@ -100,7 +99,6 @@ export default async function OrganizationsAdminPage() {
             </tbody>
           </table>
         </div>
-      </main>
-    </div>
+    </section>
   )
 }

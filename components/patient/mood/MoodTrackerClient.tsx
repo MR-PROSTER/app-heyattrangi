@@ -213,8 +213,8 @@ export default function MoodTrackerClient({
       setNote("")
       setTags([])
       window.scrollTo({ top: 0, behavior: 'smooth' })
-    } catch (error: any) {
-      setToast({ type: "error", title: "Error", body: error.message })
+    } catch (error: unknown) {
+      setToast({ type: "error", title: "Error", body: error instanceof Error ? error.message : "Failed to save" })
     } finally {
       setSubmitting(false)
     }
