@@ -34,16 +34,15 @@ async function ProfileContent() {
                 </header>
 
                 {/* Avatar & Details Section */}
-                <div className="flex flex-col items-center pt-2 select-none">
+                <div className="flex flex-col items-center pt-2 select-none w-full">
                   {/* Avatar Upload */}
                   <AvatarUpload initialImage={user.image} displayName={displayName} />
                   
                   {/* Name */}
                   <h2 
-                    className="mt-4 text-center"
+                    className="text-center w-full"
                     style={{
-                      width: "260px",
-                      height: "25px",
+                      width: "100%",
                       fontFamily: "'Nunito', sans-serif",
                       fontStyle: "normal",
                       fontWeight: 800,
@@ -51,10 +50,9 @@ async function ProfileContent() {
                       lineHeight: "125%",
                       letterSpacing: "-0.01em",
                       color: "#1C162E",
-                      flex: "none",
-                      order: 0,
-                      alignSelf: "stretch",
-                      flexGrow: 0,
+                      textAlign: "center",
+                      margin: "16px 0 0 0",
+                      padding: 0,
                     }}
                   >
                     {displayName}

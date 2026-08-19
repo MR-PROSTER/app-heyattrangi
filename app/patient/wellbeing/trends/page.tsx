@@ -347,11 +347,46 @@ export default function MoodTrendsPage() {
         </header>
 
         {loading ? (
-          <div className="flex-grow flex items-center justify-center py-20">
-            <div className="text-[#1E1E2E] font-bold text-lg animate-pulse">
-              Loading trends...
+          <>
+            {/* Calendar Card Skeleton */}
+            <div className="relative w-full max-w-2xl mx-auto select-none px-0">
+              <div className="bg-white rounded-[32px] p-5 sm:px-8 sm:py-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border border-slate-100/80 w-full flex flex-col gap-6 animate-pulse">
+                <div className="flex justify-between items-center px-2">
+                  <div className="w-10 h-10 rounded-full bg-slate-100" />
+                  <div className="w-32 h-6 bg-slate-100 rounded" />
+                  <div className="w-10 h-10 rounded-full bg-slate-100" />
+                </div>
+                <div className="flex flex-col gap-4">
+                  <div className="grid grid-cols-7 gap-x-2 text-center">
+                    {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                      <div key={i} className="h-4 bg-slate-100 rounded w-8 mx-auto" />
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-y-3 gap-x-2">
+                    {Array.from({ length: 35 }).map((_, idx) => (
+                      <div key={idx} className="aspect-square w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-slate-100/80 mx-auto" />
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+
+            {/* Monthly Summary Card Skeleton */}
+            <div className="w-full max-w-2xl mx-auto rounded-[32px] p-6 bg-white border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] select-none animate-pulse flex flex-row justify-between items-center h-[160px]">
+              <div className="flex flex-col gap-3">
+                <div className="w-24 h-4 bg-slate-100 rounded" />
+                <div className="w-16 h-10 bg-slate-100 rounded" />
+                <div className="w-48 h-4 bg-slate-100 rounded" />
+              </div>
+              <div className="w-20 h-20 bg-slate-100 rounded-full mr-4" />
+            </div>
+
+            {/* Journal Section Skeleton */}
+            <div className="w-full max-w-2xl mx-auto flex flex-col items-start gap-4 animate-pulse">
+              <div className="w-28 h-6 bg-slate-100 rounded" />
+              <div className="bg-white border border-slate-100 rounded-[24px] p-8 w-full h-[100px] flex items-center justify-center" />
+            </div>
+          </>
         ) : (
           <>
             {/* Calendar Card */}

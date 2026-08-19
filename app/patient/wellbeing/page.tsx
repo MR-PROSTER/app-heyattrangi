@@ -121,15 +121,7 @@ export default function WellbeingPage() {
         setViewMode((prev) => (prev === "week" ? "month" : "week"))
     }
 
-    if (initialLoading) {
-        return (
-            <div className="flex-1 w-full h-full overflow-y-auto bg-[#F9F5F0] flex flex-col items-center justify-center font-sans select-none pb-20">
-                <div className="text-[#1E1E2E] font-bold text-lg animate-pulse">
-                    Loading stats...
-                </div>
-            </div>
-        )
-    }
+
 
     return (
         <div className="flex-1 w-full h-full overflow-y-auto bg-[#F9F5F0] flex flex-col font-sans select-none pb-20">
@@ -174,7 +166,7 @@ export default function WellbeingPage() {
                             isPrevDisabled={selectedWeek === 1}
                             isNextDisabled={selectedWeek === weeks.length}
                             hasData={hasWeeklyData}
-                            isLoading={cardLoading}
+                            isLoading={initialLoading || cardLoading}
                         />
                     ) : (
                         <MonthlyWellbeing
@@ -187,7 +179,7 @@ export default function WellbeingPage() {
                             isPrevDisabled={selectedMonth === 0}
                             isNextDisabled={selectedMonth === 11}
                             hasData={hasMonthlyData}
-                            isLoading={cardLoading}
+                            isLoading={initialLoading || cardLoading}
                         />
                     )}
 

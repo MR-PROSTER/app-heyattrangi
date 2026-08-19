@@ -5,16 +5,19 @@ import React from "react"
 export default function MonthlyEmptyState() {
   const cx = 120
   const cy = 120
-  const r = 80
-  const strokeWidth = 24
+  const r = 88
+  const strokeWidth = 32
 
   // Gap is at the bottom (90 degrees in SVG coordinates is bottom if 0 is right.
   // 105 degrees is bottom-left, 435 (360 + 75) is bottom-right.
   const startAngle = 105
   const endAngle = 435
+  const capAngle = ((strokeWidth / 2) / r) * (180 / Math.PI)
+  const adjustedStart = startAngle + capAngle
+  const adjustedEnd = endAngle - capAngle
 
-  const radStart = (startAngle * Math.PI) / 180
-  const radEnd = (endAngle * Math.PI) / 180
+  const radStart = (adjustedStart * Math.PI) / 180
+  const radEnd = (adjustedEnd * Math.PI) / 180
 
   const x1 = cx + r * Math.cos(radStart)
   const y1 = cy + r * Math.sin(radStart)
@@ -28,7 +31,7 @@ export default function MonthlyEmptyState() {
       className="flex flex-col items-center justify-center w-full py-4 animate-in fade-in zoom-in-98 duration-200"
       aria-label="No wellbeing data available for this month"
     >
-      <div className="relative w-full max-w-[240px] sm:max-w-[260px] aspect-square mx-auto flex items-center justify-center">
+      <div className="relative w-full max-w-[280px] sm:max-w-[320px] aspect-square mx-auto flex items-center justify-center">
         {/* SVG Arc Ring */}
         <svg
           viewBox="0 0 240 240"

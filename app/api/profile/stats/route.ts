@@ -13,7 +13,7 @@ export async function GET() {
     const userId = session.user.id
 
     // Fetch minimum fields for active days check, and counts for mood and journal in parallel
-    const [limitLogs, activityLogs, moodEntries, journalEntries, assessmentAttempts, moodCount, journalCount] = await Promise.all([
+    const [limitLogs, activityLogs, moodEntries, journalEntries, assessmentAttempts] = await Promise.all([
       prisma.technicalLimitLog.findMany({
         where: { userId },
         select: { timestamp: true },
@@ -33,12 +33,6 @@ export async function GET() {
       prisma.assessmentAttempt.findMany({
         where: { userId },
         select: { startedAt: true },
-      }),
-      prisma.moodEntry.count({
-        where: { userId },
-      }),
-      prisma.journalEntry.count({
-        where: { userId },
       }),
     ])
 
@@ -79,8 +73,8 @@ export async function GET() {
 
     return NextResponse.json({
       activeDays,
-      moodCheckIns: moodCount,
-      reflections: journalCount,
+      moodCheckIns: moodEntries.length,
+      reflections: journalEntries.length,
     })
   } catch (error) {
     console.error("[PROFILE_STATS_API_ERROR]", error)

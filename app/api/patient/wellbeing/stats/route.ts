@@ -95,9 +95,55 @@ export async function GET(req: Request) {
     const url = new URL(req.url)
     const period = url.searchParams.get("period")
 
-    // Fetch all mood entries of the user
+    let startDate: Date | undefined
+    let endDate: Date | undefined
+
+    if (period === "week") {
+      const weekParam = parseInt(url.searchParams.get("week") || "4", 10)
+      const ranges: Record<number, { startDaysAgo: number; endDaysAgo: number }> = {
+        1: { startDaysAgo: 28, endDaysAgo: 21 },
+        2: { startDaysAgo: 21, endDaysAgo: 14 },
+        3: { startDaysAgo: 14, endDaysAgo: 7 },
+        4: { startDaysAgo: 7, endDaysAgo: 0 },
+      }
+      const range = ranges[weekParam] || ranges[4]
+      const now = new Date()
+
+      startDate = new Date(now)
+      startDate.setDate(now.getDate() - range.startDaysAgo)
+      startDate.setHours(0, 0, 0, 0)
+
+      endDate = new Date(now)
+      endDate.setDate(now.getDate() - range.endDaysAgo)
+      endDate.setHours(23, 59, 59, 999)
+    } else if (period === "month") {
+      const now = new Date()
+      const month = parseInt(url.searchParams.get("month") || `${now.getMonth()}`, 10)
+      const year = parseInt(url.searchParams.get("year") || `${now.getFullYear()}`, 10)
+
+      startDate = new Date(year, month, 1)
+      endDate = new Date(year, month + 1, 0, 23, 59, 59, 999)
+    } else {
+      const now = new Date()
+      const currentYear = now.getFullYear()
+      const startOfCurrentYear = new Date(currentYear, 0, 1)
+      const twentyEightDaysAgo = new Date(now)
+      twentyEightDaysAgo.setDate(now.getDate() - 28)
+      twentyEightDaysAgo.setHours(0, 0, 0, 0)
+      
+      startDate = twentyEightDaysAgo < startOfCurrentYear ? twentyEightDaysAgo : startOfCurrentYear
+      endDate = new Date(currentYear, 11, 31, 23, 59, 59, 999)
+    }
+
+    // Fetch filtered mood entries of the user
     const moodEntries = await prisma.moodEntry.findMany({
-      where: { userId },
+      where: {
+        userId,
+        timestamp: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
       orderBy: { timestamp: "asc" },
     })
 

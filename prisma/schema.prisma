@@ -552,6 +552,7 @@ model JournalEntry {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId, createdAt(sort: Desc)])
   @@map("journal_entries")
 }
 
@@ -695,6 +696,7 @@ model UserActivityLog {
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   wellnessActivity WellnessActivity @relation(fields: [wellnessActivityId], references: [id])
 
+  @@index([userId, timestamp(sort: Desc)])
   @@map("user_activity_logs")
 }
 
@@ -715,6 +717,7 @@ model MoodEntry {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId, timestamp(sort: Desc)])
   @@map("mood_entries")
 }
 
