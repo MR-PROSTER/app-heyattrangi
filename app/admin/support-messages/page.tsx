@@ -3,9 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Search, Mail, CheckCircle, Eye, X, Calendar, User, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react"
-import SignOutButton from "@/components/auth/SignOutButton"
+import { Search, Mail, Eye, X, Calendar, User, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react"
 import { toast, Toaster } from "sonner"
  
 interface SupportMessage {
@@ -75,8 +73,8 @@ export default function AdminSupportMessagesPage() {
           resolved: list.filter((m) => m.status === "resolved").length,
         })
       }
-    } catch (error: any) {
-      toast.error(error.message || "Unable to load support messages.")
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Unable to load support messages.")
     } finally {
       setLoading(false)
     }
@@ -97,7 +95,7 @@ export default function AdminSupportMessagesPage() {
         fetchMessages()
       }
     }
-  }, [sessionStatus, session, fetchMessages])
+  }, [sessionStatus, session, fetchMessages, router])
  
   // Handle mark as read and select
   const handleOpenMessage = async (msg: SupportMessage) => {
@@ -153,8 +151,8 @@ export default function AdminSupportMessagesPage() {
       
       // Update statistics
       fetchMessages()
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update status")
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to update status")
     } finally {
       setUpdatingStatus(false)
     }
@@ -162,48 +160,23 @@ export default function AdminSupportMessagesPage() {
  
   if (sessionStatus === "loading" || (session?.user?.role !== "ADMIN" && process.env.NODE_ENV !== "development")) {
     return (
-      <div className="min-h-screen bg-[#fafcfd] flex items-center justify-center">
+      <div className="flex min-h-[50vh] items-center justify-center rounded-[2rem] border border-slate-200 bg-white">
         <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
- 
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-slate-50 text-gray-800 font-sans relative overflow-hidden pb-12">
+    <div className="text-gray-800 font-sans relative overflow-hidden pb-12">
       <Toaster position="top-center" richColors closeButton />
  
       {/* Subtle Background Elements */}
       <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-rose-100/40 blur-[100px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-blue-100/40 blur-[100px] rounded-full pointer-events-none" />
  
-      {/* Navigation */}
-      <nav className="relative z-10 border-b border-gray-100 bg-white/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center gap-3">
-              <Link href="/admin/dashboard" className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-[0_4px_14px_rgba(249,107,19,0.25)]">
-                  <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                </div>
-                <h1 className="text-xl font-black tracking-tight text-gray-900">Attrangi Admin</h1>
-              </Link>
-              <span className="text-gray-300 font-medium">/</span>
-              <span className="text-sm font-bold text-gray-500">Support Messages</span>
-            </div>
-            <div className="flex items-center gap-6">
-              <Link href="/admin/dashboard" className="text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
-                Dashboard
-              </Link>
-              <div className="h-4 w-px bg-gray-200" />
-              <SignOutButton />
-            </div>
-          </div>
-        </div>
-      </nav>
- 
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <main className="relative z-10 grid gap-10">
         {/* Header */}
-        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">Support Messages</h1>
             <p className="text-gray-500 font-medium">Review, track, and manage messages submitted by users.</p>
@@ -218,7 +191,7 @@ export default function AdminSupportMessagesPage() {
         </div>
  
         {/* Stats Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
           <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
             <span className="text-sm font-bold text-gray-400 block mb-1">Total Messages</span>
             <div className="flex items-baseline gap-2">
@@ -241,7 +214,7 @@ export default function AdminSupportMessagesPage() {
         </div>
  
         {/* Search & Filter Bar */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="flex flex-col gap-4 md:flex-row">
           {/* Search Box */}
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -279,7 +252,7 @@ export default function AdminSupportMessagesPage() {
         </div>
  
         {/* Message List Table */}
-        <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
+        <div className="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-sm">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-100">
               <thead className="bg-gray-50/50">

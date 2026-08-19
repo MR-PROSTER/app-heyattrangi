@@ -10,6 +10,7 @@ interface MoodCheckInModalProps {
   onClose: () => void
   initialScore?: number
   initialNote?: string
+  maxNoteChars?: number
   onSubmit: (score: number, note: string) => void
 }
 
@@ -71,6 +72,7 @@ export default function MoodCheckInModal({
   onClose,
   initialScore = 2,
   initialNote = "",
+  maxNoteChars = 1000,
   onSubmit,
 }: MoodCheckInModalProps) {
   const [score, setScore] = useState<number>(initialScore)
@@ -80,8 +82,11 @@ export default function MoodCheckInModal({
   const [isFocused, setIsFocused] = useState(false)
 
   const handleTranscript = useCallback((text: string) => {
-    setNote((prev) => (prev.trim() ? `${prev} ${text}` : text))
-  }, [])
+    setNote((prev) => {
+      const next = prev.trim() ? `${prev} ${text}` : text
+      return next.slice(0, maxNoteChars)
+    })
+  }, [maxNoteChars])
 
   const {
       isRecording,
@@ -97,12 +102,12 @@ export default function MoodCheckInModal({
   useEffect(() => {
     if (isOpen) {
       setScore(initialScore)
-      setNote(initialNote)
+      setNote(initialNote.slice(0, maxNoteChars))
       setErrorMsg(null)
       setIsSubmitting(false)
       setIsFocused(false)
     }
-  }, [isOpen, initialScore, initialNote])
+  }, [isOpen, initialScore, initialNote, maxNoteChars])
 
   // Body scroll lock & focus trap
   useEffect(() => {
@@ -163,7 +168,7 @@ export default function MoodCheckInModal({
       await onSubmit(score, note)
       onClose()
     } catch (err) {
-      setErrorMsg("Couldn't save your mood. Please try again.")
+      setErrorMsg(err instanceof Error ? err.message : "Couldn't save your mood. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -194,7 +199,7 @@ export default function MoodCheckInModal({
           className="absolute top-6 left-6 sm:top-10 sm:left-10 w-11 h-11 rounded-full flex items-center justify-center bg-black/10 hover:bg-black/15 transition-colors focus-visible:outline-none focus-visible:ring-2"
           style={{ 
             color: activeMood.primary,
-            // @ts-ignore
+            // @ts-expect-error CSS variable for focus ring color
             "--tw-ring-color": activeMood.primary 
           }}
         >
@@ -499,11 +504,12 @@ export default function MoodCheckInModal({
               <textarea
                 ref={textareaRef}
                 value={note}
-                onChange={(e) => setNote(e.target.value)}
+                onChange={(e) => setNote(e.target.value.slice(0, maxNoteChars))}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
                 placeholder="Add note"
                 aria-label="Add optional note"
+                maxLength={maxNoteChars}
                 className="bg-transparent px-4 border-none outline-none resize-none overflow-y-auto leading-[36px] placeholder-current focus:ring-0 flex-1 min-h-[36px]"
                 style={{
                   color: activeMood.primary,
@@ -515,7 +521,14 @@ export default function MoodCheckInModal({
                   fontWeight: 500,
                   fontSize: "16px",
                 }}
-              />
+                />
+
+              {isExpanded && (
+                <div className="flex items-center justify-between px-4 pt-1 text-[11px] font-bold" style={{ color: activeMood.primary }}>
+                  <span>Optional note</span>
+                  <span>{note.length}/{maxNoteChars}</span>
+                </div>
+              )}
               
               {/* Action buttons section - aligns inline when collapsed, opposite sides when expanded */}
               <div 
