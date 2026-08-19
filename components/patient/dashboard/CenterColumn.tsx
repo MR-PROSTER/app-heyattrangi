@@ -632,7 +632,7 @@ export default function CenterColumn({
                                     <div className="absolute inset-0 bg-gradient-to-b from-[#8BDDEE] via-[#A6E8F6] to-[#D7F5FC] rounded-b-[32px] min-[360px]:rounded-b-[38px] min-[390px]:rounded-b-[42px] overflow-hidden pointer-events-none shadow-[0_8px_30px_rgba(139,221,238,0.12)]" />
 
                                     {/* Header Row: Title & Avatar */}
-                                    <div className="flex items-center justify-between w-full z-10 relative gap-2 min-[360px]:gap-3">
+                                    <div className="flex items-start justify-between w-full z-10 relative gap-2 min-[360px]:gap-3">
                                         <div className="flex flex-col pl-1 min-[360px]:pl-2.5 min-[390px]:pl-4 min-w-0 flex-1">
                                             <h1 className="font-sans font-[1000] text-[28px] min-[360px]:text-[32px] min-[390px]:text-[36px] leading-[34px] min-[390px]:leading-[38px] tracking-[-0.5px] text-white whitespace-nowrap truncate">
                                                 Hello, {firstName}
@@ -641,7 +641,7 @@ export default function CenterColumn({
                                                 {latestBotMessage}
                                             </span>
                                         </div>
-                                        <div className="shrink-0">
+                                        <div className="shrink-0 pt-0.5 min-[360px]:pt-1 min-[390px]:pt-1.5">
                                             <ProfileAvatar
                                                 name={displayName}
                                                 image={userImage}
