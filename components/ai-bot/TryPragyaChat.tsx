@@ -538,15 +538,19 @@ export default function TryPragyaChat({
         }
 
         const userMsg = retryMsg || inputMessage;
+
+        // Force user message update unconditionally. If retryMsg is present, suggestion logic handles its own append.
         if (!retryMsg) {
             setLastUserMessage(userMsg);
             setInputMessage("");
             if (inputRef.current) {
                 inputRef.current.style.height = "auto";
             }
+            // Explicitly force userMsg into UI immediately regardless of logical scope issues.
             setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
             setCumulativeVoiceUsed(0);
         }
+
 
         setIsLoading(true);
         setSuggestions([]);
